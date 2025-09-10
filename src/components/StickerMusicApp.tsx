@@ -119,54 +119,59 @@ const StickerMusicApp = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gradient-background">
+    <div className="min-h-screen p-3 sm:p-6 bg-gradient-background">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
+        <div className="mb-4 sm:mb-8 text-center">
+          <h1 className="text-2xl sm:text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
             Sticker Music Maker
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Drag stickers to create musical compositions!
           </p>
         </div>
 
         {/* Controls */}
-        <div className="flex justify-center gap-4 mb-6">
-          <Button
-            onClick={togglePlayback}
-            variant={audioInitialized ? "secondary" : "default"}
-            size="lg"
-            className="gap-2"
-          >
-            {!audioInitialized ? (
-              <>
-                <Play className="w-5 h-5" />
-                Start Music
-              </>
-            ) : isPlaying ? (
-              <>
-                <Pause className="w-5 h-5" />
-                Pause
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5" />
-                Play
-              </>
-            )}
-          </Button>
-          
-          <Button
-            onClick={clearCanvas}
-            variant="outline"
-            size="lg"
-          >
-            Clear Canvas
-          </Button>
+        <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex justify-center gap-2 sm:gap-4">
+            <Button
+              onClick={togglePlayback}
+              variant={audioInitialized ? "secondary" : "default"}
+              size="sm"
+              className="gap-2 flex-1 sm:flex-initial"
+            >
+              {!audioInitialized ? (
+                <>
+                  <Play className="w-4 h-4" />
+                  <span className="hidden sm:inline">Start Music</span>
+                  <span className="sm:hidden">Start</span>
+                </>
+              ) : isPlaying ? (
+                <>
+                  <Pause className="w-4 h-4" />
+                  Pause
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  Play
+                </>
+              )}
+            </Button>
+            
+            <Button
+              onClick={clearCanvas}
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-initial"
+            >
+              <span className="hidden sm:inline">Clear Canvas</span>
+              <span className="sm:hidden">Clear</span>
+            </Button>
+          </div>
 
-          <div className="flex items-center gap-2">
-            <Volume2 className="w-5 h-5 text-muted-foreground" />
+          <div className="flex items-center justify-center gap-2 mt-2 sm:mt-0">
+            <Volume2 className="w-4 h-4 text-muted-foreground" />
             <input
               type="range"
               min="0"
@@ -174,16 +179,16 @@ const StickerMusicApp = () => {
               step="0.1"
               value={globalVolume}
               onChange={(e) => setGlobalVolume(parseFloat(e.target.value))}
-              className="w-24"
+              className="w-20 sm:w-24"
             />
           </div>
         </div>
 
         {/* Main Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6 min-h-[calc(100vh-200px)] sm:h-[600px]">
           {/* Sticker Palette */}
-          <Card className="p-6 bg-gradient-card shadow-card border-0">
-            <h2 className="text-xl font-semibold mb-4 text-center">
+          <Card className="p-3 sm:p-6 bg-gradient-card shadow-card border-0 h-[250px] sm:h-auto">
+            <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4 text-center">
               Sticker Palette
             </h2>
             <StickerPalette />
@@ -191,7 +196,7 @@ const StickerMusicApp = () => {
 
           {/* Music Canvas */}
           <div className="lg:col-span-2">
-            <Card className="h-full bg-gradient-card shadow-card border-0">
+            <Card className="h-[400px] sm:h-full bg-gradient-card shadow-card border-0">
               <MusicCanvas
                 stickers={placedStickers}
                 onStickerDrop={handleStickerDrop}
