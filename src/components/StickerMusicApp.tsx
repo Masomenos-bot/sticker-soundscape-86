@@ -187,17 +187,17 @@ const StickerMusicApp = () => {
         </div>
 
         {/* Main Layout */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8 sm:gap-12">
           {/* Sticker Palette */}
           <div className="w-full">
-            <Card className="p-3 bg-gradient-card shadow-card border-0 h-[140px] flex-shrink-0">
+            <Card className="p-3 bg-gradient-card shadow-card border-0 h-[140px] flex-shrink-0 mb-4 sm:mb-6">
               <StickerPalette />
             </Card>
           </div>
 
           {/* Music Canvas */}
           <div className="w-full flex-1">
-            <Card className="bg-gradient-card shadow-card border-4 border-black h-[calc(100vh-400px)] min-h-[400px]">
+            <Card className="bg-gradient-card shadow-card border-4 border-black h-[calc(100vh-480px)] min-h-[400px]">
               <MusicCanvas
                 stickers={placedStickers}
                 onStickerDrop={handleStickerDrop}
