@@ -53,14 +53,10 @@ export const MusicCanvas = ({
   }, [onStickerDrop]);
 
   return (
-    <div className="relative h-full p-6">
-      <h2 className="text-xl font-semibold mb-4 text-center">
-        Music Canvas
-      </h2>
-      
+    <div className="relative h-full p-3">
       <div
         ref={canvasRef}
-        className="relative w-full h-full min-h-[500px] bg-muted/20 rounded-2xl border-2 border-dashed border-muted-foreground/30 transition-all duration-300"
+        className="relative w-full h-full min-h-[400px] bg-muted/20 rounded-2xl border-2 border-dashed border-muted-foreground/30 transition-all duration-300"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

@@ -185,25 +185,23 @@ const StickerMusicApp = () => {
         </div>
 
         {/* Main Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6 min-h-[calc(100vh-200px)] sm:h-[600px]">
+        <div className="flex flex-col gap-3 sm:gap-4">
           {/* Sticker Palette */}
-          <Card className="p-3 sm:p-6 bg-gradient-card shadow-card border-0 h-[120px] sm:h-[140px]">
+          <Card className="p-3 bg-gradient-card shadow-card border-0 h-[140px]">
             <StickerPalette />
           </Card>
 
           {/* Music Canvas */}
-          <div className="lg:col-span-2">
-            <Card className="h-[400px] sm:h-full bg-gradient-card shadow-card border-4 border-black">
-              <MusicCanvas
-                stickers={placedStickers}
-                onStickerDrop={handleStickerDrop}
-                onStickerUpdate={handleStickerUpdate}
-                onStickerRemove={handleStickerRemove}
-                isPlaying={isPlaying}
-                globalVolume={globalVolume}
-              />
-            </Card>
-          </div>
+          <Card className="bg-gradient-card shadow-card border-4 border-black h-[calc(100vh-300px)] min-h-[400px]">
+            <MusicCanvas
+              stickers={placedStickers}
+              onStickerDrop={handleStickerDrop}
+              onStickerUpdate={handleStickerUpdate}
+              onStickerRemove={handleStickerRemove}
+              isPlaying={isPlaying}
+              globalVolume={globalVolume}
+            />
+          </Card>
         </div>
       </div>
     </div>
