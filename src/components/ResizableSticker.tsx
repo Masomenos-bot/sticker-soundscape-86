@@ -466,9 +466,12 @@ export const ResizableSticker = ({
         variant="secondary"
         className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
+          console.log('Layer up clicked for sticker:', sticker.id);
           onLayerChange(sticker.id, 'up');
         }}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <ChevronUp className="w-3 h-3" />
       </Button>
@@ -479,9 +482,12 @@ export const ResizableSticker = ({
         variant="secondary"
         className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
+          console.log('Layer down clicked for sticker:', sticker.id);
           onLayerChange(sticker.id, 'down');
         }}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <ChevronDown className="w-3 h-3" />
       </Button>

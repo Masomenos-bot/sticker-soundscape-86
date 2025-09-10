@@ -81,10 +81,15 @@ const StickerMusicApp = () => {
   };
 
   const handleLayerChange = (id: string, direction: 'up' | 'down') => {
+    console.log(`Layer change requested: ${direction} for sticker ${id}`);
     setPlacedStickers(prev => {
       const currentSticker = prev.find(s => s.id === id);
-      if (!currentSticker) return prev;
+      if (!currentSticker) {
+        console.log('Sticker not found:', id);
+        return prev;
+      }
 
+      console.log('Current sticker z-index:', currentSticker.zIndex);
       const otherStickers = prev.filter(s => s.id !== id);
       
       if (direction === 'up') {
@@ -94,6 +99,7 @@ const StickerMusicApp = () => {
           .sort((a, b) => a.zIndex - b.zIndex)[0];
         
         if (nextSticker) {
+          console.log('Swapping with sticker at z-index:', nextSticker.zIndex);
           // Swap z-indices
           return prev.map(s => {
             if (s.id === id) return { ...s, zIndex: nextSticker.zIndex };
@@ -103,6 +109,7 @@ const StickerMusicApp = () => {
         } else {
           // No sticker above, move to top
           const maxZ = Math.max(...prev.map(s => s.zIndex));
+          console.log('Moving to top, new z-index:', maxZ + 1);
           return prev.map(s => s.id === id ? { ...s, zIndex: maxZ + 1 } : s);
         }
       } else {
@@ -112,6 +119,7 @@ const StickerMusicApp = () => {
           .sort((a, b) => b.zIndex - a.zIndex)[0];
         
         if (prevSticker) {
+          console.log('Swapping with sticker at z-index:', prevSticker.zIndex);
           // Swap z-indices
           return prev.map(s => {
             if (s.id === id) return { ...s, zIndex: prevSticker.zIndex };
@@ -121,7 +129,9 @@ const StickerMusicApp = () => {
         } else {
           // No sticker below, move to bottom
           const minZ = Math.min(...prev.map(s => s.zIndex));
-          return prev.map(s => s.id === id ? { ...s, zIndex: Math.max(0, minZ - 1) } : s);
+          const newZ = Math.max(0, minZ - 1);
+          console.log('Moving to bottom, new z-index:', newZ);
+          return prev.map(s => s.id === id ? { ...s, zIndex: newZ } : s);
         }
       }
     });
