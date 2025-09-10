@@ -30,6 +30,7 @@ export const ResizableSticker = ({
   const [isGesturing, setIsGesturing] = useState(false);
   const [initialTouches, setInitialTouches] = useState<{ distance: number; angle: number; center: { x: number; y: number } } | null>(null);
   const [initialSticker, setInitialSticker] = useState<{ width: number; height: number; rotation: number; x: number; y: number } | null>(null);
+  const [showTrashOverlay, setShowTrashOverlay] = useState(false);
 
   // Random animation selection for each sticker (based on ID for consistency)
   const stickerAnimation = React.useMemo(() => {
@@ -155,14 +156,35 @@ export const ResizableSticker = ({
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
       
+      // Check if sticker is near canvas edges
+      if (canvasRef.current) {
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const stickerCenterX = newX + sticker.width / 2;
+        const stickerCenterY = newY + sticker.height / 2;
+        
+        const deleteZone = 80; // Pixels from edge to show delete warning
+        const nearEdge = stickerCenterX < deleteZone || stickerCenterX > canvasRect.width - deleteZone ||
+                        stickerCenterY < deleteZone || stickerCenterY > canvasRect.height - deleteZone;
+        
+        setShowTrashOverlay(nearEdge);
+        
+        // If sticker center is outside canvas bounds, remove it
+        if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
+            stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
+          onRemove(sticker.id);
+          return;
+        }
+      }
+      
       onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
     }
-  }, [isDragging, dragStart, onUpdate, sticker.id]);
+  }, [isDragging, dragStart, onUpdate, onRemove, sticker.id, sticker.width, sticker.height, canvasRef]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setIsResizing(false);
     setIsRotating(false);
+    setShowTrashOverlay(false);
   }, []);
 
   useEffect(() => {
@@ -325,6 +347,26 @@ export const ResizableSticker = ({
       const newX = touch.clientX - dragStart.x;
       const newY = touch.clientY - dragStart.y;
       
+      // Check if sticker is near canvas edges
+      if (canvasRef.current) {
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const stickerCenterX = newX + sticker.width / 2;
+        const stickerCenterY = newY + sticker.height / 2;
+        
+        const deleteZone = 80; // Pixels from edge to show delete warning
+        const nearEdge = stickerCenterX < deleteZone || stickerCenterX > canvasRect.width - deleteZone ||
+                        stickerCenterY < deleteZone || stickerCenterY > canvasRect.height - deleteZone;
+        
+        setShowTrashOverlay(nearEdge);
+        
+        // If sticker center is outside canvas bounds, remove it
+        if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
+            stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
+          onRemove(sticker.id);
+          return;
+        }
+      }
+      
       onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
     } else if (isGesturing && event.touches.length === 2 && initialTouches && initialSticker) {
       // Two finger gesture
@@ -369,6 +411,7 @@ export const ResizableSticker = ({
     setIsGesturing(false);
     setInitialTouches(null);
     setInitialSticker(null);
+    setShowTrashOverlay(false);
   }, []);
 
   useEffect(() => {
@@ -410,16 +453,6 @@ export const ResizableSticker = ({
         <X className="w-3 h-3" />
       </Button>
 
-      {/* Trash button */}
-      <Button
-        size="sm"
-        variant="destructive"
-        className="absolute -top-2 right-6 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-        onClick={() => onRemove(sticker.id)}
-      >
-        <Trash2 className="w-3 h-3" />
-      </Button>
-
       {/* Rotate button */}
       <Button
         size="sm"
@@ -438,6 +471,13 @@ export const ResizableSticker = ({
         draggable={false}
         style={{ backgroundColor: 'transparent' }}
       />
+
+      {/* Trash overlay when near edges */}
+      {showTrashOverlay && (
+        <div className="absolute inset-0 flex items-center justify-center bg-destructive/20 rounded-lg backdrop-blur-sm">
+          <Trash2 className="w-8 h-8 text-destructive animate-pulse" />
+        </div>
+      )}
 
       {/* Resize handle */}
       <div
