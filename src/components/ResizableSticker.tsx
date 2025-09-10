@@ -23,6 +23,9 @@ export const ResizableSticker = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isGesturing, setIsGesturing] = useState(false);
+  const [initialTouches, setInitialTouches] = useState<{ distance: number; angle: number; center: { x: number; y: number } } | null>(null);
+  const [initialSticker, setInitialSticker] = useState<{ width: number; height: number; rotation: number; x: number; y: number } | null>(null);
 
   // Create a simple tone for each sticker based on its ID
   const createAudioTone = useCallback(async () => {
@@ -191,19 +194,120 @@ export const ResizableSticker = ({
     }
   }, [isResizing, handleResizeMove, handleMouseUp]);
 
+  // Touch gesture utilities
+  const getTouchDistance = (touch1: React.Touch, touch2: React.Touch) => {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const getTouchAngle = (touch1: React.Touch, touch2: React.Touch) => {
+    const dx = touch2.clientX - touch1.clientX;
+    const dy = touch2.clientY - touch1.clientY;
+    return Math.atan2(dy, dx) * (180 / Math.PI);
+  };
+
+  const getTouchCenter = (touch1: React.Touch, touch2: React.Touch) => {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2,
+    };
+  };
+
+  // Touch event handlers
+  const handleTouchStart = (event: React.TouchEvent) => {
+    if (event.touches.length === 2) {
+      event.preventDefault();
+      setIsGesturing(true);
+      
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
+      
+      const distance = getTouchDistance(touch1, touch2);
+      const angle = getTouchAngle(touch1, touch2);
+      const center = getTouchCenter(touch1, touch2);
+      
+      setInitialTouches({ distance, angle, center });
+      setInitialSticker({
+        width: sticker.width,
+        height: sticker.height,
+        rotation: sticker.rotation || 0,
+        x: sticker.x,
+        y: sticker.y,
+      });
+    }
+  };
+
+  const handleTouchMove = useCallback((event: TouchEvent) => {
+    if (isGesturing && event.touches.length === 2 && initialTouches && initialSticker) {
+      event.preventDefault();
+      
+      const touch1 = event.touches[0];
+      const touch2 = event.touches[1];
+      
+      const currentDistance = getTouchDistance(touch1, touch2);
+      const currentAngle = getTouchAngle(touch1, touch2);
+      const currentCenter = getTouchCenter(touch1, touch2);
+      
+      // Calculate scale factor
+      const scaleRatio = currentDistance / initialTouches.distance;
+      const newWidth = Math.max(40, Math.min(200, initialSticker.width * scaleRatio));
+      const newHeight = Math.max(40, Math.min(200, initialSticker.height * scaleRatio));
+      
+      // Calculate rotation difference
+      const rotationDiff = currentAngle - initialTouches.angle;
+      const newRotation = (initialSticker.rotation + rotationDiff) % 360;
+      
+      // Calculate new position based on center movement
+      const centerDeltaX = currentCenter.x - initialTouches.center.x;
+      const centerDeltaY = currentCenter.y - initialTouches.center.y;
+      const newX = Math.max(0, initialSticker.x + centerDeltaX);
+      const newY = Math.max(0, initialSticker.y + centerDeltaY);
+      
+      onUpdate(sticker.id, {
+        width: newWidth,
+        height: newHeight,
+        rotation: newRotation,
+        x: newX,
+        y: newY,
+      });
+    }
+  }, [isGesturing, initialTouches, initialSticker, onUpdate, sticker.id]);
+
+  const handleTouchEnd = useCallback(() => {
+    setIsGesturing(false);
+    setInitialTouches(null);
+    setInitialSticker(null);
+  }, []);
+
+  useEffect(() => {
+    if (isGesturing) {
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
+
+      return () => {
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleTouchEnd);
+      };
+    }
+  }, [isGesturing, handleTouchMove, handleTouchEnd]);
+
   return (
     <div
       ref={stickerRef}
-      className={`absolute cursor-move select-none group sticker-bounce ${
-        isDragging ? 'z-50 scale-105' : ''
+      className={`absolute cursor-move select-none group sticker-bounce touch-manipulation ${
+        isDragging || isGesturing ? 'z-50 scale-105' : ''
       }`}
       style={{
         left: sticker.x,
         top: sticker.y,
         width: sticker.width,
         height: sticker.height,
+        transform: `rotate(${sticker.rotation || 0}deg)`,
+        transformOrigin: 'center center',
       }}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
       {/* Remove button */}
       <Button

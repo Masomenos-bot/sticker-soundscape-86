@@ -15,6 +15,7 @@ export interface Sticker {
   width: number;
   height: number;
   volume: number;
+  rotation?: number;
 }
 
 export interface StickerData {
@@ -59,6 +60,7 @@ const StickerMusicApp = () => {
       width: 80,
       height: 80,
       volume: 0.5,
+      rotation: 0,
     };
 
     setPlacedStickers(prev => [...prev, newSticker]);
