@@ -277,12 +277,6 @@ export const ResizableSticker = ({
       // Normalize rotation to 0-360 range
       newRotation = ((newRotation % 360) + 360) % 360;
       
-      console.log('Rotation:', { 
-        initial: initialSticker.rotation, 
-        diff: rotationDiff, 
-        final: newRotation 
-      });
-      
       // Calculate new position based on center movement
       const centerDeltaX = currentCenter.x - initialTouches.center.x;
       const centerDeltaY = currentCenter.y - initialTouches.center.y;
@@ -322,7 +316,7 @@ export const ResizableSticker = ({
     <div
       ref={stickerRef}
       className={`absolute cursor-move select-none group sticker-bounce touch-manipulation ${
-        isDragging || isGesturing ? 'z-50 scale-105' : 'animate-float-circular'
+        isDragging || isGesturing ? 'z-50 scale-105' : sticker.rotation && sticker.rotation !== 0 ? '' : 'animate-float-circular'
       }`}
       style={{
         left: sticker.x,
