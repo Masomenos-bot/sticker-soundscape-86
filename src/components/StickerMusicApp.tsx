@@ -82,13 +82,48 @@ const StickerMusicApp = () => {
 
   const handleLayerChange = (id: string, direction: 'up' | 'down') => {
     setPlacedStickers(prev => {
-      return prev.map(sticker => {
-        if (sticker.id === id) {
-          const newZIndex = direction === 'up' ? sticker.zIndex + 1 : Math.max(0, sticker.zIndex - 1);
-          return { ...sticker, zIndex: newZIndex };
+      const currentSticker = prev.find(s => s.id === id);
+      if (!currentSticker) return prev;
+
+      const otherStickers = prev.filter(s => s.id !== id);
+      
+      if (direction === 'up') {
+        // Find the sticker with the next higher z-index to swap with
+        const nextSticker = otherStickers
+          .filter(s => s.zIndex > currentSticker.zIndex)
+          .sort((a, b) => a.zIndex - b.zIndex)[0];
+        
+        if (nextSticker) {
+          // Swap z-indices
+          return prev.map(s => {
+            if (s.id === id) return { ...s, zIndex: nextSticker.zIndex };
+            if (s.id === nextSticker.id) return { ...s, zIndex: currentSticker.zIndex };
+            return s;
+          });
+        } else {
+          // No sticker above, move to top
+          const maxZ = Math.max(...prev.map(s => s.zIndex));
+          return prev.map(s => s.id === id ? { ...s, zIndex: maxZ + 1 } : s);
         }
-        return sticker;
-      });
+      } else {
+        // Find the sticker with the next lower z-index to swap with
+        const prevSticker = otherStickers
+          .filter(s => s.zIndex < currentSticker.zIndex)
+          .sort((a, b) => b.zIndex - a.zIndex)[0];
+        
+        if (prevSticker) {
+          // Swap z-indices
+          return prev.map(s => {
+            if (s.id === id) return { ...s, zIndex: prevSticker.zIndex };
+            if (s.id === prevSticker.id) return { ...s, zIndex: currentSticker.zIndex };
+            return s;
+          });
+        } else {
+          // No sticker below, move to bottom
+          const minZ = Math.min(...prev.map(s => s.zIndex));
+          return prev.map(s => s.id === id ? { ...s, zIndex: Math.max(0, minZ - 1) } : s);
+        }
+      }
     });
   };
 
