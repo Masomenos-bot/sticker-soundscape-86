@@ -87,12 +87,30 @@ export default {
             height: "0",
           },
         },
+        "float-circular": {
+          "0%": {
+            transform: "translate(0px, 0px) rotate(0deg)",
+          },
+          "25%": {
+            transform: "translate(2px, -2px) rotate(90deg)",
+          },
+          "50%": {
+            transform: "translate(0px, -4px) rotate(180deg)",
+          },
+          "75%": {
+            transform: "translate(-2px, -2px) rotate(270deg)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px) rotate(360deg)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "bounce-in": "bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
         "pulse-soft": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "float-circular": "float-circular 8s ease-in-out infinite",
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",

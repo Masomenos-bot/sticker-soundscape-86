@@ -314,7 +314,7 @@ export const ResizableSticker = ({
     <div
       ref={stickerRef}
       className={`absolute cursor-move select-none group sticker-bounce touch-manipulation ${
-        isDragging || isGesturing ? 'z-50 scale-105' : ''
+        isDragging || isGesturing ? 'z-50 scale-105' : 'animate-float-circular'
       }`}
       style={{
         left: sticker.x,
