@@ -488,7 +488,7 @@ export const ResizableSticker = ({
 
       {/* Trash overlay when near edges */}
       {showTrashOverlay && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg backdrop-blur-sm">
           <Trash2 className="w-8 h-8 text-destructive animate-pulse" />
         </div>
       )}
