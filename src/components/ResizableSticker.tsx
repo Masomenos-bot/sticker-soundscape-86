@@ -219,8 +219,9 @@ export const ResizableSticker = ({
       <img
         src={sticker.src}
         alt="Sticker"
-        className="w-full h-full object-contain pointer-events-none shadow-sticker rounded-lg"
+        className="w-full h-full object-contain pointer-events-none"
         draggable={false}
+        style={{ backgroundColor: 'transparent' }}
       />
 
       {/* Resize handle */}
