@@ -6,6 +6,8 @@ import { Volume2, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
+// @ts-ignore
+import GIF from "gif.js";
 
 export interface Sticker {
   id: string;
@@ -201,6 +203,63 @@ const StickerMusicApp = () => {
   const handleExport = async () => {
     if (!canvasRef.current) return;
     
+    if (isPlaying) {
+      // Export as 15-second GIF
+      toast("Creating 15-second GIF... This may take a moment!", { duration: 3000 });
+      
+      try {
+        const gif = new GIF({
+          workers: 2,
+          quality: 10,
+          width: canvasRef.current.offsetWidth,
+          height: canvasRef.current.offsetHeight,
+          workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+        });
+
+        const frameCount = 60; // 60 frames for 15 seconds (4 fps)
+        const frameDelay = 250; // 250ms between frames (4 fps)
+        
+        for (let i = 0; i < frameCount; i++) {
+          const canvas = await html2canvas(canvasRef.current, {
+            backgroundColor: null,
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+          });
+          
+          gif.addFrame(canvas, { delay: frameDelay });
+          
+          // Wait for frame delay to capture animation changes
+          await new Promise(resolve => setTimeout(resolve, frameDelay));
+        }
+
+        gif.on('finished', function(blob: Blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `sticker-animation-${Date.now()}.gif`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+          toast("15-second GIF exported! 🎬", { duration: 2000 });
+        });
+
+        gif.render();
+        
+      } catch (error) {
+        console.error('GIF export failed:', error);
+        toast("GIF export failed, exporting as PNG instead", { duration: 2000 });
+        // Fallback to PNG export
+        exportAsPNG();
+      }
+    } else {
+      // Export as PNG when paused
+      exportAsPNG();
+    }
+  };
+
+  const exportAsPNG = async () => {
+    if (!canvasRef.current) return;
+    
     try {
       toast("Capturing canvas...", { duration: 1000 });
       
@@ -224,7 +283,7 @@ const StickerMusicApp = () => {
         }
       }, 'image/png');
     } catch (error) {
-      console.error('Export failed:', error);
+      console.error('PNG export failed:', error);
       toast("Export failed", { duration: 2000 });
     }
   };
