@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, forwardRef } from "react";
 import { Sticker, StickerData } from "./StickerMusicApp";
 import { ResizableSticker } from "./ResizableSticker";
 
@@ -12,7 +12,7 @@ interface MusicCanvasProps {
   globalVolume: number;
 }
 
-export const MusicCanvas = ({
+export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   stickers,
   onStickerDrop,
   onStickerUpdate,
@@ -20,7 +20,7 @@ export const MusicCanvas = ({
   onLayerChange,
   isPlaying,
   globalVolume,
-}: MusicCanvasProps) => {
+}, ref) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
@@ -55,7 +55,7 @@ export const MusicCanvas = ({
   }, [onStickerDrop]);
 
   return (
-    <div className="relative h-full p-3">
+    <div ref={ref} className="relative h-full p-3">
       <div
         ref={canvasRef}
         className="relative w-full h-full min-h-[400px] bg-muted/20 transition-all duration-300"
@@ -90,4 +90,6 @@ export const MusicCanvas = ({
       </div>
     </div>
   );
-};
+});
+
+MusicCanvas.displayName = "MusicCanvas";

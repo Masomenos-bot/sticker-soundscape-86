@@ -5,6 +5,7 @@ import { MusicCanvas } from "./MusicCanvas";
 import { Volume2, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import html2canvas from "html2canvas";
 
 export interface Sticker {
   id: string;
@@ -33,6 +34,7 @@ const StickerMusicApp = () => {
   const [globalVolume, setGlobalVolume] = useState(0.7);
   const [audioInitialized, setAudioInitialized] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   // Initialize audio context
   useEffect(() => {
@@ -182,6 +184,51 @@ const StickerMusicApp = () => {
     });
   };
 
+  const handlePlay = async () => {
+    if (!audioInitialized) {
+      await initializeAudio();
+      return;
+    }
+    setIsPlaying(true);
+    toast("Playing", { duration: 1000 });
+  };
+
+  const handlePause = () => {
+    setIsPlaying(false);
+    toast("Paused", { duration: 1000 });
+  };
+
+  const handleExport = async () => {
+    if (!canvasRef.current) return;
+    
+    try {
+      toast("Capturing canvas...", { duration: 1000 });
+      
+      const canvas = await html2canvas(canvasRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+      });
+      
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `sticker-canvas-${Date.now()}.png`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+          toast("Canvas exported! 📸", { duration: 2000 });
+        }
+      }, 'image/png');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast("Export failed", { duration: 2000 });
+    }
+  };
+
   return (
     <div className="min-h-screen p-3 sm:p-6 bg-gradient-background">
       <div className="max-w-7xl mx-auto">
@@ -203,10 +250,47 @@ const StickerMusicApp = () => {
             </Card>
           </div>
 
+          {/* Control Buttons */}
+          <div className="w-full flex justify-center mb-4">
+            <div className="flex gap-4 items-center">
+              <button
+                onClick={handlePlay}
+                className="w-10 h-10 rounded-full overflow-hidden hover:scale-110 transition-transform duration-200 border-2 border-black bg-white"
+              >
+                <img
+                  src="/lovable-uploads/5ec10ca7-cdd4-4ecc-bcbe-5243239cecc7.png"
+                  alt="Play"
+                  className="w-full h-full object-cover"
+                />
+              </button>
+              <button
+                onClick={handlePause}
+                className="w-10 h-10 rounded-full overflow-hidden hover:scale-110 transition-transform duration-200 border-2 border-black bg-white"
+              >
+                <img
+                  src="/lovable-uploads/65258414-94a1-467e-9cc8-d282505d1e1e.png"
+                  alt="Pause"
+                  className="w-full h-full object-cover"
+                />
+              </button>
+              <button
+                onClick={handleExport}
+                className="w-10 h-10 rounded-full overflow-hidden hover:scale-110 transition-transform duration-200 border-2 border-black bg-white"
+              >
+                <img
+                  src="/lovable-uploads/fedcc64b-0b85-4fe3-93dc-05e76aa5ee7c.png"
+                  alt="Share/Export"
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            </div>
+          </div>
+
           {/* Music Canvas */}
           <div className="w-full flex-1">
             <Card className="bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px]">
               <MusicCanvas
+                ref={canvasRef}
                 stickers={placedStickers}
                 onStickerDrop={handleStickerDrop}
                 onStickerUpdate={handleStickerUpdate}
