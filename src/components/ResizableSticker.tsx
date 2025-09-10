@@ -171,6 +171,7 @@ export const ResizableSticker = ({
         const crossingBoundary = stickerLeft < -halfWidth || stickerRight > canvasRect.width + halfWidth ||
                                 stickerTop < -halfHeight || stickerBottom > canvasRect.height + halfHeight;
         
+        console.log('Drag position:', { newX, newY, crossingBoundary, halfWidth, halfHeight });
         setShowTrashOverlay(crossingBoundary);
         
         // If sticker center is completely outside canvas bounds, remove it
@@ -488,8 +489,8 @@ export const ResizableSticker = ({
 
       {/* Trash overlay when near edges */}
       {showTrashOverlay && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg backdrop-blur-sm">
-          <Trash2 className="w-8 h-8 text-destructive animate-pulse" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg backdrop-blur-sm z-50">
+          <Trash2 className="w-12 h-12 text-destructive animate-pulse drop-shadow-lg" />
         </div>
       )}
 
