@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Sticker } from "./StickerMusicApp";
-import { X, RotateCw, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { RotateCw, Trash2, ChevronUp, ChevronDown, FlipHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ResizableStickerProps {
@@ -492,14 +492,18 @@ export const ResizableSticker = ({
         <ChevronDown className="w-3 h-3" />
       </Button>
 
-      {/* Remove button */}
+      {/* Mirror button */}
       <Button
         size="sm"
-        variant="destructive"
+        variant="secondary"
         className="absolute -top-2 -right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-        onClick={() => onRemove(sticker.id)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onUpdate(sticker.id, { mirrored: !sticker.mirrored });
+        }}
       >
-        <X className="w-3 h-3" />
+        <FlipHorizontal className="w-3 h-3" />
       </Button>
 
       {/* Rotate button */}
