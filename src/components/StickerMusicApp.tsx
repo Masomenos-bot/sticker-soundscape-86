@@ -16,6 +16,7 @@ export interface Sticker {
   height: number;
   volume: number;
   rotation?: number;
+  zIndex: number;
 }
 
 export interface StickerData {
@@ -51,6 +52,7 @@ const StickerMusicApp = () => {
   }, []);
 
   const handleStickerDrop = (stickerData: StickerData, x: number, y: number) => {
+    const maxZIndex = Math.max(0, ...placedStickers.map(s => s.zIndex));
     const newSticker: Sticker = {
       id: `${stickerData.id}-${Date.now()}`,
       src: stickerData.src,
@@ -61,6 +63,7 @@ const StickerMusicApp = () => {
       height: 80,
       volume: 0.5,
       rotation: 0,
+      zIndex: maxZIndex + 1,
     };
 
     setPlacedStickers(prev => [...prev, newSticker]);
@@ -75,6 +78,45 @@ const StickerMusicApp = () => {
         sticker.id === id ? { ...sticker, ...updates } : sticker
       )
     );
+  };
+
+  const handleLayerChange = (id: string, direction: 'up' | 'down') => {
+    setPlacedStickers(prev => {
+      const sticker = prev.find(s => s.id === id);
+      if (!sticker) return prev;
+
+      const otherStickers = prev.filter(s => s.id !== id);
+      
+      if (direction === 'up') {
+        // Find sticker with next higher zIndex
+        const nextSticker = otherStickers
+          .filter(s => s.zIndex > sticker.zIndex)
+          .sort((a, b) => a.zIndex - b.zIndex)[0];
+        
+        if (nextSticker) {
+          return prev.map(s => {
+            if (s.id === id) return { ...s, zIndex: nextSticker.zIndex };
+            if (s.id === nextSticker.id) return { ...s, zIndex: sticker.zIndex };
+            return s;
+          });
+        }
+      } else {
+        // Find sticker with next lower zIndex
+        const prevSticker = otherStickers
+          .filter(s => s.zIndex < sticker.zIndex)
+          .sort((a, b) => b.zIndex - a.zIndex)[0];
+        
+        if (prevSticker) {
+          return prev.map(s => {
+            if (s.id === id) return { ...s, zIndex: prevSticker.zIndex };
+            if (s.id === prevSticker.id) return { ...s, zIndex: sticker.zIndex };
+            return s;
+          });
+        }
+      }
+      
+      return prev;
+    });
   };
 
   const handleStickerRemove = (id: string) => {
@@ -149,6 +191,7 @@ const StickerMusicApp = () => {
                 onStickerDrop={handleStickerDrop}
                 onStickerUpdate={handleStickerUpdate}
                 onStickerRemove={handleStickerRemove}
+                onLayerChange={handleLayerChange}
                 isPlaying={isPlaying}
                 globalVolume={globalVolume}
               />

@@ -7,6 +7,7 @@ interface MusicCanvasProps {
   onStickerDrop: (sticker: StickerData, x: number, y: number) => void;
   onStickerUpdate: (id: string, updates: Partial<Sticker>) => void;
   onStickerRemove: (id: string) => void;
+  onLayerChange: (id: string, direction: 'up' | 'down') => void;
   isPlaying: boolean;
   globalVolume: number;
 }
@@ -16,6 +17,7 @@ export const MusicCanvas = ({
   onStickerDrop,
   onStickerUpdate,
   onStickerRemove,
+  onLayerChange,
   isPlaying,
   globalVolume,
 }: MusicCanvasProps) => {
@@ -71,12 +73,15 @@ export const MusicCanvas = ({
           </div>
         )}
 
-        {stickers.map((sticker) => (
+        {stickers
+          .sort((a, b) => a.zIndex - b.zIndex)
+          .map((sticker) => (
           <ResizableSticker
             key={sticker.id}
             sticker={sticker}
             onUpdate={onStickerUpdate}
             onRemove={onStickerRemove}
+            onLayerChange={onLayerChange}
             isPlaying={isPlaying}
             globalVolume={globalVolume}
             canvasRef={canvasRef}

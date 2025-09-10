@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Sticker } from "./StickerMusicApp";
-import { X, RotateCw, Trash2 } from "lucide-react";
+import { X, RotateCw, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ResizableStickerProps {
   sticker: Sticker;
   onUpdate: (id: string, updates: Partial<Sticker>) => void;
   onRemove: (id: string) => void;
+  onLayerChange: (id: string, direction: 'up' | 'down') => void;
   isPlaying: boolean;
   globalVolume: number;
   canvasRef: React.RefObject<HTMLDivElement>;
@@ -16,6 +17,7 @@ export const ResizableSticker = ({
   sticker,
   onUpdate,
   onRemove,
+  onLayerChange,
   isPlaying,
   globalVolume,
   canvasRef,
@@ -171,7 +173,6 @@ export const ResizableSticker = ({
         const crossingBoundary = stickerLeft < -halfWidth || stickerRight > canvasRect.width + halfWidth ||
                                 stickerTop < -halfHeight || stickerBottom > canvasRect.height + halfHeight;
         
-        console.log('Drag position:', { newX, newY, crossingBoundary, halfWidth, halfHeight });
         setShowTrashOverlay(crossingBoundary);
         
         // If sticker center is completely outside canvas bounds, remove it
@@ -454,10 +455,37 @@ export const ResizableSticker = ({
         height: sticker.height,
         transform: `rotate(${sticker.rotation || 0}deg)`,
         transformOrigin: 'center center',
+        zIndex: sticker.zIndex,
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >
+      {/* Layer up button */}
+      <Button
+        size="sm"
+        variant="secondary"
+        className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        onClick={(e) => {
+          e.stopPropagation();
+          onLayerChange(sticker.id, 'up');
+        }}
+      >
+        <ChevronUp className="w-3 h-3" />
+      </Button>
+
+      {/* Layer down button */}
+      <Button
+        size="sm"
+        variant="secondary"
+        className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        onClick={(e) => {
+          e.stopPropagation();
+          onLayerChange(sticker.id, 'down');
+        }}
+      >
+        <ChevronDown className="w-3 h-3" />
+      </Button>
+
       {/* Remove button */}
       <Button
         size="sm"
