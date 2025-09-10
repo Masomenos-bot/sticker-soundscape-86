@@ -128,7 +128,7 @@ const StickerMusicApp = () => {
           <img 
             src="/lovable-uploads/36893164-d517-4d49-bcd4-e2bcad6cc0ce.png"
             alt="My Masomenos - For All Of Us Kids"
-            className="mx-auto w-full max-w-none sm:max-w-4xl lg:max-w-5xl xl:max-w-6xl h-auto max-h-16 sm:max-h-20 md:max-h-24 lg:max-h-28 object-contain transition-all duration-300"
+            className="mx-auto w-full h-auto max-h-16 sm:max-h-20 object-contain transition-all duration-300"
           />
         </div>
 
