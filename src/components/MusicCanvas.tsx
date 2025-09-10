@@ -56,7 +56,7 @@ export const MusicCanvas = ({
     <div className="relative h-full p-3">
       <div
         ref={canvasRef}
-        className="relative w-full h-full min-h-[400px] bg-muted/20 rounded-2xl border-2 border-dashed border-muted-foreground/30 transition-all duration-300"
+        className="relative w-full h-full min-h-[400px] bg-muted/20 border-2 border-dashed border-muted-foreground/30 transition-all duration-300"
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}

@@ -43,12 +43,12 @@ export const StickerPalette = () => {
   };
 
   return (
-    <div className="flex flex-col gap-2 h-full overflow-x-auto scrollbar-hide">
+    <div className="flex flex-col gap-2 h-full overflow-x-auto scrollbar-hide select-none">
       <div className="flex gap-3 flex-shrink-0">
         {stickerData.slice(0, Math.ceil(stickerData.length / 2)).map((sticker) => (
           <div
             key={sticker.id}
-            className="flex-shrink-0 aspect-square w-20 cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 touch-manipulation"
+            className="flex-shrink-0 aspect-square w-20 cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 touch-manipulation select-none"
             draggable
             onDragStart={(e) => handleDragStart(e, sticker)}
             onDragEnd={handleDragEnd}
@@ -56,7 +56,7 @@ export const StickerPalette = () => {
             <img
               src={sticker.src}
               alt={sticker.alt}
-              className="w-full h-full object-contain pointer-events-none"
+              className="w-full h-full object-contain pointer-events-none select-none"
               draggable={false}
             />
           </div>
@@ -66,7 +66,7 @@ export const StickerPalette = () => {
         {stickerData.slice(Math.ceil(stickerData.length / 2)).map((sticker) => (
           <div
             key={sticker.id}
-            className="flex-shrink-0 aspect-square w-20 cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 touch-manipulation"
+            className="flex-shrink-0 aspect-square w-20 cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 touch-manipulation select-none"
             draggable
             onDragStart={(e) => handleDragStart(e, sticker)}
             onDragEnd={handleDragEnd}
@@ -74,7 +74,7 @@ export const StickerPalette = () => {
             <img
               src={sticker.src}
               alt={sticker.alt}
-              className="w-full h-full object-contain pointer-events-none"
+              className="w-full h-full object-contain pointer-events-none select-none"
               draggable={false}
             />
           </div>

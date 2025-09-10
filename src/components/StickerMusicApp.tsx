@@ -128,7 +128,7 @@ const StickerMusicApp = () => {
           <img 
             src="/lovable-uploads/36893164-d517-4d49-bcd4-e2bcad6cc0ce.png"
             alt="My Masomenos - For All Of Us Kids"
-            className="mx-auto max-w-xs w-full h-auto max-h-16 object-contain"
+            className="mx-auto w-full max-w-2xl h-auto max-h-20 object-contain"
           />
         </div>
 
@@ -143,7 +143,7 @@ const StickerMusicApp = () => {
 
           {/* Music Canvas */}
           <div className="w-full flex-1">
-            <Card className="bg-gradient-card shadow-card border-4 border-black h-[calc(100vh-480px)] min-h-[400px]">
+            <Card className="bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px]">
               <MusicCanvas
                 stickers={placedStickers}
                 onStickerDrop={handleStickerDrop}
