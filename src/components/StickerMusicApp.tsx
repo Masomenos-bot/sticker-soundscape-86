@@ -190,7 +190,7 @@ const StickerMusicApp = () => {
         <div className="flex flex-col gap-8 sm:gap-12">
           {/* Sticker Palette */}
           <div className="w-full">
-            <Card className="p-3 bg-gradient-card shadow-card border-0 h-[140px] flex-shrink-0 mb-4 sm:mb-6">
+            <Card className="p-3 bg-gradient-card shadow-card border-0 h-[200px] flex-shrink-0 mb-4 sm:mb-6">
               <StickerPalette />
             </Card>
           </div>
