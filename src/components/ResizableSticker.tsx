@@ -273,7 +273,15 @@ export const ResizableSticker = ({
       
       // Calculate rotation difference
       const rotationDiff = currentAngle - initialTouches.angle;
-      const newRotation = (initialSticker.rotation + rotationDiff) % 360;
+      let newRotation = initialSticker.rotation + rotationDiff;
+      // Normalize rotation to 0-360 range
+      newRotation = ((newRotation % 360) + 360) % 360;
+      
+      console.log('Rotation:', { 
+        initial: initialSticker.rotation, 
+        diff: rotationDiff, 
+        final: newRotation 
+      });
       
       // Calculate new position based on center movement
       const centerDeltaX = currentCenter.x - initialTouches.center.x;
