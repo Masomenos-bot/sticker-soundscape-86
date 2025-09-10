@@ -125,9 +125,11 @@ const StickerMusicApp = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-4 sm:mb-8 text-center">
-          <h1 className="text-2xl sm:text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Sticker Music Maker
-          </h1>
+          <img 
+            src="/lovable-uploads/36893164-d517-4d49-bcd4-e2bcad6cc0ce.png"
+            alt="My Masomenos - For All Of Us Kids"
+            className="mx-auto max-w-md w-full h-auto mb-2"
+          />
           <p className="text-sm sm:text-base text-muted-foreground">
             Drag stickers to create musical compositions!
           </p>
