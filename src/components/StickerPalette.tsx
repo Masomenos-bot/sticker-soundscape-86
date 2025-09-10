@@ -13,6 +13,16 @@ const stickerImages = [
   "/lovable-uploads/b304de86-466d-4ce1-91d4-f8ecdc7f06c6.png", // blue triangle shape
   "/lovable-uploads/5abf2164-20c3-42cd-9bc8-ae05e7adba20.png", // brown teardrop shape
   "/lovable-uploads/cac603f1-4efa-4d4a-ad66-4488da9942f0.png", // colorful circle shape
+  "/lovable-uploads/01c897d2-c9a9-491d-8af8-5dcb32fc4ec7.png", // red flame
+  "/lovable-uploads/5101d5bd-1d68-4bca-b7c5-c3b54a4620ff.png", // yellow hat
+  "/lovable-uploads/710268c3-f3e7-460f-a661-f975b14273b9.png", // pink teardrop
+  "/lovable-uploads/7f7ba30d-08cc-4deb-8bbb-07681bed7e40.png", // single eye
+  "/lovable-uploads/a63f8201-2466-47e6-ae4b-3d1c5d1b751b.png", // two eyes
+  "/lovable-uploads/bc6e8452-029b-4eac-964f-05be1c184b9b.png", // orange eye
+  "/lovable-uploads/60c55b7c-a3a3-41f3-8b78-7bae3fd9cc4e.png", // red mouth
+  "/lovable-uploads/ea94338e-9036-42f5-87b1-045a93b25446.png", // blue bow tie
+  "/lovable-uploads/609807b5-fa8a-4fca-aa2b-494b72b913d1.png", // red heart
+  "/lovable-uploads/65d3d82a-acad-4f83-84ca-f2611a3e4677.png", // green star
 ];
 
 export const StickerPalette = () => {
