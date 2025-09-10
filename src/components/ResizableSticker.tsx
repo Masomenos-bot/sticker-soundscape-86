@@ -9,6 +9,7 @@ interface ResizableStickerProps {
   onRemove: (id: string) => void;
   isPlaying: boolean;
   globalVolume: number;
+  canvasRef: React.RefObject<HTMLDivElement>;
 }
 
 export const ResizableSticker = ({
@@ -17,6 +18,7 @@ export const ResizableSticker = ({
   onRemove,
   isPlaying,
   globalVolume,
+  canvasRef,
 }: ResizableStickerProps) => {
   const stickerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -150,9 +152,24 @@ export const ResizableSticker = ({
     if (isDragging) {
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
+      
+      // Check if sticker is being dragged outside canvas bounds
+      if (canvasRef.current) {
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const stickerCenterX = newX + sticker.width / 2;
+        const stickerCenterY = newY + sticker.height / 2;
+        
+        // If sticker center is outside canvas bounds, remove it
+        if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
+            stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
+          onRemove(sticker.id);
+          return;
+        }
+      }
+      
       onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
     }
-  }, [isDragging, dragStart, onUpdate, sticker.id]);
+  }, [isDragging, dragStart, onUpdate, onRemove, sticker.id, sticker.width, sticker.height, canvasRef]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -271,6 +288,21 @@ export const ResizableSticker = ({
       const touch = event.touches[0];
       const newX = touch.clientX - dragStart.x;
       const newY = touch.clientY - dragStart.y;
+      
+      // Check if sticker is being dragged outside canvas bounds
+      if (canvasRef.current) {
+        const canvasRect = canvasRef.current.getBoundingClientRect();
+        const stickerCenterX = newX + sticker.width / 2;
+        const stickerCenterY = newY + sticker.height / 2;
+        
+        // If sticker center is outside canvas bounds, remove it
+        if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
+            stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
+          onRemove(sticker.id);
+          return;
+        }
+      }
+      
       onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
     } else if (isGesturing && event.touches.length === 2 && initialTouches && initialSticker) {
       // Two finger gesture

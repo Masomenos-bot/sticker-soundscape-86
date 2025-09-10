@@ -79,6 +79,7 @@ export const MusicCanvas = ({
             onRemove={onStickerRemove}
             isPlaying={isPlaying}
             globalVolume={globalVolume}
+            canvasRef={canvasRef}
           />
         ))}
       </div>
