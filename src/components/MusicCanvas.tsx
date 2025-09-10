@@ -1,7 +1,6 @@
-import React, { useRef, useCallback, useState } from "react";
+import React, { useRef, useCallback } from "react";
 import { Sticker, StickerData } from "./StickerMusicApp";
 import { ResizableSticker } from "./ResizableSticker";
-import { Trash2 } from "lucide-react";
 
 interface MusicCanvasProps {
   stickers: Sticker[];
@@ -21,7 +20,6 @@ export const MusicCanvas = ({
   globalVolume,
 }: MusicCanvasProps) => {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [showTrashBin, setShowTrashBin] = useState(false);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -82,19 +80,8 @@ export const MusicCanvas = ({
             isPlaying={isPlaying}
             globalVolume={globalVolume}
             canvasRef={canvasRef}
-            onShowTrashBin={setShowTrashBin}
           />
         ))}
-
-        {/* Trash bin indicator */}
-        {showTrashBin && (
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center bg-destructive/10 border-2 border-dashed border-destructive rounded-lg">
-            <div className="flex flex-col items-center text-destructive">
-              <Trash2 className="w-12 h-12 mb-2 animate-bounce" />
-              <p className="text-sm font-medium">Drop here to delete</p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

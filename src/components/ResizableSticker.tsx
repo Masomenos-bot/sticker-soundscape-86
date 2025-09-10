@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Sticker } from "./StickerMusicApp";
-import { X, RotateCw } from "lucide-react";
+import { X, RotateCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ResizableStickerProps {
@@ -10,7 +10,6 @@ interface ResizableStickerProps {
   isPlaying: boolean;
   globalVolume: number;
   canvasRef: React.RefObject<HTMLDivElement>;
-  onShowTrashBin: (show: boolean) => void;
 }
 
 export const ResizableSticker = ({
@@ -20,7 +19,6 @@ export const ResizableSticker = ({
   isPlaying,
   globalVolume,
   canvasRef,
-  onShowTrashBin,
 }: ResizableStickerProps) => {
   const stickerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -157,37 +155,15 @@ export const ResizableSticker = ({
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
       
-      // Check if sticker is being dragged outside canvas bounds
-      if (canvasRef.current) {
-        const canvasRect = canvasRef.current.getBoundingClientRect();
-        const stickerCenterX = newX + sticker.width / 2;
-        const stickerCenterY = newY + sticker.height / 2;
-        
-        const deleteZone = 50; // Pixels from edge to show delete warning
-        const nearEdge = stickerCenterX < deleteZone || stickerCenterX > canvasRect.width - deleteZone ||
-                        stickerCenterY < deleteZone || stickerCenterY > canvasRect.height - deleteZone;
-        
-        onShowTrashBin(nearEdge);
-        
-        // If sticker center is outside canvas bounds, remove it
-        if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
-            stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
-          onRemove(sticker.id);
-          onShowTrashBin(false);
-          return;
-        }
-      }
-      
       onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
     }
-  }, [isDragging, dragStart, onUpdate, onRemove, onShowTrashBin, sticker.id, sticker.width, sticker.height, canvasRef]);
+  }, [isDragging, dragStart, onUpdate, sticker.id]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setIsResizing(false);
     setIsRotating(false);
-    onShowTrashBin(false);
-  }, [onShowTrashBin]);
+  }, []);
 
   useEffect(() => {
     if (isDragging || isResizing || isRotating) {
@@ -349,27 +325,6 @@ export const ResizableSticker = ({
       const newX = touch.clientX - dragStart.x;
       const newY = touch.clientY - dragStart.y;
       
-      // Check if sticker is being dragged outside canvas bounds
-      if (canvasRef.current) {
-        const canvasRect = canvasRef.current.getBoundingClientRect();
-        const stickerCenterX = newX + sticker.width / 2;
-        const stickerCenterY = newY + sticker.height / 2;
-        
-        const deleteZone = 50; // Pixels from edge to show delete warning
-        const nearEdge = stickerCenterX < deleteZone || stickerCenterX > canvasRect.width - deleteZone ||
-                        stickerCenterY < deleteZone || stickerCenterY > canvasRect.height - deleteZone;
-        
-        onShowTrashBin(nearEdge);
-        
-        // If sticker center is outside canvas bounds, remove it
-        if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
-            stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
-          onRemove(sticker.id);
-          onShowTrashBin(false);
-          return;
-        }
-      }
-      
       onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
     } else if (isGesturing && event.touches.length === 2 && initialTouches && initialSticker) {
       // Two finger gesture
@@ -414,8 +369,7 @@ export const ResizableSticker = ({
     setIsGesturing(false);
     setInitialTouches(null);
     setInitialSticker(null);
-    onShowTrashBin(false);
-  }, [onShowTrashBin]);
+  }, []);
 
   useEffect(() => {
     if (isDragging || isGesturing) {
@@ -454,6 +408,16 @@ export const ResizableSticker = ({
         onClick={() => onRemove(sticker.id)}
       >
         <X className="w-3 h-3" />
+      </Button>
+
+      {/* Trash button */}
+      <Button
+        size="sm"
+        variant="destructive"
+        className="absolute -top-2 right-6 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        onClick={() => onRemove(sticker.id)}
+      >
+        <Trash2 className="w-3 h-3" />
       </Button>
 
       {/* Rotate button */}
