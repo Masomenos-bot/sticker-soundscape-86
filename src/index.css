@@ -1,0 +1,150 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Sticker Music App Design System - Playful & Vibrant */
+
+@layer base {
+  :root {
+    /* Main backgrounds */
+    --background: 240 100% 99%;
+    --foreground: 230 30% 15%;
+
+    /* Card system */
+    --card: 0 0% 100%;
+    --card-foreground: 230 30% 15%;
+
+    /* Interactive elements */
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 30% 15%;
+
+    /* Brand colors - vibrant and playful */
+    --primary: 260 100% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 195 100% 75%;
+    --secondary-foreground: 230 30% 15%;
+
+    --accent: 320 100% 75%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Sticker colors */
+    --sticker-yellow: 45 100% 65%;
+    --sticker-pink: 320 85% 70%;
+    --sticker-blue: 200 100% 65%;
+    --sticker-green: 140 60% 55%;
+    --sticker-orange: 25 100% 65%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    --gradient-background: linear-gradient(135deg, hsl(240 100% 99%), hsl(260 50% 97%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(240 20% 98%));
+
+    /* Interaction states */
+    --muted: 240 20% 96%;
+    --muted-foreground: 230 20% 45%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 20% 90%;
+    --input: 240 20% 94%;
+    --ring: 260 100% 65%;
+
+    --radius: 1rem;
+
+    /* Animations and effects */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px hsla(260, 50%, 30%, 0.1);
+    --shadow-card: 0 8px 30px hsla(260, 50%, 30%, 0.12);
+    --shadow-sticker: 0 6px 25px hsla(260, 50%, 30%, 0.15);
+
+    /* Sidebar colors */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 230 30% 8%;
+    --foreground: 240 100% 98%;
+
+    --card: 230 25% 12%;
+    --card-foreground: 240 100% 98%;
+
+    --popover: 230 25% 12%;
+    --popover-foreground: 240 100% 98%;
+
+    --primary: 260 100% 70%;
+    --primary-foreground: 230 30% 8%;
+
+    --secondary: 230 20% 18%;
+    --secondary-foreground: 240 100% 98%;
+
+    --accent: 320 100% 70%;
+    --accent-foreground: 230 30% 8%;
+
+    --muted: 230 20% 18%;
+    --muted-foreground: 240 20% 65%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 240 100% 98%;
+
+    --border: 230 20% 20%;
+    --input: 230 20% 18%;
+    --ring: 260 100% 70%;
+
+    --gradient-background: linear-gradient(135deg, hsl(230 30% 8%), hsl(240 25% 10%));
+    --gradient-card: linear-gradient(135deg, hsl(230 25% 12%), hsl(235 20% 15%));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply text-foreground;
+    background: var(--gradient-background);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  /* Custom animations */
+  .sticker-bounce {
+    animation: bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .drag-over {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-sticker);
+  }
+
+  @keyframes bounce {
+    0% { transform: scale(0.8) rotate(-5deg); }
+    50% { transform: scale(1.05) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  /* Dragging states */
+  .dragging {
+    opacity: 0.7;
+    transform: rotate(5deg) scale(0.95);
+    z-index: 1000;
+  }
+
+  .drop-zone-active {
+    background: linear-gradient(135deg, 
+      hsla(var(--primary), 0.1), 
+      hsla(var(--accent), 0.1));
+    border: 2px dashed hsl(var(--primary));
+  }
+}
