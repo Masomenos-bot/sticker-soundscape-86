@@ -254,22 +254,12 @@ const StickerMusicApp = () => {
           <div className="w-full flex justify-center mb-4">
             <div className="flex gap-4 items-center">
               <button
-                onClick={handlePlay}
+                onClick={isPlaying ? handlePause : handlePlay}
                 className="w-10 h-10 hover:scale-110 transition-transform duration-200"
               >
                 <img
-                  src="/lovable-uploads/5ec10ca7-cdd4-4ecc-bcbe-5243239cecc7.png"
-                  alt="Play"
-                  className="w-full h-full object-contain"
-                />
-              </button>
-              <button
-                onClick={handlePause}
-                className="w-10 h-10 hover:scale-110 transition-transform duration-200"
-              >
-                <img
-                  src="/lovable-uploads/65258414-94a1-467e-9cc8-d282505d1e1e.png"
-                  alt="Pause"
+                  src={isPlaying ? "/lovable-uploads/65258414-94a1-467e-9cc8-d282505d1e1e.png" : "/lovable-uploads/5ec10ca7-cdd4-4ecc-bcbe-5243239cecc7.png"}
+                  alt={isPlaying ? "Pause" : "Play"}
                   className="w-full h-full object-contain"
                 />
               </button>
