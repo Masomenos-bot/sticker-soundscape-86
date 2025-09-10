@@ -26,6 +26,7 @@ export const ResizableSticker = ({
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [rotateStart, setRotateStart] = useState({ angle: 0, rotation: 0 });
   const [isGesturing, setIsGesturing] = useState(false);
   const [initialTouches, setInitialTouches] = useState<{ distance: number; angle: number; center: { x: number; y: number } } | null>(null);
   const [initialSticker, setInitialSticker] = useState<{ width: number; height: number; rotation: number; x: number; y: number } | null>(null);
@@ -241,10 +242,11 @@ export const ResizableSticker = ({
       const centerY = rect.top + rect.height / 2;
       
       const angle = Math.atan2(event.clientY - centerY, event.clientX - centerX) * (180 / Math.PI);
+      setRotateStart({ 
+        angle: angle, 
+        rotation: sticker.rotation || 0 
+      });
       setDragStart({ x: centerX, y: centerY });
-      // Store initial angle in a way that works with our existing dragStart state
-      (dragStart as any).initialAngle = angle;
-      (dragStart as any).initialRotation = sticker.rotation || 0;
     }
   };
 
@@ -254,15 +256,15 @@ export const ResizableSticker = ({
       const centerY = dragStart.y;
       
       const currentAngle = Math.atan2(event.clientY - centerY, event.clientX - centerX) * (180 / Math.PI);
-      const angleDiff = currentAngle - (dragStart as any).initialAngle;
-      let newRotation = ((dragStart as any).initialRotation + angleDiff) % 360;
+      const angleDiff = currentAngle - rotateStart.angle;
+      let newRotation = rotateStart.rotation + angleDiff;
       
       // Normalize rotation to 0-360 range
-      if (newRotation < 0) newRotation += 360;
+      newRotation = ((newRotation % 360) + 360) % 360;
       
       onUpdate(sticker.id, { rotation: newRotation });
     }
-  }, [isRotating, dragStart, onUpdate, sticker.id]);
+  }, [isRotating, dragStart, rotateStart, onUpdate, sticker.id]);
 
   useEffect(() => {
     if (isRotating) {
