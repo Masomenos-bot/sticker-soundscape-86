@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Sticker } from "./StickerMusicApp";
-import { RotateCw, Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown, FlipHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface ResizableStickerProps {
@@ -31,7 +31,7 @@ export const ResizableSticker = ({
   const [rotateStart, setRotateStart] = useState({ angle: 0, rotation: 0 });
   const [isGesturing, setIsGesturing] = useState(false);
   const [initialTouches, setInitialTouches] = useState<{ distance: number; angle: number; center: { x: number; y: number } } | null>(null);
-  const [initialSticker, setInitialSticker] = useState<{ width: number; height: number; rotation: number; x: number; y: number } | null>(null);
+  const [initialSticker, setInitialSticker] = useState<{ width: number; height: number; x: number; y: number } | null>(null);
   const [showTrashOverlay, setShowTrashOverlay] = useState(false);
 
   // Random animation selection for each sticker (based on ID for consistency)
@@ -192,12 +192,11 @@ export const ResizableSticker = ({
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setIsResizing(false);
-    setIsRotating(false);
     setShowTrashOverlay(false);
   }, []);
 
   useEffect(() => {
-    if (isDragging || isResizing || isRotating) {
+    if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
 
@@ -206,7 +205,7 @@ export const ResizableSticker = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, isResizing, isRotating, handleMouseMove, handleMouseUp]);
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp]);
 
   const handleResizeStart = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -247,53 +246,6 @@ export const ResizableSticker = ({
       };
     }
   }, [isResizing, handleResizeMove, handleMouseUp]);
-
-  // Rotation handlers
-  const handleRotateStart = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    setIsRotating(true);
-    
-    if (stickerRef.current) {
-      const rect = stickerRef.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
-      const angle = Math.atan2(event.clientY - centerY, event.clientX - centerX) * (180 / Math.PI);
-      setRotateStart({ 
-        angle: angle, 
-        rotation: sticker.rotation || 0 
-      });
-      setDragStart({ x: centerX, y: centerY });
-    }
-  };
-
-  const handleRotateMove = useCallback((event: MouseEvent) => {
-    if (isRotating && stickerRef.current) {
-      const centerX = dragStart.x;
-      const centerY = dragStart.y;
-      
-      const currentAngle = Math.atan2(event.clientY - centerY, event.clientX - centerX) * (180 / Math.PI);
-      const angleDiff = currentAngle - rotateStart.angle;
-      let newRotation = rotateStart.rotation + angleDiff;
-      
-      // Normalize rotation to 0-360 range
-      newRotation = ((newRotation % 360) + 360) % 360;
-      
-      onUpdate(sticker.id, { rotation: newRotation });
-    }
-  }, [isRotating, dragStart, rotateStart, onUpdate, sticker.id]);
-
-  useEffect(() => {
-    if (isRotating) {
-      document.addEventListener('mousemove', handleRotateMove);
-      document.addEventListener('mouseup', handleMouseUp);
-
-      return () => {
-        document.removeEventListener('mousemove', handleRotateMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isRotating, handleRotateMove, handleMouseUp]);
 
   // Touch gesture utilities
   const getTouchDistance = (touch1: React.Touch, touch2: React.Touch) => {
@@ -342,7 +294,6 @@ export const ResizableSticker = ({
       setInitialSticker({
         width: sticker.width,
         height: sticker.height,
-        rotation: sticker.rotation || 0,
         x: sticker.x,
         y: sticker.y,
       });
@@ -400,12 +351,6 @@ export const ResizableSticker = ({
       const newWidth = Math.max(40, Math.min(200, initialSticker.width * scaleRatio));
       const newHeight = Math.max(40, Math.min(200, initialSticker.height * scaleRatio));
       
-      // Calculate rotation difference
-      const rotationDiff = currentAngle - initialTouches.angle;
-      let newRotation = initialSticker.rotation + rotationDiff;
-      // Normalize rotation to 0-360 range
-      newRotation = ((newRotation % 360) + 360) % 360;
-      
       // Calculate new position based on center movement
       const centerDeltaX = currentCenter.x - initialTouches.center.x;
       const centerDeltaY = currentCenter.y - initialTouches.center.y;
@@ -415,7 +360,6 @@ export const ResizableSticker = ({
       onUpdate(sticker.id, {
         width: newWidth,
         height: newHeight,
-        rotation: newRotation,
         x: newX,
         y: newY,
       });
@@ -446,14 +390,14 @@ export const ResizableSticker = ({
     <div
       ref={stickerRef}
       className={`absolute cursor-move select-none group sticker-bounce touch-manipulation ${
-        isDragging || isGesturing || isRotating ? 'z-50 scale-105' : sticker.rotation && sticker.rotation !== 0 ? '' : stickerAnimation
+        isDragging || isGesturing ? 'z-50 scale-105' : sticker.rotation && sticker.rotation !== 0 ? '' : stickerAnimation
       }`}
       style={{
         left: sticker.x,
         top: sticker.y,
         width: sticker.width,
         height: sticker.height,
-        transform: `rotate(${sticker.rotation || 0}deg)`,
+        transform: `rotate(${sticker.rotation || 0}deg) scaleX(${sticker.mirrored ? -1 : 1})`,
         transformOrigin: 'center center',
         zIndex: sticker.zIndex,
       }}
@@ -492,14 +436,18 @@ export const ResizableSticker = ({
         <ChevronDown className="w-3 h-3" />
       </Button>
 
-      {/* Rotate button */}
+      {/* Mirror button */}
       <Button
         size="sm"
         variant="secondary"
-        className="absolute -top-2 -left-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-grab active:cursor-grabbing"
-        onMouseDown={handleRotateStart}
+        className="absolute -top-2 -left-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onUpdate(sticker.id, { mirrored: !sticker.mirrored });
+        }}
       >
-        <RotateCw className="w-3 h-3" />
+        <FlipHorizontal className="w-3 h-3" />
       </Button>
 
       {/* Sticker image */}

@@ -17,6 +17,7 @@ export interface Sticker {
   volume: number;
   rotation?: number;
   zIndex: number;
+  mirrored?: boolean;
 }
 
 export interface StickerData {
@@ -64,6 +65,7 @@ const StickerMusicApp = () => {
       volume: 0.5,
       rotation: 0,
       zIndex: maxZIndex + 1,
+      mirrored: false,
     };
 
     setPlacedStickers(prev => [...prev, newSticker]);
