@@ -37,7 +37,7 @@ export const StickerPalette = () => {
       {stickerData.map((sticker) => (
         <div
           key={sticker.id}
-          className="aspect-square bg-card rounded-lg p-2 cursor-grab active:cursor-grabbing shadow-soft hover:shadow-sticker transition-all duration-300 hover:scale-110 border border-border/50 touch-manipulation"
+          className="aspect-square cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 touch-manipulation"
           draggable
           onDragStart={(e) => handleDragStart(e, sticker)}
           onDragEnd={handleDragEnd}
