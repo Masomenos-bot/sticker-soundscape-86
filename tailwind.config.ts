@@ -89,19 +89,19 @@ export default {
         },
         "float-circular": {
           "0%": {
-            transform: "translate(0px, 0px) rotate(0deg)",
+            transform: "translate(0px, 0px)",
           },
           "25%": {
-            transform: "translate(2px, -2px) rotate(90deg)",
+            transform: "translate(3px, -3px)",
           },
           "50%": {
-            transform: "translate(0px, -4px) rotate(180deg)",
+            transform: "translate(0px, -6px)",
           },
           "75%": {
-            transform: "translate(-2px, -2px) rotate(270deg)",
+            transform: "translate(-3px, -3px)",
           },
           "100%": {
-            transform: "translate(0px, 0px) rotate(360deg)",
+            transform: "translate(0px, 0px)",
           },
         },
       },
