@@ -156,18 +156,20 @@ export const ResizableSticker = ({
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
       
-      // Check if sticker is crossing canvas edges
+      // Check if sticker is more than halfway outside canvas bounds
       if (canvasRef.current) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
         
-        // Check if any part of the sticker is outside canvas bounds
+        // Check if sticker is more than half outside canvas bounds
         const stickerLeft = newX;
         const stickerRight = newX + sticker.width;
         const stickerTop = newY;
         const stickerBottom = newY + sticker.height;
+        const halfWidth = sticker.width / 2;
+        const halfHeight = sticker.height / 2;
         
-        const crossingBoundary = stickerLeft < 0 || stickerRight > canvasRect.width ||
-                                stickerTop < 0 || stickerBottom > canvasRect.height;
+        const crossingBoundary = stickerLeft < -halfWidth || stickerRight > canvasRect.width + halfWidth ||
+                                stickerTop < -halfHeight || stickerBottom > canvasRect.height + halfHeight;
         
         setShowTrashOverlay(crossingBoundary);
         
@@ -181,7 +183,7 @@ export const ResizableSticker = ({
         }
       }
       
-      onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
+      onUpdate(sticker.id, { x: newX, y: newY });
     }
   }, [isDragging, dragStart, onUpdate, onRemove, sticker.id, sticker.width, sticker.height, canvasRef]);
 
@@ -352,18 +354,20 @@ export const ResizableSticker = ({
       const newX = touch.clientX - dragStart.x;
       const newY = touch.clientY - dragStart.y;
       
-      // Check if sticker is crossing canvas edges
+      // Check if sticker is more than halfway outside canvas bounds
       if (canvasRef.current) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
         
-        // Check if any part of the sticker is outside canvas bounds
+        // Check if sticker is more than half outside canvas bounds
         const stickerLeft = newX;
         const stickerRight = newX + sticker.width;
         const stickerTop = newY;
         const stickerBottom = newY + sticker.height;
+        const halfWidth = sticker.width / 2;
+        const halfHeight = sticker.height / 2;
         
-        const crossingBoundary = stickerLeft < 0 || stickerRight > canvasRect.width ||
-                                stickerTop < 0 || stickerBottom > canvasRect.height;
+        const crossingBoundary = stickerLeft < -halfWidth || stickerRight > canvasRect.width + halfWidth ||
+                                stickerTop < -halfHeight || stickerBottom > canvasRect.height + halfHeight;
         
         setShowTrashOverlay(crossingBoundary);
         
@@ -377,7 +381,7 @@ export const ResizableSticker = ({
         }
       }
       
-      onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
+      onUpdate(sticker.id, { x: newX, y: newY });
     } else if (isGesturing && event.touches.length === 2 && initialTouches && initialSticker) {
       // Two finger gesture
       event.preventDefault();
@@ -484,7 +488,7 @@ export const ResizableSticker = ({
 
       {/* Trash overlay when near edges */}
       {showTrashOverlay && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg backdrop-blur-sm">
+        <div className="absolute inset-0 flex items-center justify-center">
           <Trash2 className="w-8 h-8 text-destructive animate-pulse" />
         </div>
       )}
