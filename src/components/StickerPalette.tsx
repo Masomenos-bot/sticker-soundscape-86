@@ -33,11 +33,11 @@ export const StickerPalette = () => {
   };
 
   return (
-    <div className="grid grid-cols-5 gap-3 h-full">
+    <div className="flex gap-3 h-full overflow-x-auto scrollbar-hide pb-2">
       {stickerData.map((sticker) => (
         <div
           key={sticker.id}
-          className="aspect-square cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 touch-manipulation"
+          className="flex-shrink-0 aspect-square w-20 cursor-grab active:cursor-grabbing transition-all duration-300 hover:scale-110 touch-manipulation"
           draggable
           onDragStart={(e) => handleDragStart(e, sticker)}
           onDragEnd={handleDragEnd}
