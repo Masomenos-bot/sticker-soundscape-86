@@ -27,6 +27,23 @@ export const ResizableSticker = ({
   const [initialTouches, setInitialTouches] = useState<{ distance: number; angle: number; center: { x: number; y: number } } | null>(null);
   const [initialSticker, setInitialSticker] = useState<{ width: number; height: number; rotation: number; x: number; y: number } | null>(null);
 
+  // Random animation selection for each sticker (based on ID for consistency)
+  const stickerAnimation = React.useMemo(() => {
+    const animations = [
+      'animate-float-circular',
+      'animate-float-circular-2', 
+      'animate-float-circular-3',
+      'animate-float-wobble',
+      'animate-float-bounce'
+    ];
+    // Use sticker ID to ensure consistent animation
+    const hash = sticker.id.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return animations[Math.abs(hash) % animations.length];
+  }, [sticker.id]);
+
   // Create a simple tone for each sticker based on its ID
   const createAudioTone = useCallback(async () => {
     if (audioRef.current) return;
@@ -316,7 +333,7 @@ export const ResizableSticker = ({
     <div
       ref={stickerRef}
       className={`absolute cursor-move select-none group sticker-bounce touch-manipulation ${
-        isDragging || isGesturing ? 'z-50 scale-105' : sticker.rotation && sticker.rotation !== 0 ? '' : 'animate-float-circular'
+        isDragging || isGesturing ? 'z-50 scale-105' : sticker.rotation && sticker.rotation !== 0 ? '' : stickerAnimation
       }`}
       style={{
         left: sticker.x,

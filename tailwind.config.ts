@@ -104,6 +104,80 @@ export default {
             transform: "translate(0px, 0px)",
           },
         },
+        "float-circular-2": {
+          "0%": {
+            transform: "translate(0px, 0px) rotate(0deg)",
+          },
+          "25%": {
+            transform: "translate(4px, -2px) rotate(90deg)",
+          },
+          "50%": {
+            transform: "translate(2px, -5px) rotate(180deg)",
+          },
+          "75%": {
+            transform: "translate(-2px, -4px) rotate(270deg)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px) rotate(360deg)",
+          },
+        },
+        "float-circular-3": {
+          "0%": {
+            transform: "translate(0px, 0px)",
+          },
+          "20%": {
+            transform: "translate(5px, -1px)",
+          },
+          "40%": {
+            transform: "translate(3px, -7px)",
+          },
+          "60%": {
+            transform: "translate(-1px, -5px)",
+          },
+          "80%": {
+            transform: "translate(-4px, -2px)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px)",
+          },
+        },
+        "float-wobble": {
+          "0%": {
+            transform: "translate(0px, 0px) rotate(0deg)",
+          },
+          "15%": {
+            transform: "translate(2px, -1px) rotate(-2deg)",
+          },
+          "30%": {
+            transform: "translate(-1px, -3px) rotate(1deg)",
+          },
+          "45%": {
+            transform: "translate(3px, -2px) rotate(-1deg)",
+          },
+          "60%": {
+            transform: "translate(-2px, -4px) rotate(2deg)",
+          },
+          "75%": {
+            transform: "translate(1px, -1px) rotate(-1deg)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px) rotate(0deg)",
+          },
+        },
+        "float-bounce": {
+          "0%, 100%": {
+            transform: "translate(0px, 0px)",
+          },
+          "25%": {
+            transform: "translate(2px, -8px)",
+          },
+          "50%": {
+            transform: "translate(-1px, -3px)",
+          },
+          "75%": {
+            transform: "translate(3px, -6px)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -111,6 +185,10 @@ export default {
         "bounce-in": "bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
         "pulse-soft": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "float-circular": "float-circular 8s ease-in-out infinite",
+        "float-circular-2": "float-circular-2 6s ease-in-out infinite",
+        "float-circular-3": "float-circular-3 10s ease-in-out infinite",
+        "float-wobble": "float-wobble 7s ease-in-out infinite",
+        "float-bounce": "float-bounce 5s ease-in-out infinite",
       },
       backgroundImage: {
         "gradient-primary": "var(--gradient-primary)",
