@@ -496,7 +496,7 @@ export const ResizableSticker = ({
       <Button
         size="sm"
         variant="secondary"
-        className="absolute -top-2 -right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        className="absolute -top-2 -right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-pink-400 hover:bg-pink-500 text-white border-pink-400 hover:border-pink-500"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
