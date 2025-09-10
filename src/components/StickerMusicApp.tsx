@@ -82,40 +82,13 @@ const StickerMusicApp = () => {
 
   const handleLayerChange = (id: string, direction: 'up' | 'down') => {
     setPlacedStickers(prev => {
-      const sticker = prev.find(s => s.id === id);
-      if (!sticker) return prev;
-
-      const otherStickers = prev.filter(s => s.id !== id);
-      
-      if (direction === 'up') {
-        // Find sticker with next higher zIndex
-        const nextSticker = otherStickers
-          .filter(s => s.zIndex > sticker.zIndex)
-          .sort((a, b) => a.zIndex - b.zIndex)[0];
-        
-        if (nextSticker) {
-          return prev.map(s => {
-            if (s.id === id) return { ...s, zIndex: nextSticker.zIndex };
-            if (s.id === nextSticker.id) return { ...s, zIndex: sticker.zIndex };
-            return s;
-          });
+      return prev.map(sticker => {
+        if (sticker.id === id) {
+          const newZIndex = direction === 'up' ? sticker.zIndex + 1 : Math.max(0, sticker.zIndex - 1);
+          return { ...sticker, zIndex: newZIndex };
         }
-      } else {
-        // Find sticker with next lower zIndex
-        const prevSticker = otherStickers
-          .filter(s => s.zIndex < sticker.zIndex)
-          .sort((a, b) => b.zIndex - a.zIndex)[0];
-        
-        if (prevSticker) {
-          return prev.map(s => {
-            if (s.id === id) return { ...s, zIndex: prevSticker.zIndex };
-            if (s.id === prevSticker.id) return { ...s, zIndex: sticker.zIndex };
-            return s;
-          });
-        }
-      }
-      
-      return prev;
+        return sticker;
+      });
     });
   };
 

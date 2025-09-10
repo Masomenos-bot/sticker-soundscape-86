@@ -464,7 +464,7 @@ export const ResizableSticker = ({
       <Button
         size="sm"
         variant="secondary"
-        className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
         onClick={(e) => {
           e.stopPropagation();
           onLayerChange(sticker.id, 'up');
@@ -477,7 +477,7 @@ export const ResizableSticker = ({
       <Button
         size="sm"
         variant="secondary"
-        className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+        className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
         onClick={(e) => {
           e.stopPropagation();
           onLayerChange(sticker.id, 'down');
