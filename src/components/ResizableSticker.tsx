@@ -10,6 +10,7 @@ interface ResizableStickerProps {
   isPlaying: boolean;
   globalVolume: number;
   canvasRef: React.RefObject<HTMLDivElement>;
+  onShowTrashBin: (show: boolean) => void;
 }
 
 export const ResizableSticker = ({
@@ -19,6 +20,7 @@ export const ResizableSticker = ({
   isPlaying,
   globalVolume,
   canvasRef,
+  onShowTrashBin,
 }: ResizableStickerProps) => {
   const stickerRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -161,23 +163,31 @@ export const ResizableSticker = ({
         const stickerCenterX = newX + sticker.width / 2;
         const stickerCenterY = newY + sticker.height / 2;
         
+        const deleteZone = 50; // Pixels from edge to show delete warning
+        const nearEdge = stickerCenterX < deleteZone || stickerCenterX > canvasRect.width - deleteZone ||
+                        stickerCenterY < deleteZone || stickerCenterY > canvasRect.height - deleteZone;
+        
+        onShowTrashBin(nearEdge);
+        
         // If sticker center is outside canvas bounds, remove it
         if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
             stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
           onRemove(sticker.id);
+          onShowTrashBin(false);
           return;
         }
       }
       
       onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
     }
-  }, [isDragging, dragStart, onUpdate, onRemove, sticker.id, sticker.width, sticker.height, canvasRef]);
+  }, [isDragging, dragStart, onUpdate, onRemove, onShowTrashBin, sticker.id, sticker.width, sticker.height, canvasRef]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setIsResizing(false);
     setIsRotating(false);
-  }, []);
+    onShowTrashBin(false);
+  }, [onShowTrashBin]);
 
   useEffect(() => {
     if (isDragging || isResizing || isRotating) {
@@ -345,10 +355,17 @@ export const ResizableSticker = ({
         const stickerCenterX = newX + sticker.width / 2;
         const stickerCenterY = newY + sticker.height / 2;
         
+        const deleteZone = 50; // Pixels from edge to show delete warning
+        const nearEdge = stickerCenterX < deleteZone || stickerCenterX > canvasRect.width - deleteZone ||
+                        stickerCenterY < deleteZone || stickerCenterY > canvasRect.height - deleteZone;
+        
+        onShowTrashBin(nearEdge);
+        
         // If sticker center is outside canvas bounds, remove it
         if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
             stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
           onRemove(sticker.id);
+          onShowTrashBin(false);
           return;
         }
       }
@@ -397,7 +414,8 @@ export const ResizableSticker = ({
     setIsGesturing(false);
     setInitialTouches(null);
     setInitialSticker(null);
-  }, []);
+    onShowTrashBin(false);
+  }, [onShowTrashBin]);
 
   useEffect(() => {
     if (isDragging || isGesturing) {
