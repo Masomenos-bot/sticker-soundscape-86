@@ -216,9 +216,19 @@ export const ResizableSticker = ({
 
   // Touch event handlers
   const handleTouchStart = (event: React.TouchEvent) => {
-    if (event.touches.length === 2) {
+    if (event.touches.length === 1) {
+      // Single finger - drag
+      const touch = event.touches[0];
+      setIsDragging(true);
+      setDragStart({
+        x: touch.clientX - sticker.x,
+        y: touch.clientY - sticker.y,
+      });
+    } else if (event.touches.length === 2) {
+      // Two fingers - scale/rotate
       event.preventDefault();
       setIsGesturing(true);
+      setIsDragging(false); // Stop dragging if it was active
       
       const touch1 = event.touches[0];
       const touch2 = event.touches[1];
@@ -239,7 +249,14 @@ export const ResizableSticker = ({
   };
 
   const handleTouchMove = useCallback((event: TouchEvent) => {
-    if (isGesturing && event.touches.length === 2 && initialTouches && initialSticker) {
+    if (isDragging && event.touches.length === 1) {
+      // Single finger drag
+      const touch = event.touches[0];
+      const newX = touch.clientX - dragStart.x;
+      const newY = touch.clientY - dragStart.y;
+      onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
+    } else if (isGesturing && event.touches.length === 2 && initialTouches && initialSticker) {
+      // Two finger gesture
       event.preventDefault();
       
       const touch1 = event.touches[0];
@@ -272,16 +289,17 @@ export const ResizableSticker = ({
         y: newY,
       });
     }
-  }, [isGesturing, initialTouches, initialSticker, onUpdate, sticker.id]);
+  }, [isDragging, isGesturing, dragStart, initialTouches, initialSticker, onUpdate, sticker.id]);
 
   const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
     setIsGesturing(false);
     setInitialTouches(null);
     setInitialSticker(null);
   }, []);
 
   useEffect(() => {
-    if (isGesturing) {
+    if (isDragging || isGesturing) {
       document.addEventListener('touchmove', handleTouchMove, { passive: false });
       document.addEventListener('touchend', handleTouchEnd);
 
@@ -290,7 +308,7 @@ export const ResizableSticker = ({
         document.removeEventListener('touchend', handleTouchEnd);
       };
     }
-  }, [isGesturing, handleTouchMove, handleTouchEnd]);
+  }, [isDragging, isGesturing, handleTouchMove, handleTouchEnd]);
 
   return (
     <div
