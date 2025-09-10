@@ -156,19 +156,24 @@ export const ResizableSticker = ({
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
       
-      // Check if sticker is near canvas edges
+      // Check if sticker is crossing canvas edges
       if (canvasRef.current) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
+        
+        // Check if any part of the sticker is outside canvas bounds
+        const stickerLeft = newX;
+        const stickerRight = newX + sticker.width;
+        const stickerTop = newY;
+        const stickerBottom = newY + sticker.height;
+        
+        const crossingBoundary = stickerLeft < 0 || stickerRight > canvasRect.width ||
+                                stickerTop < 0 || stickerBottom > canvasRect.height;
+        
+        setShowTrashOverlay(crossingBoundary);
+        
+        // If sticker center is completely outside canvas bounds, remove it
         const stickerCenterX = newX + sticker.width / 2;
         const stickerCenterY = newY + sticker.height / 2;
-        
-        const deleteZone = 80; // Pixels from edge to show delete warning
-        const nearEdge = stickerCenterX < deleteZone || stickerCenterX > canvasRect.width - deleteZone ||
-                        stickerCenterY < deleteZone || stickerCenterY > canvasRect.height - deleteZone;
-        
-        setShowTrashOverlay(nearEdge);
-        
-        // If sticker center is outside canvas bounds, remove it
         if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
             stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
           onRemove(sticker.id);
@@ -347,19 +352,24 @@ export const ResizableSticker = ({
       const newX = touch.clientX - dragStart.x;
       const newY = touch.clientY - dragStart.y;
       
-      // Check if sticker is near canvas edges
+      // Check if sticker is crossing canvas edges
       if (canvasRef.current) {
         const canvasRect = canvasRef.current.getBoundingClientRect();
+        
+        // Check if any part of the sticker is outside canvas bounds
+        const stickerLeft = newX;
+        const stickerRight = newX + sticker.width;
+        const stickerTop = newY;
+        const stickerBottom = newY + sticker.height;
+        
+        const crossingBoundary = stickerLeft < 0 || stickerRight > canvasRect.width ||
+                                stickerTop < 0 || stickerBottom > canvasRect.height;
+        
+        setShowTrashOverlay(crossingBoundary);
+        
+        // If sticker center is completely outside canvas bounds, remove it
         const stickerCenterX = newX + sticker.width / 2;
         const stickerCenterY = newY + sticker.height / 2;
-        
-        const deleteZone = 80; // Pixels from edge to show delete warning
-        const nearEdge = stickerCenterX < deleteZone || stickerCenterX > canvasRect.width - deleteZone ||
-                        stickerCenterY < deleteZone || stickerCenterY > canvasRect.height - deleteZone;
-        
-        setShowTrashOverlay(nearEdge);
-        
-        // If sticker center is outside canvas bounds, remove it
         if (stickerCenterX < 0 || stickerCenterX > canvasRect.width || 
             stickerCenterY < 0 || stickerCenterY > canvasRect.height) {
           onRemove(sticker.id);
