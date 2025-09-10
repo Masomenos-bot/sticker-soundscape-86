@@ -250,35 +250,32 @@ const StickerMusicApp = () => {
             </Card>
           </div>
 
-          {/* Control Buttons */}
-          <div className="w-full flex justify-center mb-4">
-            <div className="flex gap-4 items-center">
-              <button
-                onClick={isPlaying ? handlePause : handlePlay}
-                className="w-10 h-10 hover:scale-110 transition-transform duration-200"
-              >
-                <img
-                  src={isPlaying ? "/lovable-uploads/65258414-94a1-467e-9cc8-d282505d1e1e.png" : "/lovable-uploads/5ec10ca7-cdd4-4ecc-bcbe-5243239cecc7.png"}
-                  alt={isPlaying ? "Pause" : "Play"}
-                  className="w-full h-full object-contain"
-                />
-              </button>
-              <button
-                onClick={handleExport}
-                className="w-10 h-10 hover:scale-110 transition-transform duration-200"
-              >
-                <img
-                  src="/lovable-uploads/fedcc64b-0b85-4fe3-93dc-05e76aa5ee7c.png"
-                  alt="Share/Export"
-                  className="w-full h-full object-contain"
-                />
-              </button>
-            </div>
-          </div>
-
           {/* Music Canvas */}
           <div className="w-full flex-1">
-            <Card className="bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px]">
+            <Card className="bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px] relative">
+              {/* Control Buttons */}
+              <div className="absolute top-2 right-2 z-20 flex gap-2">
+                <button
+                  onClick={isPlaying ? handlePause : handlePlay}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200"
+                >
+                  <img
+                    src={isPlaying ? "/lovable-uploads/65258414-94a1-467e-9cc8-d282505d1e1e.png" : "/lovable-uploads/5ec10ca7-cdd4-4ecc-bcbe-5243239cecc7.png"}
+                    alt={isPlaying ? "Pause" : "Play"}
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200"
+                >
+                  <img
+                    src="/lovable-uploads/fedcc64b-0b85-4fe3-93dc-05e76aa5ee7c.png"
+                    alt="Share/Export"
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+              </div>
               <MusicCanvas
                 ref={canvasRef}
                 stickers={placedStickers}
