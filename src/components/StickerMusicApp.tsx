@@ -128,64 +128,8 @@ const StickerMusicApp = () => {
           <img 
             src="/lovable-uploads/36893164-d517-4d49-bcd4-e2bcad6cc0ce.png"
             alt="My Masomenos - For All Of Us Kids"
-            className="mx-auto max-w-md w-full h-auto mb-2"
+            className="mx-auto max-w-xs w-full h-auto max-h-16 object-contain"
           />
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Drag stickers to create musical compositions!
-          </p>
-        </div>
-
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row justify-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-          <div className="flex justify-center gap-2 sm:gap-4">
-            <Button
-              onClick={togglePlayback}
-              variant={audioInitialized ? "secondary" : "default"}
-              size="sm"
-              className="gap-2 flex-1 sm:flex-initial"
-            >
-              {!audioInitialized ? (
-                <>
-                  <Play className="w-4 h-4" />
-                  <span className="hidden sm:inline">Start Music</span>
-                  <span className="sm:hidden">Start</span>
-                </>
-              ) : isPlaying ? (
-                <>
-                  <Pause className="w-4 h-4" />
-                  Pause
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4" />
-                  Play
-                </>
-              )}
-            </Button>
-            
-            <Button
-              onClick={clearCanvas}
-              variant="outline"
-              size="sm"
-              className="flex-1 sm:flex-initial"
-            >
-              <span className="hidden sm:inline">Clear Canvas</span>
-              <span className="sm:hidden">Clear</span>
-            </Button>
-          </div>
-
-          <div className="flex items-center justify-center gap-2 mt-2 sm:mt-0">
-            <Volume2 className="w-4 h-4 text-muted-foreground" />
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={globalVolume}
-              onChange={(e) => setGlobalVolume(parseFloat(e.target.value))}
-              className="w-20 sm:w-24"
-            />
-          </div>
         </div>
 
         {/* Main Layout */}
