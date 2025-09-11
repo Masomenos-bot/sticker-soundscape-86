@@ -353,7 +353,6 @@ export const ResizableSticker = ({
         transform: `rotate(${sticker.rotation || 0}deg) scaleX(${sticker.mirrored ? -1 : 1})`,
         zIndex: sticker.zIndex,
         touchAction: 'none',
-        boxShadow: isCurrentStep ? '0 8px 25px rgba(147, 51, 234, 0.15)' : 'none',
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
