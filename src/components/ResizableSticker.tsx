@@ -443,7 +443,7 @@ export const ResizableSticker = ({
   return (
     <div
       ref={stickerRef}
-      className={`absolute select-none cursor-move group ${isCurrentStep ? 'ring-4 ring-yellow-400 ring-opacity-80' : ''} ${isPlaying && !isCurrentStep ? 'opacity-60' : 'opacity-100'} transition-all duration-200`}
+      className="absolute select-none cursor-move group transition-all duration-200"
       style={{
         left: `${sticker.x}px`,
         top: `${sticker.y}px`,
@@ -458,11 +458,6 @@ export const ResizableSticker = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Step indicator */}
-      <div className="absolute -top-6 left-0 bg-black text-white text-xs px-1 rounded opacity-80">
-        {sticker.stepIndex + 1}
-      </div>
-      
       {/* Sticker Image */}
       <img
         src={sticker.src}
@@ -470,9 +465,6 @@ export const ResizableSticker = ({
         className={`w-full h-full object-contain pointer-events-none ${
           isPlaying ? stickerAnimation : ''
         }`}
-        style={{
-          filter: isCurrentStep ? 'brightness(1.2) drop-shadow(0 0 10px rgba(255, 255, 0, 0.6))' : 'none'
-        }}
         draggable={false}
       />
       
