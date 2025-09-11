@@ -395,11 +395,11 @@ export const ResizableSticker = ({
   }, [isDragging, showTrashOverlay, onRemove, sticker.id]);
 
   return (
-    <div
-      ref={stickerRef}
-      className={`absolute select-none cursor-move group transition-all duration-150 ease-out ${
-        isCurrentStep ? 'z-50' : ''
-      } ${isSelected ? 'ring-4 ring-primary/60 ring-offset-2 shadow-lg shadow-primary/30 scale-105' : ''}`}
+      <div
+        ref={stickerRef}
+        className={`absolute select-none cursor-move group transition-all duration-150 ease-out ${
+          isCurrentStep ? 'z-50' : ''
+        } ${isSelected ? 'opacity-75' : ''}`}
       style={{
         left: `${sticker.x}px`,
         top: `${sticker.y}px`,
@@ -420,22 +420,10 @@ export const ResizableSticker = ({
         alt="Sticker"
         className={`w-full h-full object-contain pointer-events-none transition-all duration-200 ${
           isPlaying ? stickerAnimation : ''
-        } ${isCurrentStep ? 'animate-pulse scale-110 brightness-125' : ''} ${
-          isSelected ? 'brightness-110 contrast-110' : ''
-        }`}
+        } ${isCurrentStep ? 'animate-pulse scale-110 brightness-125' : ''}`}
         draggable={false}
       />
       
-      {/* Selection highlight overlay - IMPROVED */}
-      {isSelected && (
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-blue-200/40 rounded-lg" />
-          <div className="absolute -inset-2 border-4 border-blue-400 rounded-lg shadow-lg shadow-blue-400/50" />
-          <div className="absolute -top-6 -left-2 bg-blue-400 text-white text-xs px-2 py-1 rounded font-bold">
-            SELECTED
-          </div>
-        </div>
-      )}
     </div>
   );
 };
