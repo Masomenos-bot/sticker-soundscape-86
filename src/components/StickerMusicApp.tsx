@@ -201,8 +201,9 @@ const StickerMusicApp = () => {
 
   const handleStickerSelect = (id: string, isSelected: boolean) => {
     if (isSelected) {
-      setSelectedStickers(prev => [...prev, id]);
-      setIsMultiSelectMode(true);
+      // Clear other selections if not multi-selecting
+      setSelectedStickers([id]);
+      setIsMultiSelectMode(false);
     } else {
       setSelectedStickers(prev => prev.filter(sId => sId !== id));
       if (selectedStickers.length <= 1) {
@@ -465,147 +466,155 @@ const StickerMusicApp = () => {
             </Card>
             
             {/* Fixed controls - Working on selected stickers */}
-            <div 
-              className="fixed z-[9999] bg-blue-500/95 backdrop-blur-sm p-3 rounded-lg border shadow-lg"
-              style={{
-                left: '20px',
-                top: '120px'
-              }}
-            >
-              <div className="flex flex-col gap-2">
-                {/* Debug info */}
-                <div className="text-xs text-white mb-2">
-                  Selected: {selectedStickers.length} | Total: {placedStickers.length}
-                </div>
-                
-                {selectedStickers.length > 0 ? (
-                  <>
-                    {/* Scale Controls */}
-                    <div className="flex gap-1 items-center">
-                      <span className="text-xs font-medium text-white w-12">Scale:</span>
-                      <Button 
-                        size="sm" 
-                        variant="secondary" 
-                        className="w-8 h-8 p-0" 
-                        onClick={() => {
-                          selectedStickers.forEach(stickerId => {
-                            const sticker = placedStickers.find(s => s.id === stickerId);
-                            if (sticker) {
-                              handleStickerUpdate(stickerId, { 
-                                width: Math.max(30, sticker.width - 10), 
-                                height: Math.max(30, sticker.height - 10) 
-                              });
-                            }
-                          });
-                        }}
-                        title="Scale down selected"
-                      >
-                        <Minus className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="secondary" 
-                        className="w-8 h-8 p-0" 
-                        onClick={() => {
-                          selectedStickers.forEach(stickerId => {
-                            const sticker = placedStickers.find(s => s.id === stickerId);
-                            if (sticker) {
-                              handleStickerUpdate(stickerId, { 
-                                width: Math.min(300, sticker.width + 10), 
-                                height: Math.min(300, sticker.height + 10) 
-                              });
-                            }
-                          });
-                        }}
-                        title="Scale up selected"
-                      >
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    {/* Rotation Controls */}
-                    <div className="flex gap-1 items-center">
-                      <span className="text-xs font-medium text-white w-12">Rotate:</span>
-                      <Button 
-                        size="sm" 
-                        variant="secondary" 
-                        className="w-8 h-8 p-0" 
-                        onClick={() => {
-                          selectedStickers.forEach(stickerId => {
-                            const sticker = placedStickers.find(s => s.id === stickerId);
-                            if (sticker) {
-                              handleStickerUpdate(stickerId, { 
-                                rotation: (sticker.rotation || 0) - 15 
-                              });
-                            }
-                          });
-                        }}
-                        title="Rotate left 15°"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="secondary" 
-                        className="w-8 h-8 p-0" 
-                        onClick={() => {
-                          selectedStickers.forEach(stickerId => {
-                            const sticker = placedStickers.find(s => s.id === stickerId);
-                            if (sticker) {
-                              handleStickerUpdate(stickerId, { 
-                                rotation: (sticker.rotation || 0) + 15 
-                              });
-                            }
-                          });
-                        }}
-                        title="Rotate right 15°"
-                      >
-                        <RotateCw className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    {/* Mirror and Other Controls */}
-                    <div className="flex gap-1 items-center">
-                      <span className="text-xs font-medium text-white w-12">Tools:</span>
-                      <Button 
-                        size="sm" 
-                        variant="secondary" 
-                        className="w-8 h-8 p-0" 
-                        onClick={() => {
-                          selectedStickers.forEach(stickerId => {
-                            const sticker = placedStickers.find(s => s.id === stickerId);
-                            if (sticker) {
-                              handleStickerUpdate(stickerId, { mirrored: !sticker.mirrored });
-                            }
-                          });
-                        }}
-                        title="Flip horizontal"
-                      >
-                        <FlipHorizontal className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive" 
-                        className="w-8 h-8 p-0" 
-                        onClick={() => {
-                          selectedStickers.forEach(stickerId => {
-                            handleStickerRemove(stickerId);
-                          });
-                          setSelectedStickers([]);
-                        }}
-                        title="Delete selected"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-xs text-white">
-                    Click on stickers to select them
+            {placedStickers.length > 0 && (
+              <div 
+                className="fixed z-[9999] bg-white/95 backdrop-blur-sm p-4 rounded-lg border-2 border-gray-300 shadow-xl"
+                style={{
+                  left: '20px',
+                  top: '120px'
+                }}
+              >
+                <div className="flex flex-col gap-3">
+                  {/* Status info */}
+                  <div className="text-sm font-medium text-gray-700 border-b pb-2">
+                    Selected: {selectedStickers.length} of {placedStickers.length} stickers
                   </div>
-                )}
+                  
+                  {selectedStickers.length > 0 ? (
+                    <>
+                      {/* Scale Controls */}
+                      <div className="flex gap-2 items-center">
+                        <span className="text-sm font-medium text-gray-700 w-16">Scale:</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-10 h-10 p-0" 
+                          onClick={() => {
+                            console.log("Scale down clicked");
+                            selectedStickers.forEach(stickerId => {
+                              const sticker = placedStickers.find(s => s.id === stickerId);
+                              if (sticker) {
+                                handleStickerUpdate(stickerId, { 
+                                  width: Math.max(30, sticker.width - 10), 
+                                  height: Math.max(30, sticker.height - 10) 
+                                });
+                              }
+                            });
+                          }}
+                          title="Scale down selected"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-10 h-10 p-0" 
+                          onClick={() => {
+                            console.log("Scale up clicked");
+                            selectedStickers.forEach(stickerId => {
+                              const sticker = placedStickers.find(s => s.id === stickerId);
+                              if (sticker) {
+                                handleStickerUpdate(stickerId, { 
+                                  width: Math.min(300, sticker.width + 10), 
+                                  height: Math.min(300, sticker.height + 10) 
+                                });
+                              }
+                            });
+                          }}
+                          title="Scale up selected"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      {/* Rotation Controls */}
+                      <div className="flex gap-2 items-center">
+                        <span className="text-sm font-medium text-gray-700 w-16">Rotate:</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-10 h-10 p-0" 
+                          onClick={() => {
+                            console.log("Rotate left clicked");
+                            selectedStickers.forEach(stickerId => {
+                              const sticker = placedStickers.find(s => s.id === stickerId);
+                              if (sticker) {
+                                handleStickerUpdate(stickerId, { 
+                                  rotation: (sticker.rotation || 0) - 15 
+                                });
+                              }
+                            });
+                          }}
+                          title="Rotate left 15°"
+                        >
+                          <RotateCcw className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-10 h-10 p-0" 
+                          onClick={() => {
+                            console.log("Rotate right clicked");
+                            selectedStickers.forEach(stickerId => {
+                              const sticker = placedStickers.find(s => s.id === stickerId);
+                              if (sticker) {
+                                handleStickerUpdate(stickerId, { 
+                                  rotation: (sticker.rotation || 0) + 15 
+                                });
+                              }
+                            });
+                          }}
+                          title="Rotate right 15°"
+                        >
+                          <RotateCw className="w-4 h-4" />
+                        </Button>
+                      </div>
+
+                      {/* Mirror and Delete Controls */}
+                      <div className="flex gap-2 items-center">
+                        <span className="text-sm font-medium text-gray-700 w-16">Tools:</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-10 h-10 p-0" 
+                          onClick={() => {
+                            console.log("Mirror clicked");
+                            selectedStickers.forEach(stickerId => {
+                              const sticker = placedStickers.find(s => s.id === stickerId);
+                              if (sticker) {
+                                handleStickerUpdate(stickerId, { mirrored: !sticker.mirrored });
+                              }
+                            });
+                          }}
+                          title="Flip horizontal"
+                        >
+                          <FlipHorizontal className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive" 
+                          className="w-10 h-10 p-0" 
+                          onClick={() => {
+                            console.log("Delete clicked");
+                            selectedStickers.forEach(stickerId => {
+                              handleStickerRemove(stickerId);
+                            });
+                            setSelectedStickers([]);
+                          }}
+                          title="Delete selected"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-sm text-gray-500 text-center py-4">
+                      Click on stickers to select them
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

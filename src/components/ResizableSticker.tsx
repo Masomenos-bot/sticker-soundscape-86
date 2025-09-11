@@ -227,10 +227,14 @@ export const ResizableSticker = ({
     event.preventDefault();
     event.stopPropagation();
     
-    // Handle selection with Ctrl/Cmd key
+    // Simple click to select/deselect
     if (event.ctrlKey || event.metaKey) {
+      // Multi-select with Ctrl/Cmd
       onSelect(sticker.id, !isSelected);
       return;
+    } else {
+      // Simple click - select this sticker only
+      onSelect(sticker.id, true);
     }
     
     const rect = stickerRef.current?.getBoundingClientRect();
@@ -425,9 +429,9 @@ export const ResizableSticker = ({
       {/* Selection highlight overlay - IMPROVED */}
       {isSelected && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-yellow-400/20 rounded-lg" />
-          <div className="absolute -inset-2 border-4 border-yellow-400 rounded-lg shadow-lg shadow-yellow-400/50" />
-          <div className="absolute -top-6 -left-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded font-bold">
+          <div className="absolute inset-0 bg-blue-200/40 rounded-lg" />
+          <div className="absolute -inset-2 border-4 border-blue-400 rounded-lg shadow-lg shadow-blue-400/50" />
+          <div className="absolute -top-6 -left-2 bg-blue-400 text-white text-xs px-2 py-1 rounded font-bold">
             SELECTED
           </div>
         </div>
