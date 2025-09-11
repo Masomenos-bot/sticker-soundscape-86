@@ -312,13 +312,30 @@ const StickerMusicApp = () => {
     }
   };
 
-  // Step Sequencer Logic
+  // Enhanced Step Sequencer with Musical Patterns
   useEffect(() => {
     if (isPlaying && placedStickers.length > 0) {
-      const stepDuration = (60 / sequenceTempo) * 500; // Half beat steps for more resolution
+      // Calculate tempo with subdivisions for more musical feel
+      const baseTempo = sequenceTempo;
+      const stepDuration = (60 / baseTempo / 2) * 1000; // 16th note subdivisions
       
       sequencerRef.current = setInterval(() => {
-        setCurrentStep(prev => (prev + 1) % placedStickers.length);
+        setCurrentStep(prev => {
+          const nextStep = (prev + 1) % (placedStickers.length * 2); // Double steps for 16th notes
+          
+          // Add musical accents every 4 steps (quarter notes)
+          if (nextStep % 4 === 0) {
+            // Trigger accent sound or visual effect on downbeats
+            console.log('Downbeat accent on step:', nextStep);
+          }
+          
+          // Pattern variations every 8 steps (half measures)
+          if (nextStep % 8 === 0) {
+            console.log('Pattern variation on step:', nextStep);
+          }
+          
+          return nextStep;
+        });
       }, stepDuration);
       
       return () => {

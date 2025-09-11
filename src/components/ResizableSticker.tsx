@@ -53,11 +53,63 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Optimized Ethiopian instruments
+  // Enhanced musical patterns and rhythmic system
+  const rhythmPattern = useMemo(() => {
+    const patterns = {
+      // Basic 4/4 patterns
+      kick: [1, 0, 0, 0, 1, 0, 0, 0],
+      snare: [0, 0, 1, 0, 0, 0, 1, 0],
+      hihat: [1, 1, 1, 1, 1, 1, 1, 1],
+      
+      // Polyrhythmic patterns (3 against 4)
+      poly3: [1, 0, 0, 1, 0, 0, 1, 0],
+      poly5: [1, 0, 0, 0, 1, 0, 0, 1],
+      
+      // Syncopated patterns
+      sync1: [1, 0, 1, 1, 0, 1, 0, 0],
+      sync2: [0, 1, 0, 1, 1, 0, 1, 0],
+      
+      // Melodic patterns
+      arp1: [1, 0, 1, 0, 1, 1, 0, 0],
+      arp2: [1, 1, 0, 1, 0, 0, 1, 0],
+      bass: [1, 0, 0, 0, 0, 1, 0, 0],
+      
+      // Complex rhythms
+      afro1: [1, 0, 1, 0, 0, 1, 1, 0],
+      afro2: [1, 1, 0, 1, 0, 1, 0, 1],
+    };
+    
+    const patternNames = Object.keys(patterns);
+    const index = sticker.stepIndex % patternNames.length;
+    const patternName = patternNames[index];
+    return { name: patternName, beats: patterns[patternName as keyof typeof patterns] };
+  }, [sticker.stepIndex]);
+
+  // Swing timing based on position
+  const swingTiming = useMemo(() => {
+    const swingAmount = (sticker.x || 0) / 800; // 0 to 1 based on x position
+    return Math.max(0.5, Math.min(1.0, 0.6 + swingAmount * 0.3)); // 60% to 90% swing
+  }, [sticker.x]);
+
+  // Musical scale selection based on Y position
+  const musicalScale = useMemo(() => {
+    const scales = [
+      { name: 'pentatonic', notes: [261.63, 293.66, 329.63, 392.00, 440.00] },
+      { name: 'blues', notes: [261.63, 311.13, 349.23, 369.99, 415.30, 466.16] },
+      { name: 'dorian', notes: [261.63, 293.66, 311.13, 349.23, 392.00, 440.00, 466.16] },
+      { name: 'mixolydian', notes: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 466.16] },
+      { name: 'minor', notes: [261.63, 293.66, 311.13, 349.23, 392.00, 415.30, 466.16] },
+    ];
+    
+    const scaleIndex = Math.floor((sticker.y || 0) / 100) % scales.length;
+    return scales[scaleIndex];
+  }, [sticker.y]);
+
+  // Enhanced Ethiopian instruments with rhythm patterns
   const ethioInstruments = useMemo(() => [
     {
       name: 'vibraphone',
-      scale: [277.18, 311.13, 349.23, 415.30, 466.16, 523.25, 622.25, 698.46], 
+      scale: musicalScale.notes,
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.6, 0.2],
       harmonicGains: [1.0, 0.5, 0.2],
@@ -67,11 +119,13 @@ export const ResizableSticker = ({
       release: 0.6,
       filterFreq: 3200,
       resonance: 1.5,
-      pattern: [0, 2, 4, 1, 5, 3, 6, 2]
+      pattern: [0, 2, 4, 1, 5, 3, 6, 2],
+      rhythmPattern: rhythmPattern.beats,
+      swingFactor: swingTiming
     },
     {
       name: 'krar',
-      scale: [207.65, 233.08, 261.63, 311.13, 349.23, 415.30, 523.25, 622.25],
+      scale: musicalScale.notes.map(f => f * 0.75), // Lower octave
       waveType: 'triangle' as OscillatorType,
       harmonics: [1, 0.5, 0.2],
       harmonicGains: [1.0, 0.4, 0.15],
@@ -81,11 +135,13 @@ export const ResizableSticker = ({
       release: 0.8,
       filterFreq: 4000,
       resonance: 3.0,
-      pattern: [0, 4, 2, 6, 1, 5, 3, 0]
+      pattern: [0, 4, 2, 6, 1, 5, 3, 0],
+      rhythmPattern: rhythmPattern.beats,
+      swingFactor: swingTiming
     },
     {
       name: 'flute',
-      scale: [277.18, 311.13, 349.23, 415.30, 466.16, 554.37, 622.25, 739.99],
+      scale: musicalScale.notes.map(f => f * 1.5), // Higher octave
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.3],
       harmonicGains: [1.0, 0.4],
@@ -95,7 +151,9 @@ export const ResizableSticker = ({
       release: 0.4,
       filterFreq: 4200,
       resonance: 1.0,
-      pattern: [0, 3, 1, 5, 2, 6, 4, 0]
+      pattern: [0, 3, 1, 5, 2, 6, 4, 0],
+      rhythmPattern: rhythmPattern.beats,
+      swingFactor: swingTiming
     },
     {
       name: 'conga_low',
@@ -109,7 +167,9 @@ export const ResizableSticker = ({
       release: 0.15,
       filterFreq: 1000,
       resonance: 8.0,
-      pattern: [0, 0, 2, 0, 3, 0, 1, 2]
+      pattern: [0, 0, 2, 0, 3, 0, 1, 2],
+      rhythmPattern: rhythmPattern.beats,
+      swingFactor: 1.0 // No swing for percussion
     },
     {
       name: 'conga_high',
@@ -123,9 +183,11 @@ export const ResizableSticker = ({
       release: 0.12,
       filterFreq: 1600,
       resonance: 10.0,
-      pattern: [0, 2, 0, 4, 1, 0, 3, 2]
+      pattern: [0, 2, 0, 4, 1, 0, 3, 2],
+      rhythmPattern: rhythmPattern.beats,
+      swingFactor: 1.0 // No swing for percussion
     }
-  ], []);
+  ], [musicalScale, rhythmPattern, swingTiming]);
 
   // Initialize audio
   useEffect(() => {
@@ -204,11 +266,17 @@ export const ResizableSticker = ({
         return;
       }
 
-      // Fallback to synthetic audio if no MP3 or audio context available
+      // Enhanced rhythmic pattern check - only play if rhythm pattern allows it
       if (!audioContextRef.current) return;
         
       const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioInstruments.length;
       const instrument = ethioInstruments[instrumentIndex];
+      
+      // Check if current step should play based on rhythm pattern
+      const currentBeat = stickerProps.stepIndex % 8;
+      const shouldPlay = instrument.rhythmPattern[currentBeat] === 1;
+      
+      if (!shouldPlay) return; // Skip this beat if rhythm pattern says no
       
       const noteIndex = instrument.pattern[stickerProps.stepIndex % instrument.pattern.length];
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
@@ -216,31 +284,46 @@ export const ResizableSticker = ({
       const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.1, 0.15);
       const now = audioContextRef.current.currentTime;
       
-      // Simplified audio generation
+      // Apply swing timing
+      const swingDelay = currentBeat % 2 === 1 ? (1 - instrument.swingFactor) * 0.1 : 0;
+      const playTime = now + swingDelay;
+      
+      // Enhanced audio generation with musical patterns
       for (let i = 0; i < instrument.harmonics.length; i++) {
         const osc = audioContextRef.current.createOscillator();
         const gain = audioContextRef.current.createGain();
         const filter = audioContextRef.current.createBiquadFilter();
         
         osc.type = instrument.waveType;
-        osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], now);
+        osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], playTime);
+        
+        // Add subtle pitch bend for musical expression
+        if (instrument.name !== 'conga_low' && instrument.name !== 'conga_high') {
+          osc.frequency.exponentialRampToValueAtTime(noteFreq * instrument.harmonics[i] * 1.02, playTime + 0.05);
+          osc.frequency.exponentialRampToValueAtTime(noteFreq * instrument.harmonics[i], playTime + 0.1);
+        }
         
         const harmonicGain = instrument.harmonicGains[i] * volume;
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(harmonicGain, now + instrument.attack);
-        gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * instrument.sustain, 0.001), now + instrument.attack + instrument.decay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + instrument.release);
+        gain.gain.setValueAtTime(0, playTime);
+        gain.gain.linearRampToValueAtTime(harmonicGain, playTime + instrument.attack);
+        gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * instrument.sustain, 0.001), playTime + instrument.attack + instrument.decay);
+        gain.gain.exponentialRampToValueAtTime(0.001, playTime + instrument.release);
         
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(instrument.filterFreq, now);
-        filter.Q.setValueAtTime(instrument.resonance, now);
+        filter.frequency.setValueAtTime(instrument.filterFreq, playTime);
+        filter.Q.setValueAtTime(instrument.resonance, playTime);
+        
+        // Add filter modulation for more musical expression
+        if (currentBeat % 4 === 0) { // On downbeats
+          filter.frequency.exponentialRampToValueAtTime(instrument.filterFreq * 1.5, playTime + 0.1);
+        }
         
         osc.connect(filter);
         filter.connect(gain);
         gain.connect(audioContextRef.current.destination);
         
-        osc.start(now);
-        osc.stop(now + instrument.release);
+        osc.start(playTime);
+        osc.stop(playTime + instrument.release);
       }
       
     } catch (error) {
