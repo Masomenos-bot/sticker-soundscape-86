@@ -408,7 +408,15 @@ export const ResizableSticker = ({
         </div>
       )}
       
-      <div className="absolute -top-12 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 scale-75 origin-top-right">
+      <div 
+        className="absolute opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1"
+        style={{
+          top: '-48px',
+          right: '0px',
+          transform: 'scale(0.8)',
+          transformOrigin: 'top right'
+        }}
+      >
         <Button size="sm" variant="secondary" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'up'); }}>
           <ChevronUp className="w-4 h-4" />
         </Button>
@@ -423,8 +431,24 @@ export const ResizableSticker = ({
         </Button>
       </div>
       
-      <div className="absolute bottom-0 right-0 w-5 h-5 bg-primary/60 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-tl-lg scale-75 origin-bottom-right hover:scale-90 hover:bg-primary/80" />
-      <div className="absolute top-0 right-0 w-5 h-5 bg-secondary/60 cursor-grab opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-bl-lg scale-75 origin-top-right hover:scale-90 hover:bg-secondary/80 flex items-center justify-center">
+      <div 
+        className="absolute bg-primary/60 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-tl-lg hover:bg-primary/80"
+        style={{
+          bottom: '-2px',
+          right: '-2px',
+          width: '16px',
+          height: '16px'
+        }}
+      />
+      <div 
+        className="absolute bg-secondary/60 cursor-grab opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-bl-lg hover:bg-secondary/80 flex items-center justify-center"
+        style={{
+          top: '-2px',
+          right: '-2px',
+          width: '16px',
+          height: '16px'
+        }}
+      >
         <RotateCw className="w-3 h-3" />
       </div>
     </div>
