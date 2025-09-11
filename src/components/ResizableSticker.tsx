@@ -258,8 +258,8 @@ export const ResizableSticker = ({
     } else if (isResizing) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (rect) {
-        const newWidth = Math.max(20, event.clientX - rect.left - sticker.x);
-        const newHeight = Math.max(20, event.clientY - rect.top - sticker.y);
+        const newWidth = Math.max(30, Math.min(300, event.clientX - rect.left - sticker.x));
+        const newHeight = Math.max(30, Math.min(300, event.clientY - rect.top - sticker.y));
         onUpdate(sticker.id, { width: newWidth, height: newHeight });
       }
     } else if (isRotating) {
@@ -267,7 +267,11 @@ export const ResizableSticker = ({
       if (rect) {
         const center = { x: rect.left + rect.width * 0.5, y: rect.top + rect.height * 0.5 };
         const angle = Math.atan2(event.clientY - center.y, event.clientX - center.x) * 57.29578;
-        onUpdate(sticker.id, { rotation: rotateStart.rotation + (angle - rotateStart.angle) });
+        const newRotation = rotateStart.rotation + (angle - rotateStart.angle);
+        // Snap to 15-degree increments when close
+        const snappedRotation = Math.round(newRotation / 15) * 15;
+        const finalRotation = Math.abs(newRotation - snappedRotation) < 5 ? snappedRotation : newRotation;
+        onUpdate(sticker.id, { rotation: finalRotation });
       }
     }
   }, [isDragging, isResizing, isRotating, dragStart, rotateStart, sticker, onUpdate, canvasRef, isSelected, isMultiSelectMode, onGroupMove]);
@@ -367,7 +371,7 @@ export const ResizableSticker = ({
   return (
     <div
       ref={stickerRef}
-      className={`absolute select-none cursor-move group transition-all duration-200 ${
+      className={`absolute select-none cursor-move group transition-all duration-150 ease-out ${
         isCurrentStep ? 'z-50' : ''
       } ${isSelected ? 'ring-4 ring-primary/60 ring-offset-2 shadow-lg shadow-primary/30 scale-105' : ''}`}
       style={{
@@ -378,6 +382,7 @@ export const ResizableSticker = ({
         transform: `rotate(${sticker.rotation || 0}deg) scaleX(${sticker.mirrored ? -1 : 1})`,
         zIndex: sticker.zIndex,
         touchAction: 'none',
+        willChange: 'transform',
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
@@ -403,23 +408,23 @@ export const ResizableSticker = ({
         </div>
       )}
       
-      <div className="absolute -top-10 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        <Button size="sm" variant="secondary" className="w-6 h-6 p-0" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'up'); }}>
-          <ChevronUp className="w-3 h-3" />
+      <div className="absolute -top-12 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10 scale-75 origin-top-right">
+        <Button size="sm" variant="secondary" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'up'); }}>
+          <ChevronUp className="w-4 h-4" />
         </Button>
-        <Button size="sm" variant="secondary" className="w-6 h-6 p-0" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'down'); }}>
-          <ChevronDown className="w-3 h-3" />
+        <Button size="sm" variant="secondary" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'down'); }}>
+          <ChevronDown className="w-4 h-4" />
         </Button>
-        <Button size="sm" variant="secondary" className="w-6 h-6 p-0" onClick={(e) => { e.stopPropagation(); onUpdate(sticker.id, { mirrored: !sticker.mirrored }); }}>
-          <FlipHorizontal className="w-3 h-3" />
+        <Button size="sm" variant="secondary" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onUpdate(sticker.id, { mirrored: !sticker.mirrored }); }}>
+          <FlipHorizontal className="w-4 h-4" />
         </Button>
-        <Button size="sm" variant="destructive" className="w-6 h-6 p-0" onClick={(e) => { e.stopPropagation(); onRemove(sticker.id); }}>
-          <Trash2 className="w-3 h-3" />
+        <Button size="sm" variant="destructive" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onRemove(sticker.id); }}>
+          <Trash2 className="w-4 h-4" />
         </Button>
       </div>
       
-      <div className="absolute bottom-0 right-0 w-4 h-4 bg-primary/50 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-opacity" />
-      <div className="absolute top-0 right-0 w-4 h-4 bg-secondary/50 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute bottom-0 right-0 w-5 h-5 bg-primary/60 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-tl-lg scale-75 origin-bottom-right hover:scale-90 hover:bg-primary/80" />
+      <div className="absolute top-0 right-0 w-5 h-5 bg-secondary/60 cursor-grab opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-bl-lg scale-75 origin-top-right hover:scale-90 hover:bg-secondary/80 flex items-center justify-center">
         <RotateCw className="w-3 h-3" />
       </div>
     </div>
