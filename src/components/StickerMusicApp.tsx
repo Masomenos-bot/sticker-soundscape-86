@@ -40,9 +40,38 @@ const StickerMusicApp = () => {
   const [sequenceTempo, setSequenceTempo] = useState(120); // BPM - matches Yèkèrmo Sèw
   const [selectedStickers, setSelectedStickers] = useState<string[]>([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [controlBoardPosition, setControlBoardPosition] = useState({ x: 20, y: 120 });
+  const [isDraggingControlBoard, setIsDraggingControlBoard] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const audioContextRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const sequencerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Handle global mouse events for control board dragging
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingControlBoard) {
+        setControlBoardPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y
+        });
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingControlBoard(false);
+    };
+
+    if (isDraggingControlBoard) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDraggingControlBoard, dragOffset]);
 
   // Initialize audio context
   useEffect(() => {
@@ -465,13 +494,20 @@ const StickerMusicApp = () => {
               />
             </Card>
             
-            {/* Fixed controls - Working on selected stickers */}
+            {/* Moveable controls - Working on selected stickers */}
             {placedStickers.length > 0 && (
               <div 
-                className="fixed z-[9999] bg-white/95 backdrop-blur-sm p-4 rounded-lg border-2 border-gray-300 shadow-xl"
+                className="fixed z-[9999] bg-white/95 backdrop-blur-sm p-4 rounded-lg border-2 border-gray-300 shadow-xl cursor-move select-none"
                 style={{
-                  left: '20px',
-                  top: '120px'
+                  left: `${controlBoardPosition.x}px`,
+                  top: `${controlBoardPosition.y}px`
+                }}
+                onMouseDown={(e) => {
+                  setIsDraggingControlBoard(true);
+                  setDragOffset({
+                    x: e.clientX - controlBoardPosition.x,
+                    y: e.clientY - controlBoardPosition.y
+                  });
                 }}
               >
                 <div className="flex flex-col gap-3">
