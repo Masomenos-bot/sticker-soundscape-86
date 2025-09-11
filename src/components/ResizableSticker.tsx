@@ -147,18 +147,39 @@ export const ResizableSticker = ({
     };
   }, []);
 
-  // Optimized step sound
+  // Reference to prevent audio jitter during sticker modifications
+  const stickerPropsRef = useRef({
+    id: sticker.id,
+    width: sticker.width,
+    height: sticker.height,
+    volume: sticker.volume,
+    stepIndex: sticker.stepIndex
+  });
+
+  // Update ref only when needed
+  useEffect(() => {
+    stickerPropsRef.current = {
+      id: sticker.id,
+      width: sticker.width,
+      height: sticker.height,
+      volume: sticker.volume,
+      stepIndex: sticker.stepIndex
+    };
+  }, [sticker.id, sticker.width, sticker.height, sticker.volume, sticker.stepIndex]);
+
+  // Optimized step sound with stable dependencies
   const playStepSound = useCallback(async () => {
     if (!audioContextRef.current || !isCurrentStep || !isPlaying) return;
 
     try {
-      const instrumentIndex = sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioInstruments.length;
+      const stickerProps = stickerPropsRef.current;
+      const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioInstruments.length;
       const instrument = ethioInstruments[instrumentIndex];
       
-      const noteIndex = instrument.pattern[sticker.stepIndex % instrument.pattern.length];
+      const noteIndex = instrument.pattern[stickerProps.stepIndex % instrument.pattern.length];
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
-      const volume = Math.min((sticker.width + sticker.height) / 160 * globalVolume * sticker.volume * 0.1, 0.15);
+      const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.1, 0.15);
       const now = audioContextRef.current.currentTime;
       
       // Simplified audio generation
@@ -191,8 +212,9 @@ export const ResizableSticker = ({
     } catch (error) {
       console.error("Audio error:", error);
     }
-  }, [isCurrentStep, isPlaying, sticker, globalVolume, ethioInstruments]);
+  }, [isCurrentStep, isPlaying, globalVolume, ethioInstruments]);
 
+  // Stable audio trigger effect
   useEffect(() => {
     if (isCurrentStep && isPlaying) {
       playStepSound();
