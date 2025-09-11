@@ -273,15 +273,22 @@ export const ResizableSticker = ({
       const instrument = ethioInstruments[instrumentIndex];
       
       // Check if current step should play based on rhythm pattern
-      const currentBeat = stickerProps.stepIndex % 8;
+      const currentBeat = (sticker.stepIndex || 0) % 8; // Use sticker's step index
       const shouldPlay = instrument.rhythmPattern[currentBeat] === 1;
       
-      if (!shouldPlay) return; // Skip this beat if rhythm pattern says no
+      console.log(`🎵 Sticker ${stickerProps.stepIndex}: Beat ${currentBeat}, Pattern: ${instrument.rhythmPattern}, Should Play: ${shouldPlay}, Instrument: ${instrument.name}`);
+      
+      if (!shouldPlay) {
+        console.log(`⏭️ Skipping beat ${currentBeat} for ${instrument.name}`);
+        return; // Skip this beat if rhythm pattern says no
+      }
+      
+      console.log(`🔥 PLAYING: ${instrument.name} on beat ${currentBeat}!`);
       
       const noteIndex = instrument.pattern[stickerProps.stepIndex % instrument.pattern.length];
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
-      const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.1, 0.15);
+      const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.2, 0.3); // Increased volume
       const now = audioContextRef.current.currentTime;
       
       // Apply swing timing
@@ -541,6 +548,19 @@ export const ResizableSticker = ({
         draggable={false}
       />
       
+      {/* Rhythm Pattern Indicator */}
+      {isPlaying && (
+        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-mono bg-black/80 text-white px-2 py-1 rounded whitespace-nowrap">
+          {rhythmPattern.name}: {rhythmPattern.beats.map((beat, i) => beat ? '●' : '○').join('')}
+        </div>
+      )}
+      
+      {/* Scale Indicator */}
+      {isSelected && (
+        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs bg-blue-600 text-white px-2 py-1 rounded">
+          {musicalScale.name}
+        </div>
+      )}
     </div>
   );
 };
