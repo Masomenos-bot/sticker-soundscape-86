@@ -74,16 +74,31 @@ export const ResizableSticker = ({
         console.log('Audio context resumed');
       }
 
-      // Define musical patterns - each sticker gets a different pattern
+      // Define soulful, harmonious musical patterns using pentatonic and blues scales
       const patterns = [
-        { beats: [1, 0, 1, 0], freq: 200, wave: 'square' as OscillatorType },
-        { beats: [0, 1, 0, 1], freq: 300, wave: 'sawtooth' as OscillatorType },
-        { beats: [1, 1, 0, 1], freq: 400, wave: 'triangle' as OscillatorType },
-        { beats: [1, 0, 0, 1], freq: 150, wave: 'square' as OscillatorType },
-        { beats: [0, 0, 1, 0], freq: 500, wave: 'sine' as OscillatorType },
-        { beats: [1, 1, 1, 0], freq: 250, wave: 'triangle' as OscillatorType },
-        { beats: [0, 1, 1, 1], freq: 350, wave: 'sawtooth' as OscillatorType },
-        { beats: [1, 0, 1, 1], freq: 180, wave: 'square' as OscillatorType },
+        // Deep bass kick - Root note (C2)
+        { beats: [1, 0, 0, 0, 1, 0, 0, 0], freq: 65.4, wave: 'sine' as OscillatorType, envelope: { attack: 0.01, decay: 0.3, sustain: 0.1 } },
+        
+        // Snare on 2 and 4 - Perfect fifth (G2) 
+        { beats: [0, 0, 1, 0, 0, 0, 1, 0], freq: 98.0, wave: 'triangle' as OscillatorType, envelope: { attack: 0.005, decay: 0.15, sustain: 0.05 } },
+        
+        // Hi-hat pattern - Major third (E3)
+        { beats: [1, 1, 0, 1, 1, 1, 0, 1], freq: 164.8, wave: 'sawtooth' as OscillatorType, envelope: { attack: 0.001, decay: 0.05, sustain: 0.01 } },
+        
+        // Bass line - Minor third (Eb2)
+        { beats: [1, 0, 1, 1, 0, 0, 1, 0], freq: 77.8, wave: 'square' as OscillatorType, envelope: { attack: 0.02, decay: 0.25, sustain: 0.15 } },
+        
+        // Melodic percussion - Perfect fourth (F3) 
+        { beats: [0, 1, 0, 0, 1, 0, 1, 0], freq: 174.6, wave: 'sine' as OscillatorType, envelope: { attack: 0.01, decay: 0.2, sustain: 0.08 } },
+        
+        // Syncopated rhythm - Sixth (A3)
+        { beats: [1, 0, 1, 0, 0, 1, 0, 1], freq: 220.0, wave: 'triangle' as OscillatorType, envelope: { attack: 0.005, decay: 0.18, sustain: 0.06 } },
+        
+        // Counter melody - Seventh (Bb3)
+        { beats: [0, 0, 1, 1, 0, 1, 0, 0], freq: 233.1, wave: 'sine' as OscillatorType, envelope: { attack: 0.015, decay: 0.22, sustain: 0.1 } },
+        
+        // Polyrhythmic element - Octave (C4)
+        { beats: [1, 0, 0, 1, 0, 1, 1, 0], freq: 261.6, wave: 'sawtooth' as OscillatorType, envelope: { attack: 0.008, decay: 0.12, sustain: 0.04 } },
       ];
       
       // Get pattern for this sticker
@@ -120,30 +135,40 @@ export const ResizableSticker = ({
             const osc = audioContext.createOscillator();
             const gain = audioContext.createGain();
             
+            // Add subtle filtering for more soulful sound
+            const filter = audioContext.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(pattern.freq * 4, audioContext.currentTime);
+            filter.Q.setValueAtTime(1, audioContext.currentTime);
+            
             osc.type = pattern.wave;
             osc.frequency.setValueAtTime(pattern.freq, audioContext.currentTime);
             
-            // Connect audio nodes
-            osc.connect(gain);
+            // Connect audio nodes with filter
+            osc.connect(filter);
+            filter.connect(gain);
             gain.connect(masterGain);
             
-            // Create attack/decay envelope
+            // Create soulful envelope using pattern envelope settings
             const now = audioContext.currentTime;
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(1, now + 0.005); // Quick attack
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); // Quick decay
+            const { attack, decay, sustain } = pattern.envelope;
             
-            // Start and stop the oscillator
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(1, now + attack); // Attack
+            gain.gain.exponentialRampToValueAtTime(sustain, now + attack + decay); // Decay to sustain
+            gain.gain.exponentialRampToValueAtTime(0.001, now + attack + decay + 0.1); // Release
+            
+            // Start and stop the oscillator with longer duration for soulful sound
             osc.start(now);
-            osc.stop(now + 0.1);
+            osc.stop(now + attack + decay + 0.1);
           }
           
           // Move to next beat
           beatIndex = (beatIndex + 1) % pattern.beats.length;
           
-          // Schedule next beat (600ms = 100 BPM)
+          // Schedule next beat (750ms = 80 BPM for more soulful, relaxed tempo)
           if (isActive) {
-            setTimeout(playBeat, 600);
+            setTimeout(playBeat, 750);
           }
         } catch (error) {
           console.error('Error in playBeat:', error);
