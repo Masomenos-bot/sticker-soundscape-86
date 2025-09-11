@@ -88,7 +88,7 @@ export const ResizableSticker = ({
       attack: 0.008,
       decay: 0.05, // Shortened
       sustain: 0.3, // Shorter sustain like real vibes
-      release: 2.8,
+      release: 0.8, // Much shorter release
       filterFreq: 3200,
       resonance: 1.8,
       melodicPattern: [0, 2, 4, 1, 5, 3, 6, 2], // Mulatu's signature intervals
@@ -120,7 +120,7 @@ export const ResizableSticker = ({
       attack: 0.15,
       decay: 0.05, // Shortened further
       sustain: 0.8,
-      release: 2.5,
+      release: 0.6, // Much shorter release
       filterFreq: 4200,
       resonance: 1.2,
       melodicPattern: [0, 3, 1, 5, 2, 6, 4, 0], // Flute-like phrases
