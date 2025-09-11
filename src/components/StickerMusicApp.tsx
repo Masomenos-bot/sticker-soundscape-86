@@ -38,6 +38,8 @@ const StickerMusicApp = () => {
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [sequenceTempo, setSequenceTempo] = useState(120); // BPM - matches Yèkèrmo Sèw
+  const [selectedStickers, setSelectedStickers] = useState<string[]>([]);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const sequencerRef = useRef<NodeJS.Timeout | null>(null);
@@ -162,10 +164,51 @@ const StickerMusicApp = () => {
 
   const clearCanvas = () => {
     setPlacedStickers([]);
+    setSelectedStickers([]);
     setCurrentStep(0);
     toast("Canvas cleared!", {
       duration: 1500,
     });
+  };
+
+  const selectAllStickers = () => {
+    if (placedStickers.length === 0) return;
+    
+    if (selectedStickers.length === placedStickers.length) {
+      // Deselect all if all are selected
+      setSelectedStickers([]);
+      setIsMultiSelectMode(false);
+      toast("All stickers deselected", { duration: 1000 });
+    } else {
+      // Select all stickers
+      setSelectedStickers(placedStickers.map(s => s.id));
+      setIsMultiSelectMode(true);
+      toast(`${placedStickers.length} stickers selected`, { duration: 1000 });
+    }
+  };
+
+  const handleGroupMove = (deltaX: number, deltaY: number) => {
+    if (selectedStickers.length === 0) return;
+    
+    setPlacedStickers(prev =>
+      prev.map(sticker =>
+        selectedStickers.includes(sticker.id)
+          ? { ...sticker, x: sticker.x + deltaX, y: sticker.y + deltaY }
+          : sticker
+      )
+    );
+  };
+
+  const handleStickerSelect = (id: string, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedStickers(prev => [...prev, id]);
+      setIsMultiSelectMode(true);
+    } else {
+      setSelectedStickers(prev => prev.filter(sId => sId !== id));
+      if (selectedStickers.length <= 1) {
+        setIsMultiSelectMode(false);
+      }
+    }
   };
 
   // Step Sequencer Logic
@@ -376,6 +419,13 @@ const StickerMusicApp = () => {
               {/* Control Buttons */}
               <div className="absolute top-2 right-2 z-20 flex gap-2">
                 <button
+                  onClick={selectAllStickers}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
+                  title="Select all stickers (Ctrl+A)"
+                >
+                  <span className="text-white font-bold text-xs">ALL</span>
+                </button>
+                <button
                   onClick={isPlaying ? handlePause : handlePlay}
                   className="w-10 h-10 hover:scale-110 transition-transform duration-200"
                 >
@@ -407,6 +457,10 @@ const StickerMusicApp = () => {
                 globalVolume={globalVolume}
                 currentStep={currentStep}
                 sequenceTempo={sequenceTempo}
+                selectedStickers={selectedStickers}
+                isMultiSelectMode={isMultiSelectMode}
+                onStickerSelect={handleStickerSelect}
+                onGroupMove={handleGroupMove}
               />
             </Card>
           </div>

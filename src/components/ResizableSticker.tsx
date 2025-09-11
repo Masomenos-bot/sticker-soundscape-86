@@ -13,6 +13,10 @@ interface ResizableStickerProps {
   canvasRef: React.RefObject<HTMLDivElement>;
   isCurrentStep: boolean;
   sequenceTempo: number;
+  isSelected: boolean;
+  isMultiSelectMode: boolean;
+  onSelect: (id: string, isSelected: boolean) => void;
+  onGroupMove: (deltaX: number, deltaY: number) => void;
 }
 
 export const ResizableSticker = ({
@@ -25,6 +29,10 @@ export const ResizableSticker = ({
   canvasRef,
   isCurrentStep,
   sequenceTempo,
+  isSelected,
+  isMultiSelectMode,
+  onSelect,
+  onGroupMove,
 }: ResizableStickerProps) => {
   const stickerRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -197,6 +205,12 @@ export const ResizableSticker = ({
     event.preventDefault();
     event.stopPropagation();
     
+    // Handle selection with Ctrl/Cmd key
+    if (event.ctrlKey || event.metaKey) {
+      onSelect(sticker.id, !isSelected);
+      return;
+    }
+    
     const rect = stickerRef.current?.getBoundingClientRect();
     if (!rect) return;
     
@@ -217,13 +231,22 @@ export const ResizableSticker = ({
       setIsDragging(true);
       setDragStart({ x: event.clientX - sticker.x, y: event.clientY - sticker.y });
     }
-  }, [sticker.x, sticker.y, sticker.rotation]);
+  }, [sticker.x, sticker.y, sticker.rotation, sticker.id, isSelected, onSelect]);
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
     if (isDragging) {
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
-      onUpdate(sticker.id, { x: newX, y: newY });
+      
+      if (isSelected && isMultiSelectMode) {
+        // Move all selected stickers together
+        const deltaX = newX - sticker.x;
+        const deltaY = newY - sticker.y;
+        onGroupMove(deltaX, deltaY);
+      } else {
+        // Move only this sticker
+        onUpdate(sticker.id, { x: newX, y: newY });
+      }
       
       if (canvasRef.current) {
         const rect = canvasRef.current.getBoundingClientRect();
@@ -247,7 +270,7 @@ export const ResizableSticker = ({
         onUpdate(sticker.id, { rotation: rotateStart.rotation + (angle - rotateStart.angle) });
       }
     }
-  }, [isDragging, isResizing, isRotating, dragStart, rotateStart, sticker, onUpdate, canvasRef]);
+  }, [isDragging, isResizing, isRotating, dragStart, rotateStart, sticker, onUpdate, canvasRef, isSelected, isMultiSelectMode, onGroupMove]);
 
   const handleMouseUp = useCallback(() => {
     if (isDragging && showTrashOverlay) {
@@ -344,7 +367,9 @@ export const ResizableSticker = ({
   return (
     <div
       ref={stickerRef}
-      className={`absolute select-none cursor-move group transition-all duration-200 ${isCurrentStep ? 'z-50' : ''}`}
+      className={`absolute select-none cursor-move group transition-all duration-200 ${
+        isCurrentStep ? 'z-50' : ''
+      } ${isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
       style={{
         left: `${sticker.x}px`,
         top: `${sticker.y}px`,

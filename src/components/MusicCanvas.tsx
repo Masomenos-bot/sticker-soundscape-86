@@ -12,6 +12,10 @@ interface MusicCanvasProps {
   globalVolume: number;
   currentStep: number;
   sequenceTempo: number;
+  selectedStickers: string[];
+  isMultiSelectMode: boolean;
+  onStickerSelect: (id: string, isSelected: boolean) => void;
+  onGroupMove: (deltaX: number, deltaY: number) => void;
 }
 
 export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
@@ -24,6 +28,10 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   globalVolume,
   currentStep,
   sequenceTempo,
+  selectedStickers,
+  isMultiSelectMode,
+  onStickerSelect,
+  onGroupMove,
 }, ref) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -96,6 +104,10 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
             canvasRef={canvasRef}
             isCurrentStep={sticker.stepIndex === currentStep}
             sequenceTempo={sequenceTempo}
+            isSelected={selectedStickers.includes(sticker.id)}
+            isMultiSelectMode={isMultiSelectMode}
+            onSelect={onStickerSelect}
+            onGroupMove={onGroupMove}
           />
         ))}
       </div>
