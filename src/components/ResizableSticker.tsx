@@ -76,119 +76,119 @@ export const ResizableSticker = ({
     };
   }, []);
 
-  // African instrument definitions for step sequencer
-  const africanInstruments = [
+  // Hopeful instrument definitions for uplifting sequences
+  const hopefulInstruments = [
     {
-      name: 'kalimba',
-      scale: [174.61, 196.00, 220.00, 261.63, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33],
+      name: 'gentle_piano',
+      scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25], // C Major
       waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 2.1, 3.2, 4.8],
-      harmonicGains: [1.0, 0.4, 0.2, 0.1],
-      attack: 0.01,
+      harmonics: [1, 0.5, 0.25, 0.15, 0.1],
+      harmonicGains: [1.0, 0.6, 0.4, 0.3, 0.2],
+      attack: 0.05,
       decay: 0.3,
-      sustain: 0.6,
-      release: 2.0,
-      filterFreq: 2000,
-      resonance: 4,
-      melodicPattern: [0, 2, 4, 2, 5, 4, 2, 0]
-    },
-    {
-      name: 'mbira',
-      scale: [164.81, 185.00, 220.00, 246.94, 277.18, 329.63, 369.99, 440.00, 493.88, 554.37],
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 1.9, 3.1, 5.2, 7.1],
-      harmonicGains: [1.0, 0.5, 0.3, 0.15, 0.08],
-      attack: 0.005,
-      decay: 0.2,
-      sustain: 0.4,
-      release: 1.5,
-      filterFreq: 1800,
-      resonance: 6,
-      melodicPattern: [0, 3, 1, 4, 2, 5, 3, 1]
-    },
-    {
-      name: 'kora',
-      scale: [130.81, 155.56, 174.61, 207.65, 233.08, 261.63, 311.13, 349.23, 415.30, 466.16],
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 2.0, 3.0, 4.0, 6.0],
-      harmonicGains: [1.0, 0.6, 0.4, 0.2, 0.1],
-      attack: 0.02,
-      decay: 0.4,
-      sustain: 0.5,
+      sustain: 0.7,
       release: 2.5,
-      filterFreq: 2500,
-      resonance: 3,
-      melodicPattern: [0, 2, 4, 6, 4, 2, 1, 3]
-    },
-    {
-      name: 'krar',
-      scale: [146.83, 174.61, 196.00, 233.08, 261.63, 293.66, 349.23, 392.00, 466.16, 523.25],
-      waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 2.1, 3.9, 5.8],
-      harmonicGains: [1.0, 0.4, 0.25, 0.12],
-      attack: 0.015,
-      decay: 0.25,
-      sustain: 0.3,
-      release: 1.8,
-      filterFreq: 1600,
-      resonance: 5,
-      melodicPattern: [0, 4, 2, 5, 1, 3, 4, 0]
-    },
-    {
-      name: 'xylophone',
-      scale: [196.00, 220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88, 554.37],
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 2.7, 4.1, 6.3, 8.9],
-      harmonicGains: [1.0, 0.3, 0.2, 0.1, 0.05],
-      attack: 0.003,
-      decay: 0.1,
-      sustain: 0.2,
-      release: 0.8,
       filterFreq: 3000,
       resonance: 2,
-      melodicPattern: [0, 1, 3, 5, 7, 5, 3, 1]
+      melodicPattern: [0, 2, 4, 5, 7, 5, 4, 2] // I-III-V-VI-VIII-VI-V-III (uplifting)
     },
     {
-      name: 'flute',
-      scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25],
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 2.0, 3.0, 4.0],
-      harmonicGains: [1.0, 0.3, 0.15, 0.08],
-      attack: 0.1,
-      decay: 0.2,
+      name: 'warm_strings',
+      scale: [246.94, 277.18, 311.13, 329.63, 369.99, 415.30, 466.16, 493.88, 554.37, 622.25], // B Major
+      waveType: 'sawtooth' as OscillatorType,
+      harmonics: [1, 0.8, 0.6, 0.4, 0.3],
+      harmonicGains: [1.0, 0.7, 0.5, 0.3, 0.2],
+      attack: 0.2,
+      decay: 0.5,
       sustain: 0.8,
-      release: 0.5,
-      filterFreq: 4000,
-      resonance: 1,
-      melodicPattern: [0, 2, 4, 7, 9, 7, 4, 2]
+      release: 3.0,
+      filterFreq: 2500,
+      resonance: 1.5,
+      melodicPattern: [0, 4, 2, 6, 4, 7, 2, 0] // Hopeful chord progression
     },
     {
-      name: 'djembe',
-      scale: [174.61, 196.00, 220.00, 261.63, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33],
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 1.8, 2.9, 4.2, 6.1],
-      harmonicGains: [1.0, 0.6, 0.3, 0.2, 0.1],
-      attack: 0.001,
-      decay: 0.05,
-      sustain: 0.1,
-      release: 0.3,
-      filterFreq: 800,
-      resonance: 8,
-      melodicPattern: [0, 0, 2, 0, 3, 0, 2, 0]
-    },
-    {
-      name: 'bells',
-      scale: [164.81, 185.00, 220.00, 246.94, 277.18, 329.63, 369.99, 440.00, 493.88, 554.37],
+      name: 'bright_bells',
+      scale: [293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 554.37, 587.33, 659.25, 739.99], // D Major
       waveType: 'sine' as OscillatorType,
-      harmonics: [1, 3.2, 5.4, 7.8, 11.1],
+      harmonics: [1, 2.0, 3.0, 4.0, 5.0],
       harmonicGains: [1.0, 0.4, 0.3, 0.2, 0.1],
-      attack: 0.001,
-      decay: 0.1,
-      sustain: 0.3,
+      attack: 0.01,
+      decay: 0.15,
+      sustain: 0.6,
       release: 4.0,
-      filterFreq: 5000,
+      filterFreq: 4500,
+      resonance: 1,
+      melodicPattern: [0, 2, 4, 7, 5, 4, 2, 0] // Ascending then descending for hope
+    },
+    {
+      name: 'soft_harp',
+      scale: [220.00, 246.94, 277.18, 293.66, 329.63, 369.99, 415.30, 440.00, 493.88, 554.37], // A Major
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 0.3, 0.2, 0.15, 0.1],
+      harmonicGains: [1.0, 0.8, 0.6, 0.4, 0.3],
+      attack: 0.03,
+      decay: 0.4,
+      sustain: 0.6,
+      release: 3.5,
+      filterFreq: 3500,
       resonance: 2,
-      melodicPattern: [0, 4, 2, 6, 1, 5, 3, 7]
+      melodicPattern: [0, 4, 7, 5, 2, 4, 0, 2] // Arpeggiated hope pattern
+    },
+    {
+      name: 'crystal_chimes',
+      scale: [329.63, 369.99, 415.30, 440.00, 493.88, 554.37, 622.25, 659.25, 739.99, 830.61], // E Major
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 2.5, 4.0, 6.0, 8.0],
+      harmonicGains: [1.0, 0.3, 0.2, 0.15, 0.1],
+      attack: 0.005,
+      decay: 0.1,
+      sustain: 0.4,
+      release: 5.0,
+      filterFreq: 5000,
+      resonance: 0.8,
+      melodicPattern: [0, 3, 6, 4, 1, 5, 2, 0] // Crystalline happiness
+    },
+    {
+      name: 'warm_flute',
+      scale: [349.23, 392.00, 440.00, 466.16, 523.25, 587.33, 659.25, 698.46, 783.99, 880.00], // F Major
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.4, 0.2, 0.1],
+      harmonicGains: [1.0, 0.7, 0.5, 0.3],
+      attack: 0.15,
+      decay: 0.3,
+      sustain: 0.9,
+      release: 2.0,
+      filterFreq: 4200,
+      resonance: 1.2,
+      melodicPattern: [0, 2, 5, 7, 4, 2, 0, 4] // Soaring melody
+    },
+    {
+      name: 'gentle_marimba',
+      scale: [392.00, 440.00, 493.88, 523.25, 587.33, 659.25, 739.99, 783.99, 880.00, 987.77], // G Major  
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 1.5, 2.0, 3.0, 4.0],
+      harmonicGains: [1.0, 0.4, 0.3, 0.2, 0.1],
+      attack: 0.01,
+      decay: 0.2,
+      sustain: 0.3,
+      release: 1.5,
+      filterFreq: 2800,
+      resonance: 3,
+      melodicPattern: [0, 2, 4, 6, 5, 3, 1, 0] // Bouncy optimism
+    },
+    {
+      name: 'serene_pad',
+      scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25], // C Major
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.8, 0.6, 0.4, 0.3, 0.2],
+      harmonicGains: [1.0, 0.8, 0.7, 0.6, 0.5, 0.4],
+      attack: 0.8,
+      decay: 1.0,
+      sustain: 0.9,
+      release: 4.0,
+      filterFreq: 2200,
+      resonance: 0.5,
+      melodicPattern: [0, 4, 7, 2, 5, 0, 4, 7] // I-V-VIII-III-VI progression (very hopeful)
     }
   ];
 
@@ -199,17 +199,17 @@ export const ResizableSticker = ({
     try {
       console.log(`Playing step ${sticker.stepIndex} for sticker ${sticker.id}`);
       
-      // Select instrument based on sticker ID hash
-      const instrumentIndex = sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % africanInstruments.length;
-      const instrument = africanInstruments[instrumentIndex];
+      // Select hopeful instrument based on sticker ID hash
+      const instrumentIndex = sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % hopefulInstruments.length;
+      const instrument = hopefulInstruments[instrumentIndex];
       
       // Get melodic note based on step index
       const noteIndex = instrument.melodicPattern[sticker.stepIndex % instrument.melodicPattern.length];
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
-      // Calculate volume based on sticker size and position
+      // Calculate volume based on sticker size and position - softer for pleasant sound
       const sizeRatio = (sticker.width + sticker.height) / 160;
-      const volume = Math.min(sizeRatio * globalVolume * sticker.volume * 0.15, 0.2);
+      const volume = Math.min(sizeRatio * globalVolume * sticker.volume * 0.12, 0.15);
       
       console.log(`${instrument.name} playing ${noteFreq}Hz at volume ${volume}`);
       
@@ -232,9 +232,9 @@ export const ResizableSticker = ({
         gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * instrument.sustain, 0.001), now + instrument.decay);
         gain.gain.exponentialRampToValueAtTime(0.001, now + instrument.release);
         
-        // Set up filter
-        filter.type = instrument.name === 'djembe' ? 'lowpass' : 'bandpass';
-        filter.frequency.setValueAtTime(instrument.filterFreq + (noteFreq * 0.5), now);
+        // Set up filter for warmer, more pleasant sound
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(instrument.filterFreq + (noteFreq * 0.3), now);
         filter.Q.setValueAtTime(instrument.resonance, now);
         
         // Connect audio chain
