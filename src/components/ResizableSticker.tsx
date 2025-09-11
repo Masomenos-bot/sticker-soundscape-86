@@ -76,119 +76,119 @@ export const ResizableSticker = ({
     };
   }, []);
 
-  // Hopeful instrument definitions for uplifting sequences
-  const hopefulInstruments = [
+  // Ethiopian jazz instruments inspired by Mulatu Astatke's style
+  const ethioJazzInstruments = [
     {
-      name: 'gentle_piano',
-      scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25], // C Major
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 0.5, 0.25, 0.15, 0.1],
-      harmonicGains: [1.0, 0.6, 0.4, 0.3, 0.2],
-      attack: 0.05,
-      decay: 0.3,
-      sustain: 0.7,
-      release: 2.5,
-      filterFreq: 3000,
-      resonance: 2,
-      melodicPattern: [0, 2, 4, 5, 7, 5, 4, 2] // I-III-V-VI-VIII-VI-V-III (uplifting)
-    },
-    {
-      name: 'warm_strings',
-      scale: [246.94, 277.18, 311.13, 329.63, 369.99, 415.30, 466.16, 493.88, 554.37, 622.25], // B Major
-      waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.8, 0.6, 0.4, 0.3],
-      harmonicGains: [1.0, 0.7, 0.5, 0.3, 0.2],
-      attack: 0.2,
-      decay: 0.5,
-      sustain: 0.8,
-      release: 3.0,
-      filterFreq: 2500,
-      resonance: 1.5,
-      melodicPattern: [0, 4, 2, 6, 4, 7, 2, 0] // Hopeful chord progression
-    },
-    {
-      name: 'bright_bells',
-      scale: [293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 554.37, 587.33, 659.25, 739.99], // D Major
+      name: 'ethio_vibraphone',
+      scale: [220.00, 246.94, 261.63, 311.13, 349.23, 440.00, 493.88, 523.25, 622.25, 698.46], // Tezeta mode (Ethiopian)
       waveType: 'sine' as OscillatorType,
-      harmonics: [1, 2.0, 3.0, 4.0, 5.0],
-      harmonicGains: [1.0, 0.4, 0.3, 0.2, 0.1],
+      harmonics: [1, 0.7, 0.3, 0.15, 0.08],
+      harmonicGains: [1.0, 0.8, 0.6, 0.4, 0.2],
       attack: 0.01,
-      decay: 0.15,
-      sustain: 0.6,
-      release: 4.0,
-      filterFreq: 4500,
-      resonance: 1,
-      melodicPattern: [0, 2, 4, 7, 5, 4, 2, 0] // Ascending then descending for hope
-    },
-    {
-      name: 'soft_harp',
-      scale: [220.00, 246.94, 277.18, 293.66, 329.63, 369.99, 415.30, 440.00, 493.88, 554.37], // A Major
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 0.3, 0.2, 0.15, 0.1],
-      harmonicGains: [1.0, 0.8, 0.6, 0.4, 0.3],
-      attack: 0.03,
       decay: 0.4,
       sustain: 0.6,
-      release: 3.5,
-      filterFreq: 3500,
-      resonance: 2,
-      melodicPattern: [0, 4, 7, 5, 2, 4, 0, 2] // Arpeggiated hope pattern
+      release: 3.0,
+      filterFreq: 2800,
+      resonance: 2.5,
+      melodicPattern: [0, 2, 1, 4, 2, 5, 3, 0] // Characteristic Ethiopian intervals
     },
     {
-      name: 'crystal_chimes',
-      scale: [329.63, 369.99, 415.30, 440.00, 493.88, 554.37, 622.25, 659.25, 739.99, 830.61], // E Major
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 2.5, 4.0, 6.0, 8.0],
-      harmonicGains: [1.0, 0.3, 0.2, 0.15, 0.1],
-      attack: 0.005,
-      decay: 0.1,
-      sustain: 0.4,
-      release: 5.0,
-      filterFreq: 5000,
-      resonance: 0.8,
-      melodicPattern: [0, 3, 6, 4, 1, 5, 2, 0] // Crystalline happiness
-    },
-    {
-      name: 'warm_flute',
-      scale: [349.23, 392.00, 440.00, 466.16, 523.25, 587.33, 659.25, 698.46, 783.99, 880.00], // F Major
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.4, 0.2, 0.1],
-      harmonicGains: [1.0, 0.7, 0.5, 0.3],
-      attack: 0.15,
+      name: 'ethio_organ',
+      scale: [174.61, 196.00, 220.00, 261.63, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33], // Ambassel mode
+      waveType: 'sawtooth' as OscillatorType,
+      harmonics: [1, 0.9, 0.7, 0.5, 0.3, 0.2],
+      harmonicGains: [1.0, 0.8, 0.6, 0.4, 0.3, 0.2],
+      attack: 0.1,
       decay: 0.3,
       sustain: 0.9,
       release: 2.0,
-      filterFreq: 4200,
-      resonance: 1.2,
-      melodicPattern: [0, 2, 5, 7, 4, 2, 0, 4] // Soaring melody
-    },
-    {
-      name: 'gentle_marimba',
-      scale: [392.00, 440.00, 493.88, 523.25, 587.33, 659.25, 739.99, 783.99, 880.00, 987.77], // G Major  
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 1.5, 2.0, 3.0, 4.0],
-      harmonicGains: [1.0, 0.4, 0.3, 0.2, 0.1],
-      attack: 0.01,
-      decay: 0.2,
-      sustain: 0.3,
-      release: 1.5,
-      filterFreq: 2800,
+      filterFreq: 1800,
       resonance: 3,
-      melodicPattern: [0, 2, 4, 6, 5, 3, 1, 0] // Bouncy optimism
+      melodicPattern: [0, 3, 1, 5, 2, 4, 6, 1] // Hypnotic Ethiopian progression
     },
     {
-      name: 'serene_pad',
-      scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25], // C Major
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.8, 0.6, 0.4, 0.3, 0.2],
-      harmonicGains: [1.0, 0.8, 0.7, 0.6, 0.5, 0.4],
-      attack: 0.8,
-      decay: 1.0,
-      sustain: 0.9,
-      release: 4.0,
+      name: 'ethio_saxophone',
+      scale: [146.83, 164.81, 185.00, 220.00, 246.94, 293.66, 329.63, 369.99, 440.00, 493.88], // Bati mode
+      waveType: 'sawtooth' as OscillatorType,
+      harmonics: [1, 0.8, 0.4, 0.2, 0.1],
+      harmonicGains: [1.0, 0.9, 0.6, 0.3, 0.15],
+      attack: 0.08,
+      decay: 0.2,
+      sustain: 0.8,
+      release: 1.5,
       filterFreq: 2200,
-      resonance: 0.5,
-      melodicPattern: [0, 4, 7, 2, 5, 0, 4, 7] // I-V-VIII-III-VI progression (very hopeful)
+      resonance: 4,
+      melodicPattern: [0, 2, 5, 3, 7, 4, 1, 6] // Jazz-influenced Ethiopian melody
+    },
+    {
+      name: 'krar_ethio',
+      scale: [195.50, 220.00, 246.94, 293.66, 329.63, 391.50, 440.00, 493.88, 586.00, 659.25], // Traditional krar tuning
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 0.6, 0.3, 0.15, 0.08],
+      harmonicGains: [1.0, 0.7, 0.5, 0.3, 0.2],
+      attack: 0.02,
+      decay: 0.3,
+      sustain: 0.4,
+      release: 2.0,
+      filterFreq: 3200,
+      resonance: 6,
+      melodicPattern: [0, 4, 2, 6, 1, 5, 3, 0] // Traditional Ethiopian string patterns
+    },
+    {
+      name: 'ethio_bass',
+      scale: [87.31, 98.00, 110.00, 130.81, 146.83, 174.61, 196.00, 220.00, 261.63, 293.66], // Low register Ethiopian
+      waveType: 'sawtooth' as OscillatorType,
+      harmonics: [1, 0.8, 0.4, 0.2, 0.1],
+      harmonicGains: [1.0, 0.9, 0.6, 0.3, 0.15],
+      attack: 0.05,
+      decay: 0.2,
+      sustain: 0.9,
+      release: 1.0,
+      filterFreq: 800,
+      resonance: 2,
+      melodicPattern: [0, 0, 2, 0, 4, 0, 1, 0] // Ethiopian bass walking pattern
+    },
+    {
+      name: 'washint_flute',
+      scale: [261.63, 293.66, 311.13, 349.23, 392.00, 466.16, 523.25, 587.33, 698.46, 783.99], // Ethiopian flute scale
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.5, 0.2, 0.1],
+      harmonicGains: [1.0, 0.6, 0.3, 0.15],
+      attack: 0.2,
+      decay: 0.4,
+      sustain: 0.7,
+      release: 3.0,
+      filterFreq: 3800,
+      resonance: 1.5,
+      melodicPattern: [0, 3, 1, 4, 6, 2, 5, 0] // Breathlike Ethiopian flute phrases
+    },
+    {
+      name: 'ethio_percussion',
+      scale: [174.61, 196.00, 220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88], // Rhythmic Ethiopian
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 2.1, 1.4, 0.8, 0.3],
+      harmonicGains: [1.0, 0.5, 0.4, 0.2, 0.1],
+      attack: 0.005,
+      decay: 0.08,
+      sustain: 0.2,
+      release: 0.4,
+      filterFreq: 1500,
+      resonance: 8,
+      melodicPattern: [0, 0, 2, 0, 3, 0, 1, 2] // Ethiopian rhythm emphasis
+    },
+    {
+      name: 'ethio_atmosphere',
+      scale: [130.81, 146.83, 164.81, 196.00, 220.00, 261.63, 293.66, 329.63, 391.50, 440.00], // Atmospheric Ethiopian
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.7, 0.5, 0.3, 0.2, 0.1],
+      harmonicGains: [1.0, 0.8, 0.6, 0.4, 0.3, 0.2],
+      attack: 1.2,
+      decay: 1.5,
+      sustain: 0.8,
+      release: 5.0,
+      filterFreq: 1800,
+      resonance: 1,
+      melodicPattern: [0, 2, 5, 3, 7, 1, 4, 6] // Meditative Ethiopian progression
     }
   ];
 
@@ -199,9 +199,9 @@ export const ResizableSticker = ({
     try {
       console.log(`Playing step ${sticker.stepIndex} for sticker ${sticker.id}`);
       
-      // Select hopeful instrument based on sticker ID hash
-      const instrumentIndex = sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % hopefulInstruments.length;
-      const instrument = hopefulInstruments[instrumentIndex];
+      // Select Ethiopian jazz instrument based on sticker ID hash
+      const instrumentIndex = sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioJazzInstruments.length;
+      const instrument = ethioJazzInstruments[instrumentIndex];
       
       // Get melodic note based on step index
       const noteIndex = instrument.melodicPattern[sticker.stepIndex % instrument.melodicPattern.length];
