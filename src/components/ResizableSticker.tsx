@@ -76,119 +76,136 @@ export const ResizableSticker = ({
     };
   }, []);
 
-  // Ethiopian jazz instruments inspired by Mulatu Astatke's style
-  const ethioJazzInstruments = [
+  // Real Ethiopian instruments emulation for Yèkèrmo Sèw compatibility (C#/Db, 120 BPM)
+  const realEthioInstruments = [
     {
-      name: 'ethio_vibraphone',
-      scale: [220.00, 246.94, 261.63, 311.13, 349.23, 440.00, 493.88, 523.25, 622.25, 698.46], // Tezeta mode (Ethiopian)
+      name: 'mulatu_vibraphone',
+      // C# Mixolydian (Tezeta mode) - matches Yèkèrmo Sèw key
+      scale: [277.18, 311.13, 349.23, 369.99, 415.30, 466.16, 523.25, 554.37, 622.25, 698.46], 
       waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.7, 0.3, 0.15, 0.08],
-      harmonicGains: [1.0, 0.8, 0.6, 0.4, 0.2],
-      attack: 0.01,
-      decay: 0.4,
-      sustain: 0.6,
-      release: 3.0,
+      harmonics: [1, 0.8, 0.3, 0.15, 0.05, 0.02], // More complex harmonics for realism
+      harmonicGains: [1.0, 0.7, 0.4, 0.2, 0.1, 0.05],
+      attack: 0.008,
+      decay: 0.15,
+      sustain: 0.3, // Shorter sustain like real vibes
+      release: 2.8,
+      filterFreq: 3200,
+      resonance: 1.8,
+      melodicPattern: [0, 2, 4, 1, 5, 3, 6, 2], // Mulatu's signature intervals
+      tremolo: { rate: 4.5, depth: 0.15 }, // Classic vibraphone tremolo
+      reverb: 0.4
+    },
+    {
+      name: 'wurlitzer_piano',
+      scale: [138.59, 155.56, 174.61, 185.00, 207.65, 233.08, 261.63, 277.18, 311.13, 349.23],
+      waveType: 'sawtooth' as OscillatorType,
+      harmonics: [1, 0.9, 0.6, 0.4, 0.2, 0.1],
+      harmonicGains: [1.0, 0.8, 0.5, 0.3, 0.2, 0.1],
+      attack: 0.02,
+      decay: 0.1,
+      sustain: 0.7, // Electric piano sustain
+      release: 1.5,
       filterFreq: 2800,
-      resonance: 2.5,
-      melodicPattern: [0, 2, 1, 4, 2, 5, 3, 0] // Characteristic Ethiopian intervals
+      resonance: 2.2,
+      melodicPattern: [0, 3, 7, 2, 5, 1, 4, 6], // Jazz chord voicings
+      tremolo: { rate: 6.0, depth: 0.08 },
+      reverb: 0.3
     },
     {
-      name: 'ethio_organ',
-      scale: [174.61, 196.00, 220.00, 261.63, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33], // Ambassel mode
+      name: 'real_krar',
+      scale: [207.65, 233.08, 261.63, 311.13, 349.23, 415.30, 466.16, 523.25, 622.25, 698.46],
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 0.7, 0.4, 0.2, 0.1],
+      harmonicGains: [1.0, 0.6, 0.3, 0.15, 0.08],
+      attack: 0.015,
+      decay: 0.08,
+      sustain: 0.2, // Quick plucked decay
+      release: 1.2,
+      filterFreq: 4500,
+      resonance: 4.5,
+      melodicPattern: [0, 4, 2, 6, 1, 5, 3, 0], // Traditional krar patterns
+      tremolo: { rate: 0, depth: 0 },
+      reverb: 0.5
+    },
+    {
+      name: 'tenor_sax_ethio',
+      scale: [146.83, 164.81, 185.00, 220.00, 246.94, 293.66, 329.63, 369.99, 440.00, 493.88],
       waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.9, 0.7, 0.5, 0.3, 0.2],
-      harmonicGains: [1.0, 0.8, 0.6, 0.4, 0.3, 0.2],
+      harmonics: [1, 0.95, 0.8, 0.5, 0.3, 0.15, 0.08],
+      harmonicGains: [1.0, 0.9, 0.6, 0.4, 0.2, 0.1, 0.05],
       attack: 0.1,
-      decay: 0.3,
-      sustain: 0.9,
-      release: 2.0,
-      filterFreq: 1800,
-      resonance: 3,
-      melodicPattern: [0, 3, 1, 5, 2, 4, 6, 1] // Hypnotic Ethiopian progression
+      decay: 0.05,
+      sustain: 0.85, // Horn-like sustain
+      release: 0.8,
+      filterFreq: 2200,
+      resonance: 6.0,
+      melodicPattern: [0, 2, 5, 3, 7, 4, 1, 6], // Sax jazz phrases
+      tremolo: { rate: 0, depth: 0 },
+      reverb: 0.25
     },
     {
-      name: 'ethio_saxophone',
-      scale: [146.83, 164.81, 185.00, 220.00, 246.94, 293.66, 329.63, 369.99, 440.00, 493.88], // Bati mode
+      name: 'hammond_organ',
+      scale: [138.59, 155.56, 174.61, 207.65, 233.08, 277.18, 311.13, 369.99, 415.30, 466.16],
       waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.8, 0.4, 0.2, 0.1],
-      harmonicGains: [1.0, 0.9, 0.6, 0.3, 0.15],
-      attack: 0.08,
+      harmonics: [1, 0.8, 0.9, 0.7, 0.6, 0.4, 0.3, 0.2, 0.1],
+      harmonicGains: [0.8, 0.9, 1.0, 0.8, 0.6, 0.4, 0.3, 0.2, 0.1], // Hammond drawbar simulation
+      attack: 0.05,
+      decay: 0.02,
+      sustain: 0.95,
+      release: 0.3,
+      filterFreq: 1800,
+      resonance: 1.5,
+      melodicPattern: [0, 4, 7, 3, 5, 1, 6, 2], // Organ chord progressions
+      tremolo: { rate: 6.5, depth: 0.2 }, // Classic Hammond tremolo
+      reverb: 0.6
+    },
+    {
+      name: 'electric_bass',
+      scale: [69.30, 77.78, 87.31, 103.83, 116.54, 138.59, 155.56, 184.99, 207.65, 233.08],
+      waveType: 'sawtooth' as OscillatorType,
+      harmonics: [1, 0.8, 0.3, 0.1],
+      harmonicGains: [1.0, 0.7, 0.2, 0.05],
+      attack: 0.01,
+      decay: 0.05,
+      sustain: 0.6,
+      release: 0.8,
+      filterFreq: 800,
+      resonance: 2.0,
+      melodicPattern: [0, 0, 4, 0, 2, 0, 5, 0], // Walking bass line
+      tremolo: { rate: 0, depth: 0 },
+      reverb: 0.2
+    },
+    {
+      name: 'washint_real',
+      scale: [277.18, 311.13, 349.23, 415.30, 466.16, 554.37, 622.25, 739.99, 830.61, 932.33],
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.4, 0.15, 0.05],
+      harmonicGains: [1.0, 0.5, 0.2, 0.1],
+      attack: 0.15,
       decay: 0.2,
       sustain: 0.8,
-      release: 1.5,
-      filterFreq: 2200,
-      resonance: 4,
-      melodicPattern: [0, 2, 5, 3, 7, 4, 1, 6] // Jazz-influenced Ethiopian melody
+      release: 2.5,
+      filterFreq: 4200,
+      resonance: 1.2,
+      melodicPattern: [0, 3, 1, 5, 2, 6, 4, 0], // Flute-like phrases
+      tremolo: { rate: 4.0, depth: 0.05 }, // Subtle breath vibrato
+      reverb: 0.7
     },
     {
-      name: 'krar_ethio',
-      scale: [195.50, 220.00, 246.94, 293.66, 329.63, 391.50, 440.00, 493.88, 586.00, 659.25], // Traditional krar tuning
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 0.6, 0.3, 0.15, 0.08],
-      harmonicGains: [1.0, 0.7, 0.5, 0.3, 0.2],
-      attack: 0.02,
-      decay: 0.3,
-      sustain: 0.4,
-      release: 2.0,
-      filterFreq: 3200,
-      resonance: 6,
-      melodicPattern: [0, 4, 2, 6, 1, 5, 3, 0] // Traditional Ethiopian string patterns
-    },
-    {
-      name: 'ethio_bass',
-      scale: [87.31, 98.00, 110.00, 130.81, 146.83, 174.61, 196.00, 220.00, 261.63, 293.66], // Low register Ethiopian
-      waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.8, 0.4, 0.2, 0.1],
-      harmonicGains: [1.0, 0.9, 0.6, 0.3, 0.15],
-      attack: 0.05,
-      decay: 0.2,
-      sustain: 0.9,
-      release: 1.0,
-      filterFreq: 800,
-      resonance: 2,
-      melodicPattern: [0, 0, 2, 0, 4, 0, 1, 0] // Ethiopian bass walking pattern
-    },
-    {
-      name: 'washint_flute',
-      scale: [261.63, 293.66, 311.13, 349.23, 392.00, 466.16, 523.25, 587.33, 698.46, 783.99], // Ethiopian flute scale
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.5, 0.2, 0.1],
-      harmonicGains: [1.0, 0.6, 0.3, 0.15],
-      attack: 0.2,
-      decay: 0.4,
-      sustain: 0.7,
-      release: 3.0,
-      filterFreq: 3800,
-      resonance: 1.5,
-      melodicPattern: [0, 3, 1, 4, 6, 2, 5, 0] // Breathlike Ethiopian flute phrases
-    },
-    {
-      name: 'ethio_percussion',
-      scale: [174.61, 196.00, 220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88], // Rhythmic Ethiopian
+      name: 'congas_ethio',
+      scale: [174.61, 196.00, 220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88],
       waveType: 'triangle' as OscillatorType,
       harmonics: [1, 2.1, 1.4, 0.8, 0.3],
-      harmonicGains: [1.0, 0.5, 0.4, 0.2, 0.1],
-      attack: 0.005,
-      decay: 0.08,
-      sustain: 0.2,
-      release: 0.4,
-      filterFreq: 1500,
-      resonance: 8,
-      melodicPattern: [0, 0, 2, 0, 3, 0, 1, 2] // Ethiopian rhythm emphasis
-    },
-    {
-      name: 'ethio_atmosphere',
-      scale: [130.81, 146.83, 164.81, 196.00, 220.00, 261.63, 293.66, 329.63, 391.50, 440.00], // Atmospheric Ethiopian
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.7, 0.5, 0.3, 0.2, 0.1],
-      harmonicGains: [1.0, 0.8, 0.6, 0.4, 0.3, 0.2],
-      attack: 1.2,
-      decay: 1.5,
-      sustain: 0.8,
-      release: 5.0,
-      filterFreq: 1800,
-      resonance: 1,
-      melodicPattern: [0, 2, 5, 3, 7, 1, 4, 6] // Meditative Ethiopian progression
+      harmonicGains: [1.0, 0.4, 0.3, 0.1, 0.05],
+      attack: 0.001,
+      decay: 0.03,
+      sustain: 0.1,
+      release: 0.25,
+      filterFreq: 1200,
+      resonance: 12.0, // Very resonant for percussion
+      melodicPattern: [0, 0, 2, 0, 3, 0, 1, 2], // Percussion rhythm
+      tremolo: { rate: 0, depth: 0 },
+      reverb: 0.3
     }
   ];
 
@@ -199,9 +216,9 @@ export const ResizableSticker = ({
     try {
       console.log(`Playing step ${sticker.stepIndex} for sticker ${sticker.id}`);
       
-      // Select Ethiopian jazz instrument based on sticker ID hash
-      const instrumentIndex = sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioJazzInstruments.length;
-      const instrument = ethioJazzInstruments[instrumentIndex];
+      // Select real Ethiopian instrument based on sticker ID hash
+      const instrumentIndex = sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % realEthioInstruments.length;
+      const instrument = realEthioInstruments[instrumentIndex];
       
       // Get melodic note based on step index
       const noteIndex = instrument.melodicPattern[sticker.stepIndex % instrument.melodicPattern.length];
@@ -213,38 +230,92 @@ export const ResizableSticker = ({
       
       console.log(`${instrument.name} playing ${noteFreq}Hz at volume ${volume}`);
       
-      // Create sound with harmonics
+      // Create realistic sound with advanced synthesis techniques
       const now = audioContextRef.current.currentTime;
+      
+      // Add tremolo effect if instrument has it
+      let tremoloNode = null;
+      if (instrument.tremolo && instrument.tremolo.rate > 0) {
+        const tremoloLFO = audioContextRef.current.createOscillator();
+        const tremoloGain = audioContextRef.current.createGain();
+        tremoloLFO.type = 'sine';
+        tremoloLFO.frequency.setValueAtTime(instrument.tremolo.rate, now);
+        tremoloGain.gain.setValueAtTime(instrument.tremolo.depth, now);
+        tremoloLFO.connect(tremoloGain);
+        tremoloNode = { lfo: tremoloLFO, gain: tremoloGain };
+      }
       
       for (let i = 0; i < instrument.harmonics.length; i++) {
         const osc = audioContextRef.current.createOscillator();
         const gain = audioContextRef.current.createGain();
         const filter = audioContextRef.current.createBiquadFilter();
         
-        // Set up oscillator
+        // Enhanced oscillator with realistic pitch variations
         osc.type = i === 0 ? instrument.waveType : 'sine';
-        osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], now);
+        const baseFreq = noteFreq * instrument.harmonics[i];
+        const pitchVariation = (Math.random() - 0.5) * 0.01; // ±1 cent natural variation
+        osc.frequency.setValueAtTime(baseFreq * (1 + pitchVariation), now);
         
-        // Set up envelope
-        const harmonicGain = instrument.harmonicGains[i] * volume;
+        // Add subtle frequency modulation for organic sound
+        if (!['congas_ethio', 'ethio_percussion'].includes(instrument.name)) {
+          const vibrato = audioContextRef.current.createOscillator();
+          const vibratoGain = audioContextRef.current.createGain();
+          vibrato.type = 'sine';
+          vibrato.frequency.setValueAtTime(5.5 + Math.random() * 1.5, now); // 5.5-7 Hz vibrato
+          vibratoGain.gain.setValueAtTime(0.8, now); // Subtle pitch modulation
+          vibrato.connect(vibratoGain);
+          vibratoGain.connect(osc.frequency);
+          vibrato.start(now);
+          vibrato.stop(now + instrument.release);
+        }
+        
+        // Realistic envelope with micro-variations
+        const harmonicGain = instrument.harmonicGains[i] * volume * (0.95 + Math.random() * 0.1); // ±5% variation
+        const attackTime = instrument.attack * (0.9 + Math.random() * 0.2); // Natural timing variation
+        const decayTime = instrument.decay * (0.8 + Math.random() * 0.4);
+        const sustainLevel = Math.max(harmonicGain * instrument.sustain, 0.001);
+        const releaseTime = instrument.release * (0.9 + Math.random() * 0.2);
+        
         gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(harmonicGain, now + instrument.attack);
-        gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * instrument.sustain, 0.001), now + instrument.decay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + instrument.release);
+        gain.gain.linearRampToValueAtTime(harmonicGain, now + attackTime);
+        gain.gain.exponentialRampToValueAtTime(sustainLevel, now + attackTime + decayTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + releaseTime);
         
-        // Set up filter for warmer, more pleasant sound
+        // Enhanced filtering for more realistic timbre
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(instrument.filterFreq + (noteFreq * 0.3), now);
-        filter.Q.setValueAtTime(instrument.resonance, now);
+        const filterFreq = instrument.filterFreq + (noteFreq * 0.2) + (Math.random() - 0.5) * 100;
+        filter.frequency.setValueAtTime(filterFreq, now);
+        filter.Q.setValueAtTime(instrument.resonance + (Math.random() - 0.5) * 0.5, now);
+        
+        // Add filter envelope for more expression
+        const filterEnvelope = audioContextRef.current.createGain();
+        filterEnvelope.gain.setValueAtTime(1, now);
+        filterEnvelope.gain.exponentialRampToValueAtTime(0.7, now + attackTime + decayTime);
+        filterEnvelope.connect(filter.frequency);
         
         // Connect audio chain
         osc.connect(filter);
         filter.connect(gain);
-        gain.connect(audioContextRef.current.destination);
         
-        // Start and stop
+        // Apply tremolo if available
+        if (tremoloNode) {
+          const tremoloMod = audioContextRef.current.createGain();
+          tremoloMod.gain.setValueAtTime(1, now);
+          tremoloNode.gain.connect(tremoloMod.gain);
+          gain.connect(tremoloMod);
+          tremoloMod.connect(audioContextRef.current.destination);
+        } else {
+          gain.connect(audioContextRef.current.destination);
+        }
+        
+        // Start oscillators
         osc.start(now);
-        osc.stop(now + instrument.release);
+        osc.stop(now + releaseTime);
+        
+        if (tremoloNode && i === 0) {
+          tremoloNode.lfo.start(now);
+          tremoloNode.lfo.stop(now + releaseTime);
+        }
       }
       
     } catch (error) {

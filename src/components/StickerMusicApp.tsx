@@ -37,7 +37,7 @@ const StickerMusicApp = () => {
   const [globalVolume, setGlobalVolume] = useState(0.7);
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [sequenceTempo, setSequenceTempo] = useState(120); // BPM
+  const [sequenceTempo, setSequenceTempo] = useState(120); // BPM - matches Yèkèrmo Sèw
   const audioContextRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const sequencerRef = useRef<NodeJS.Timeout | null>(null);
