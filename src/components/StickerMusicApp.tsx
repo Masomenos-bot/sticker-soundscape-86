@@ -465,7 +465,7 @@ const StickerMusicApp = () => {
             </Card>
             
             {/* Fixed controls for selected stickers */}
-            {selectedStickers.length === 1 && (
+            {selectedStickers.length >= 1 && (
               <div 
                 className="fixed z-50 bg-background/95 backdrop-blur-sm p-3 rounded-lg border shadow-lg"
                 style={{
@@ -474,6 +474,11 @@ const StickerMusicApp = () => {
                 }}
               >
                 <div className="flex flex-col gap-2">
+                  {/* Debug info */}
+                  <div className="text-xs text-muted-foreground mb-2">
+                    Selected: {selectedStickers.length} sticker(s)
+                  </div>
+                  
                   {/* Scale Controls */}
                   <div className="flex gap-1 items-center">
                     <span className="text-xs font-medium text-muted-foreground w-12">Scale:</span>
