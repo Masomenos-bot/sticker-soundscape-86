@@ -57,7 +57,7 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Create rhythmic audio loops for each sticker
+  // Create rhythmic audio loops for each sticker with different instruments
   const createAudioTone = useCallback(async () => {
     if (audioRef.current) return;
     
@@ -74,106 +74,218 @@ export const ResizableSticker = ({
         console.log('Audio context resumed');
       }
 
-      // Traditional African pentatonic scales and frequencies
+      // Traditional African pentatonic scales with melodic progressions
       const africanScales = {
-        // West African pentatonic (Akan/Ewe traditions)
+        // West African pentatonic (Akan/Ewe traditions) - Kalimba tuning
         westAfrican: [174.61, 196.00, 220.00, 261.63, 293.66, 349.23, 392.00, 440.00, 523.25, 587.33],
-        // Central African scale (Pygmy traditions) 
+        // Central African scale (Pygmy traditions) - Mbira tuning
         centralAfrican: [164.81, 185.00, 220.00, 246.94, 277.18, 329.63, 369.99, 440.00, 493.88, 554.37],
-        // Ethiopian scale (ancient traditions)
+        // Ethiopian scale (ancient traditions) - Krar tuning
         ethiopian: [146.83, 174.61, 196.00, 233.08, 261.63, 293.66, 349.23, 392.00, 466.16, 523.25],
-        // Malian kora tuning
-        malian: [130.81, 155.56, 174.61, 207.65, 233.08, 261.63, 311.13, 349.23, 415.30, 466.16]
+        // Malian kora tuning - Traditional harp
+        malian: [130.81, 155.56, 174.61, 207.65, 233.08, 261.63, 311.13, 349.23, 415.30, 466.16],
+        // Xylophone tuning - Wooden percussion
+        xylophone: [196.00, 220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88, 554.37],
+        // Flute tuning - Wind instrument
+        flute: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25, 587.33, 659.25]
       };
 
-      // Complex African polyrhythmic patterns
+      // African instrument types with distinct timbres
+      const africanInstruments = [
+        {
+          name: 'kalimba',
+          scale: 'westAfrican',
+          waveType: 'triangle',
+          harmonics: [1, 2.1, 3.2, 4.8],
+          harmonicGains: [1.0, 0.4, 0.2, 0.1],
+          attack: 0.01,
+          decay: 0.3,
+          sustain: 0.6,
+          release: 2.0,
+          filterFreq: 2000,
+          resonance: 4,
+          melodicPattern: [0, 2, 4, 2, 5, 4, 2, 0] // Melodic sequence
+        },
+        {
+          name: 'mbira',
+          scale: 'centralAfrican',
+          waveType: 'triangle',
+          harmonics: [1, 1.9, 3.1, 5.2, 7.1],
+          harmonicGains: [1.0, 0.5, 0.3, 0.15, 0.08],
+          attack: 0.005,
+          decay: 0.2,
+          sustain: 0.4,
+          release: 1.5,
+          filterFreq: 1800,
+          resonance: 6,
+          melodicPattern: [0, 3, 1, 4, 2, 5, 3, 1]
+        },
+        {
+          name: 'kora',
+          scale: 'malian',
+          waveType: 'sine',
+          harmonics: [1, 2.0, 3.0, 4.0, 6.0],
+          harmonicGains: [1.0, 0.6, 0.4, 0.2, 0.1],
+          attack: 0.02,
+          decay: 0.4,
+          sustain: 0.5,
+          release: 2.5,
+          filterFreq: 2500,
+          resonance: 3,
+          melodicPattern: [0, 2, 4, 6, 4, 2, 1, 3]
+        },
+        {
+          name: 'krar',
+          scale: 'ethiopian',
+          waveType: 'sawtooth',
+          harmonics: [1, 2.1, 3.9, 5.8],
+          harmonicGains: [1.0, 0.4, 0.25, 0.12],
+          attack: 0.015,
+          decay: 0.25,
+          sustain: 0.3,
+          release: 1.8,
+          filterFreq: 1600,
+          resonance: 5,
+          melodicPattern: [0, 4, 2, 5, 1, 3, 4, 0]
+        },
+        {
+          name: 'xylophone',
+          scale: 'xylophone',
+          waveType: 'triangle',
+          harmonics: [1, 2.7, 4.1, 6.3, 8.9],
+          harmonicGains: [1.0, 0.3, 0.2, 0.1, 0.05],
+          attack: 0.003,
+          decay: 0.1,
+          sustain: 0.2,
+          release: 0.8,
+          filterFreq: 3000,
+          resonance: 2,
+          melodicPattern: [0, 1, 3, 5, 7, 5, 3, 1]
+        },
+        {
+          name: 'flute',
+          scale: 'flute',
+          waveType: 'sine',
+          harmonics: [1, 2.0, 3.0, 4.0],
+          harmonicGains: [1.0, 0.3, 0.15, 0.08],
+          attack: 0.1,
+          decay: 0.2,
+          sustain: 0.8,
+          release: 0.5,
+          filterFreq: 4000,
+          resonance: 1,
+          melodicPattern: [0, 2, 4, 7, 9, 7, 4, 2]
+        },
+        {
+          name: 'djembe',
+          scale: 'westAfrican',
+          waveType: 'triangle',
+          harmonics: [1, 1.8, 2.9, 4.2, 6.1],
+          harmonicGains: [1.0, 0.6, 0.3, 0.2, 0.1],
+          attack: 0.001,
+          decay: 0.05,
+          sustain: 0.1,
+          release: 0.3,
+          filterFreq: 800,
+          resonance: 8,
+          melodicPattern: [0, 0, 2, 0, 3, 0, 2, 0] // Rhythmic emphasis
+        },
+        {
+          name: 'bells',
+          scale: 'centralAfrican',
+          waveType: 'sine',
+          harmonics: [1, 3.2, 5.4, 7.8, 11.1],
+          harmonicGains: [1.0, 0.4, 0.3, 0.2, 0.1],
+          attack: 0.001,
+          decay: 0.1,
+          sustain: 0.3,
+          release: 4.0,
+          filterFreq: 5000,
+          resonance: 2,
+          melodicPattern: [0, 4, 2, 6, 1, 5, 3, 7]
+        }
+      ];
+
+      // Complex African polyrhythmic patterns with instrument assignments
       const africanPatterns = [
-        // Kagan rhythm (4/4 against 3/4) - West Africa
+        // Kagan rhythm (4/4 against 3/4) - West Africa - Kalimba
         { 
           beats: [1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1], 
-          scale: 'westAfrican', 
-          noteIndex: 0,
-          tempo: 140, // Base tempo
-          subdivision: 3, // Triplet feel
+          instrument: 'kalimba',
+          tempo: 140,
+          subdivision: 3,
           accentPattern: [1, 0, 0, 0.7, 0, 0.5, 0, 0, 0.8, 0, 0, 0.6]
         },
-        // Soukous rhythm - Central Africa
+        // Soukous rhythm - Central Africa - Mbira
         { 
           beats: [1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0], 
-          scale: 'centralAfrican', 
-          noteIndex: 2,
+          instrument: 'mbira',
           tempo: 120,
           subdivision: 4, 
           accentPattern: [1, 0, 0.6, 0, 0, 0.8, 0, 0.7, 0, 0, 0.5, 0, 0, 0, 0.9, 0]
         },
-        // Aksak rhythm - Ethiopian
+        // Aksak rhythm - Ethiopian - Krar
         { 
           beats: [1, 0, 0, 1, 0, 1, 0, 1, 0, 0], 
-          scale: 'ethiopian', 
-          noteIndex: 1,
+          instrument: 'krar',
           tempo: 110,
           subdivision: 5, 
           accentPattern: [1, 0, 0, 0.7, 0, 0.8, 0, 0.6, 0, 0]
         },
-        // Bembeya Jazz pattern - Guinea
+        // Bembeya Jazz pattern - Guinea - Kora
         { 
           beats: [1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1], 
-          scale: 'westAfrican', 
-          noteIndex: 3,
+          instrument: 'kora',
           tempo: 130,
           subdivision: 7, 
           accentPattern: [1, 0, 0.5, 0.8, 0, 0, 0.7, 0, 0.6, 0, 0, 0.9, 0, 0.4]
         },
-        // Makossa rhythm - Cameroon
+        // Makossa rhythm - Cameroon - Xylophone
         { 
           beats: [1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0], 
-          scale: 'centralAfrican', 
-          noteIndex: 4,
+          instrument: 'xylophone',
           tempo: 125,
           subdivision: 4, 
           accentPattern: [1, 0.6, 0, 0.8, 0, 0, 0.7, 0, 0.9, 0, 0.5, 0]
         },
-        // Kora pattern - Mali
+        // Wind pattern - Mali - Flute
         { 
           beats: [1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1], 
-          scale: 'malian', 
-          noteIndex: 1,
+          instrument: 'flute',
           tempo: 100,
           subdivision: 6, 
           accentPattern: [1, 0, 0, 0.6, 0, 0.8, 0, 0, 0, 0.7, 0, 0.5, 0, 0, 0.9, 0, 0, 0.4]
         },
-        // Bikutsi pattern - Cameroon
+        // Percussion pattern - Djembe
         { 
           beats: [1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0], 
-          scale: 'centralAfrican', 
-          noteIndex: 5,
+          instrument: 'djembe',
           tempo: 115,
           subdivision: 4, 
           accentPattern: [1, 0, 0.7, 0, 0.5, 0.8, 0, 0, 0.9, 0, 0, 0.6, 0.7, 0, 0.4, 0]
         },
-        // Wassoulou pattern - Mali
+        // Metallic pattern - Bells
         { 
           beats: [1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0], 
-          scale: 'malian', 
-          noteIndex: 6,
+          instrument: 'bells',
           tempo: 135,
           subdivision: 5, 
           accentPattern: [1, 0.5, 0, 0, 0.8, 0, 0.7, 0, 0, 0.6, 0, 0.9, 0.4, 0, 0]
         }
       ];
       
-      // Get pattern for this sticker based on ID hash
+      // Get pattern and instrument for this sticker based on ID hash
       const patternIndex = sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % africanPatterns.length;
       const pattern = africanPatterns[patternIndex];
-      const scaleNotes = africanScales[pattern.scale];
-      const noteFreq = scaleNotes[pattern.noteIndex % scaleNotes.length];
+      const instrumentDef = africanInstruments.find(inst => inst.name === pattern.instrument) || africanInstruments[0];
+      const scaleNotes = africanScales[instrumentDef.scale];
       
       // Calculate tempo variation for polyrhythmic effect
       const tempoVariation = (sticker.id.charCodeAt(0) % 20 - 10) / 100; // ±10% variation
       const actualTempo = pattern.tempo + (pattern.tempo * tempoVariation);
       const beatDuration = (60 / actualTempo) * 1000; // Convert BPM to ms
       
-      console.log(`Sticker ${sticker.id} using marimba note:`, noteFreq, 'Hz');
+      console.log(`Sticker ${sticker.id} using ${instrumentDef.name} with scale:`, instrumentDef.scale);
       
       // Create master gain node
       const masterGain = audioContext.createGain();
@@ -223,14 +335,13 @@ export const ResizableSticker = ({
       const volume = Math.min(sizeRatio * globalVolume * sticker.volume * 0.08, 0.12);
       masterGain.gain.setValueAtTime(volume, audioContext.currentTime);
       
-      console.log('Set marimba volume to:', volume);
-      
-      // Beat tracking
+      // Beat tracking and melodic progression
       let beatIndex = 0;
+      let melodicIndex = 0;
       let isActive = true;
       
-      // Create marimba strike sound
-      const createMarimbaStrike = () => {
+      // Create instrument sound with melodic progression
+      const createInstrumentSound = () => {
         if (!isActive || audioContext.state === 'closed') return;
         
         try {
@@ -239,65 +350,68 @@ export const ResizableSticker = ({
           const accentLevel = pattern.accentPattern[beatIndex] || 0;
           
           if (beatIntensity > 0) {
-            console.log(`Playing African rhythm note ${noteFreq}Hz for sticker ${sticker.id} (intensity: ${beatIntensity}, accent: ${accentLevel})`);
+            // Get note from melodic pattern and scale
+            const noteIndex = instrumentDef.melodicPattern[melodicIndex % instrumentDef.melodicPattern.length];
+            const noteFreq = scaleNotes[noteIndex % scaleNotes.length];
             
-            // Create African percussion-style sound with rich harmonics
+            console.log(`Playing ${instrumentDef.name} note ${noteFreq}Hz for sticker ${sticker.id} (intensity: ${beatIntensity}, accent: ${accentLevel})`);
+            
+            // Create instrument-specific sound
             const harmonics = [];
-            
-            // African marimba/balafon harmonic series (more complex than Western)
-            const harmonicRatios = [
-              1, 1.59, 2.76, 3.21, 4.14, 5.4, 6.83, 8.93 // African tuning ratios
-            ];
-            const harmonicGains = [1.0, 0.6, 0.4, 0.25, 0.15, 0.1, 0.06, 0.04];
             
             // Add subtle pitch bend for human feel
             const pitchBend = (Math.random() - 0.5) * 0.02; // ±2 cents
             
-            for (let i = 0; i < harmonicRatios.length; i++) {
+            for (let i = 0; i < instrumentDef.harmonics.length; i++) {
               const osc = audioContext.createOscillator();
               const gain = audioContext.createGain();
               const filter = audioContext.createBiquadFilter();
               
-              // Use triangle wave for more wooden/organic sound
-              osc.type = i === 0 ? 'triangle' : 'sine';
-              osc.frequency.setValueAtTime((noteFreq * harmonicRatios[i]) * (1 + pitchBend), audioContext.currentTime);
+              // Use instrument-specific wave type
+              osc.type = i === 0 ? instrumentDef.waveType : 'sine';
+              osc.frequency.setValueAtTime((noteFreq * instrumentDef.harmonics[i]) * (1 + pitchBend), audioContext.currentTime);
               
-              // Add subtle frequency modulation for liveliness
-              const lfo = audioContext.createOscillator();
-              const lfoGain = audioContext.createGain();
-              lfo.type = 'sine';
-              lfo.frequency.setValueAtTime(4.5 + Math.random() * 2, audioContext.currentTime); // 4.5-6.5 Hz
-              lfoGain.gain.setValueAtTime(2, audioContext.currentTime);
-              lfo.connect(lfoGain);
-              lfoGain.connect(osc.frequency);
+              // Add subtle frequency modulation for liveliness (except for percussion)
+              if (!['djembe', 'bells'].includes(instrumentDef.name)) {
+                const lfo = audioContext.createOscillator();
+                const lfoGain = audioContext.createGain();
+                lfo.type = 'sine';
+                lfo.frequency.setValueAtTime(4.5 + Math.random() * 2, audioContext.currentTime); // 4.5-6.5 Hz
+                lfoGain.gain.setValueAtTime(1.5, audioContext.currentTime);
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.frequency);
+                
+                lfo.start(audioContext.currentTime);
+                lfo.stop(audioContext.currentTime + instrumentDef.release);
+              }
               
               const now = audioContext.currentTime;
               
-              // Dynamic envelope based on accent level and African playing style
-              const baseGain = harmonicGains[i] * accentLevel * beatIntensity;
-              const attackTime = 0.003 + (Math.random() * 0.002); // Slight variation in attack
-              const decayTime = 0.08 + (accentLevel * 0.05);
-              const sustainLevel = baseGain * (0.2 + accentLevel * 0.2);
-              const releaseTime = 1.2 + (accentLevel * 0.8);
+              // Dynamic envelope based on instrument and accent level
+              const baseGain = instrumentDef.harmonicGains[i] * accentLevel * beatIntensity;
+              const attackTime = instrumentDef.attack + (Math.random() * 0.002); // Slight variation
+              const decayTime = instrumentDef.decay + (accentLevel * 0.05);
+              const sustainLevel = baseGain * instrumentDef.sustain;
+              const releaseTime = instrumentDef.release + (accentLevel * 0.3);
               
               gain.gain.setValueAtTime(0, now);
               gain.gain.linearRampToValueAtTime(baseGain, now + attackTime);
-              gain.gain.exponentialRampToValueAtTime(sustainLevel, now + decayTime);
+              gain.gain.exponentialRampToValueAtTime(Math.max(sustainLevel, 0.001), now + decayTime);
               gain.gain.exponentialRampToValueAtTime(0.001, now + releaseTime);
               
-              // Add resonant filtering for wood-like timbre
-              filter.type = 'bandpass';
-              filter.frequency.setValueAtTime(noteFreq * (2 + i * 0.5), audioContext.currentTime);
-              filter.Q.setValueAtTime(3 + Math.random() * 2, audioContext.currentTime);
+              // Add instrument-specific filtering
+              filter.type = instrumentDef.name === 'djembe' ? 'lowpass' : 'bandpass';
+              filter.frequency.setValueAtTime(instrumentDef.filterFreq + (noteFreq * 0.5), audioContext.currentTime);
+              filter.Q.setValueAtTime(instrumentDef.resonance + Math.random(), audioContext.currentTime);
               
               // Connect audio chain
               osc.connect(filter);
               filter.connect(gain);
               gain.connect(dryGain);
               
-              // Send to reverb with varying amounts based on harmonic
+              // Send to reverb with varying amounts based on instrument
               const reverbSend = audioContext.createGain();
-              const reverbAmount = 0.2 + (i * 0.05) + (accentLevel * 0.1);
+              const reverbAmount = 0.1 + (i * 0.03) + (accentLevel * 0.1);
               reverbSend.gain.setValueAtTime(reverbAmount, audioContext.currentTime);
               gain.connect(reverbSend);
               
@@ -305,13 +419,14 @@ export const ResizableSticker = ({
                 reverbSend.connect(delay);
               });
               
-              lfo.start(now);
               osc.start(now);
               osc.stop(now + releaseTime);
-              lfo.stop(now + releaseTime);
               
-              harmonics.push({ osc, gain, filter, lfo, lfoGain });
+              harmonics.push({ osc, gain, filter });
             }
+            
+            // Advance melodic progression
+            melodicIndex = (melodicIndex + 1) % instrumentDef.melodicPattern.length;
           }
           
           // Move to next beat in the polyrhythmic cycle
@@ -330,15 +445,15 @@ export const ResizableSticker = ({
           nextBeatTime += microTiming;
           
           if (isActive) {
-            setTimeout(createMarimbaStrike, Math.max(nextBeatTime, 50)); // Minimum 50ms gap
+            setTimeout(createInstrumentSound, Math.max(nextBeatTime, 50)); // Minimum 50ms gap
           }
         } catch (error) {
-          console.error('Error in marimba strike:', error);
+          console.error('Error in instrument sound:', error);
         }
       };
       
-      // Start the marimba pattern
-      createMarimbaStrike();
+      // Start the melodic pattern
+      createInstrumentSound();
       
       // Store audio reference for cleanup
       audioRef.current = {
@@ -348,7 +463,7 @@ export const ResizableSticker = ({
         feedbacks,
         isActive: true,
         stop: () => {
-          console.log('Stopping marimba audio for sticker:', sticker.id);
+          console.log(`Stopping ${instrumentDef.name} audio for sticker:`, sticker.id);
           isActive = false;
           try {
             // Clean up delays and feedback loops
@@ -371,14 +486,14 @@ export const ResizableSticker = ({
           try {
             const newVol = Math.min(vol, 0.12);
             masterGain.gain.setValueAtTime(newVol, audioContext.currentTime);
-            console.log('Updated marimba volume to:', newVol);
+            console.log(`Updated ${instrumentDef.name} volume to:`, newVol);
           } catch (e) {
             console.warn('Volume update error:', e);
           }
         }
       } as any;
 
-      console.log('Marimba audio setup complete for sticker:', sticker.id);
+      console.log(`${instrumentDef.name} audio setup complete for sticker:`, sticker.id);
       
     } catch (error) {
       console.error('Failed to create audio:', error);
