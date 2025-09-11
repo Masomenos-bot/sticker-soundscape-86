@@ -102,7 +102,7 @@ export const ResizableSticker = ({
       harmonics: [1, 0.7, 0.4, 0.2, 0.1],
       harmonicGains: [1.0, 0.6, 0.3, 0.15, 0.08],
       attack: 0.015,
-      decay: 0.03, // Shortened
+      decay: 0.015, // Shortened further
       sustain: 0.2, // Quick plucked decay
       release: 1.2,
       filterFreq: 4500,
@@ -118,7 +118,7 @@ export const ResizableSticker = ({
       harmonics: [1, 0.4, 0.15, 0.05],
       harmonicGains: [1.0, 0.5, 0.2, 0.1],
       attack: 0.15,
-      decay: 0.1, // Shortened
+      decay: 0.05, // Shortened further
       sustain: 0.8,
       release: 2.5,
       filterFreq: 4200,
