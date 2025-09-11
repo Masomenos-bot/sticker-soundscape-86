@@ -485,7 +485,7 @@ export const ResizableSticker = ({
   return (
     <div
       ref={stickerRef}
-      className={`absolute select-none cursor-move group transition-all duration-200 ${showTrashOverlay ? 'opacity-50 scale-95' : ''}`}
+      className="absolute select-none cursor-move group transition-all duration-200"
       style={{
         left: `${sticker.x}px`,
         top: `${sticker.y}px`,
@@ -500,13 +500,6 @@ export const ResizableSticker = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Trash overlay when dragging outside */}
-      {showTrashOverlay && (
-        <div className="absolute inset-0 bg-red-500/20 border-2 border-red-500 rounded flex items-center justify-center">
-          <Trash2 className="w-6 h-6 text-red-500" />
-        </div>
-      )}
-      
       {/* Sticker Image */}
       <img
         src={sticker.src}
