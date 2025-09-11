@@ -296,6 +296,21 @@ export const ResizableSticker = ({
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
       onUpdate(sticker.id, { x: newX, y: newY });
+      
+      // Check if sticker is outside canvas bounds for removal
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      if (canvasRect) {
+        const stickerCenterX = newX + sticker.width / 2;
+        const stickerCenterY = newY + sticker.height / 2;
+        const isOutside = stickerCenterX < 0 || stickerCenterY < 0 || 
+                         stickerCenterX > canvasRect.width || stickerCenterY > canvasRect.height;
+        
+        if (isOutside) {
+          setShowTrashOverlay(true);
+        } else {
+          setShowTrashOverlay(false);
+        }
+      }
     } else if (isResizing) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -315,14 +330,20 @@ export const ResizableSticker = ({
       const newRotation = rotateStart.rotation + (angle - rotateStart.angle);
       onUpdate(sticker.id, { rotation: newRotation });
     }
-  }, [isDragging, isResizing, isRotating, dragStart, rotateStart, sticker.id, sticker.x, sticker.y, onUpdate, canvasRef]);
+  }, [isDragging, isResizing, isRotating, dragStart, rotateStart, sticker.id, sticker.x, sticker.y, sticker.width, sticker.height, onUpdate, canvasRef]);
 
   // Mouse up handler
   const handleMouseUp = useCallback(() => {
+    if (isDragging && showTrashOverlay) {
+      // Remove sticker if it was dragged outside the frame
+      onRemove(sticker.id);
+    }
+    
     setIsDragging(false);
     setIsResizing(false);
     setIsRotating(false);
-  }, []);
+    setShowTrashOverlay(false);
+  }, [isDragging, showTrashOverlay, onRemove, sticker.id]);
 
   // Set up global mouse event listeners
   useEffect(() => {
@@ -389,6 +410,21 @@ export const ResizableSticker = ({
       const newX = touch.clientX - dragStart.x;
       const newY = touch.clientY - dragStart.y;
       onUpdate(sticker.id, { x: newX, y: newY });
+      
+      // Check if sticker is outside canvas bounds for removal
+      const canvasRect = canvasRef.current?.getBoundingClientRect();
+      if (canvasRect) {
+        const stickerCenterX = newX + sticker.width / 2;
+        const stickerCenterY = newY + sticker.height / 2;
+        const isOutside = stickerCenterX < 0 || stickerCenterY < 0 || 
+                         stickerCenterX > canvasRect.width || stickerCenterY > canvasRect.height;
+        
+        if (isOutside) {
+          setShowTrashOverlay(true);
+        } else {
+          setShowTrashOverlay(false);
+        }
+      }
     } else if (event.touches.length === 2 && isGesturing && initialTouches && initialSticker) {
       const touch1 = event.touches[0];
       const touch2 = event.touches[1];
@@ -431,19 +467,25 @@ export const ResizableSticker = ({
         y: newY
       });
     }
-  }, [isDragging, isGesturing, dragStart, initialTouches, initialSticker, sticker.id, onUpdate]);
+  }, [isDragging, isGesturing, dragStart, initialTouches, initialSticker, sticker.id, sticker.width, sticker.height, onUpdate, canvasRef]);
 
   const handleTouchEnd = useCallback(() => {
+    if (isDragging && showTrashOverlay) {
+      // Remove sticker if it was dragged outside the frame
+      onRemove(sticker.id);
+    }
+    
     setIsDragging(false);
     setIsGesturing(false);
     setInitialTouches(null);
     setInitialSticker(null);
-  }, []);
+    setShowTrashOverlay(false);
+  }, [isDragging, showTrashOverlay, onRemove, sticker.id]);
 
   return (
     <div
       ref={stickerRef}
-      className="absolute select-none cursor-move group transition-all duration-200"
+      className={`absolute select-none cursor-move group transition-all duration-200 ${showTrashOverlay ? 'opacity-50 scale-95' : ''}`}
       style={{
         left: `${sticker.x}px`,
         top: `${sticker.y}px`,
@@ -458,6 +500,13 @@ export const ResizableSticker = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Trash overlay when dragging outside */}
+      {showTrashOverlay && (
+        <div className="absolute inset-0 bg-red-500/20 border-2 border-red-500 rounded flex items-center justify-center">
+          <Trash2 className="w-6 h-6 text-red-500" />
+        </div>
+      )}
+      
       {/* Sticker Image */}
       <img
         src={sticker.src}
