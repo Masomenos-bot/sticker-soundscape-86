@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { StickerPalette } from "./StickerPalette";
 import { MusicCanvas } from "./MusicCanvas";
-import { Volume2, Pause, Play, ChevronUp, ChevronDown, FlipHorizontal, Trash2 } from "lucide-react";
+import { Volume2, Pause, Play, ChevronUp, ChevronDown, FlipHorizontal, Trash2, Plus, Minus, RotateCcw, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
@@ -464,56 +464,134 @@ const StickerMusicApp = () => {
               />
             </Card>
             
-            {/* Fixed controls for selected stickers - temporarily disabled for debugging */}
-            {false && selectedStickers.length === 1 && (
+            {/* Fixed controls for selected stickers */}
+            {selectedStickers.length === 1 && (
               <div 
-                className="fixed z-50 flex gap-1 bg-background/95 backdrop-blur-sm p-2 rounded-lg border shadow-lg"
+                className="fixed z-50 bg-background/95 backdrop-blur-sm p-3 rounded-lg border shadow-lg"
                 style={{
                   left: '20px',
                   top: '120px'
                 }}
               >
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
-                  className="w-8 h-8 p-0" 
-                  onClick={() => handleLayerChange(selectedStickers[0], 'up')}
-                  title="Move up layer"
-                >
-                  <ChevronUp className="w-4 h-4" />
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
-                  className="w-8 h-8 p-0" 
-                  onClick={() => handleLayerChange(selectedStickers[0], 'down')}
-                  title="Move down layer"
-                >
-                  <ChevronDown className="w-4 h-4" />
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="secondary" 
-                  className="w-8 h-8 p-0" 
-                  onClick={() => {
-                    const sticker = placedStickers.find(s => s.id === selectedStickers[0]);
-                    if (sticker) {
-                      handleStickerUpdate(sticker.id, { mirrored: !sticker.mirrored });
-                    }
-                  }}
-                  title="Flip horizontal"
-                >
-                  <FlipHorizontal className="w-4 h-4" />
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="destructive" 
-                  className="w-8 h-8 p-0" 
-                  onClick={() => handleStickerRemove(selectedStickers[0])}
-                  title="Delete sticker"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="flex flex-col gap-2">
+                  {/* Scale Controls */}
+                  <div className="flex gap-1 items-center">
+                    <span className="text-xs font-medium text-muted-foreground w-12">Scale:</span>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-8 h-8 p-0" 
+                      onClick={() => {
+                        const sticker = placedStickers.find(s => s.id === selectedStickers[0]);
+                        if (sticker) {
+                          const newWidth = Math.max(30, sticker.width - 10);
+                          const newHeight = Math.max(30, sticker.height - 10);
+                          handleStickerUpdate(sticker.id, { width: newWidth, height: newHeight });
+                        }
+                      }}
+                      title="Scale down"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-8 h-8 p-0" 
+                      onClick={() => {
+                        const sticker = placedStickers.find(s => s.id === selectedStickers[0]);
+                        if (sticker) {
+                          const newWidth = Math.min(300, sticker.width + 10);
+                          const newHeight = Math.min(300, sticker.height + 10);
+                          handleStickerUpdate(sticker.id, { width: newWidth, height: newHeight });
+                        }
+                      }}
+                      title="Scale up"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Rotation Controls */}
+                  <div className="flex gap-1 items-center">
+                    <span className="text-xs font-medium text-muted-foreground w-12">Rotate:</span>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-8 h-8 p-0" 
+                      onClick={() => {
+                        const sticker = placedStickers.find(s => s.id === selectedStickers[0]);
+                        if (sticker) {
+                          const newRotation = (sticker.rotation || 0) - 15;
+                          handleStickerUpdate(sticker.id, { rotation: newRotation });
+                        }
+                      }}
+                      title="Rotate left 15°"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-8 h-8 p-0" 
+                      onClick={() => {
+                        const sticker = placedStickers.find(s => s.id === selectedStickers[0]);
+                        if (sticker) {
+                          const newRotation = (sticker.rotation || 0) + 15;
+                          handleStickerUpdate(sticker.id, { rotation: newRotation });
+                        }
+                      }}
+                      title="Rotate right 15°"
+                    >
+                      <RotateCw className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Mirror and Layer Controls */}
+                  <div className="flex gap-1 items-center">
+                    <span className="text-xs font-medium text-muted-foreground w-12">Tools:</span>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-8 h-8 p-0" 
+                      onClick={() => {
+                        const sticker = placedStickers.find(s => s.id === selectedStickers[0]);
+                        if (sticker) {
+                          handleStickerUpdate(sticker.id, { mirrored: !sticker.mirrored });
+                        }
+                      }}
+                      title="Flip horizontal"
+                    >
+                      <FlipHorizontal className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-8 h-8 p-0" 
+                      onClick={() => handleLayerChange(selectedStickers[0], 'up')}
+                      title="Move up layer"
+                    >
+                      <ChevronUp className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-8 h-8 p-0" 
+                      onClick={() => handleLayerChange(selectedStickers[0], 'down')}
+                      title="Move down layer"
+                    >
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      className="w-8 h-8 p-0" 
+                      onClick={() => handleStickerRemove(selectedStickers[0])}
+                      title="Delete sticker"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
