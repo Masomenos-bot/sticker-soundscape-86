@@ -167,12 +167,46 @@ export const ResizableSticker = ({
     };
   }, [sticker.id, sticker.width, sticker.height, sticker.volume, sticker.stepIndex]);
 
-  // Optimized step sound with stable dependencies
+  // Audio cache for MP3 files
+  const audioCache = new Map<string, HTMLAudioElement>();
+
+  // Function to play MP3 files
+  const playMp3Sound = useCallback(async (soundUrl: string) => {
+    try {
+      let audio = audioCache.get(soundUrl);
+      
+      if (!audio) {
+        audio = new Audio(soundUrl);
+        audio.preload = 'auto';
+        audioCache.set(soundUrl, audio);
+      }
+      
+      // Clone audio for overlapping playback
+      const audioClone = audio.cloneNode() as HTMLAudioElement;
+      audioClone.volume = Math.min(globalVolume * sticker.volume * 0.8, 1.0);
+      
+      await audioClone.play();
+    } catch (error) {
+      console.error("MP3 playback error:", error);
+    }
+  }, [globalVolume, sticker.volume]);
+
+  // Optimized step sound with MP3 support
   const playStepSound = useCallback(async () => {
-    if (!audioContextRef.current || !isCurrentStep || !isPlaying) return;
+    if (!isCurrentStep || !isPlaying) return;
 
     try {
       const stickerProps = stickerPropsRef.current;
+      
+      // Check if this sticker has a custom MP3 sound
+      if (sticker.soundUrl && sticker.soundUrl.endsWith('.mp3')) {
+        await playMp3Sound(sticker.soundUrl);
+        return;
+      }
+
+      // Fallback to synthetic audio if no MP3 or audio context available
+      if (!audioContextRef.current) return;
+        
       const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioInstruments.length;
       const instrument = ethioInstruments[instrumentIndex];
       
@@ -212,7 +246,7 @@ export const ResizableSticker = ({
     } catch (error) {
       console.error("Audio error:", error);
     }
-  }, [isCurrentStep, isPlaying, globalVolume, ethioInstruments]);
+  }, [isCurrentStep, isPlaying, globalVolume, ethioInstruments, sticker.soundUrl, playMp3Sound]);
 
   // Stable audio trigger effect
   useEffect(() => {

@@ -84,7 +84,17 @@ export const StickerPalette = () => {
   );
 };
 
-// Generate unique sound identifier for each sticker
+// Sound mapping for stickers - you can associate MP3 files here
+const soundMapping: { [key: number]: string } = {
+  0: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/hue'.mp3", // Premier sticker avec hue'.mp3
+  1: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/play.mp3",
+  2: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/pause.mp3",
+  3: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/next'.mp3",
+  4: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/previous'.mp3",
+  // Les autres stickers utiliseront les sons synthétiques
+};
+
+// Generate sound identifier for each sticker
 function generateSoundUrl(index: number): string {
-  return `tone-${index}`; // Simple identifier for audio generation
+  return soundMapping[index] || `tone-${index}`;
 }
