@@ -556,7 +556,9 @@ export const ResizableSticker = ({
   return (
     <div
       ref={stickerRef}
-      className="absolute select-none cursor-move group transition-all duration-200"
+      className={`absolute select-none cursor-move group transition-all duration-200 ${
+        isCurrentStep ? 'z-50' : ''
+      }`}
       style={{
         left: `${sticker.x}px`,
         top: `${sticker.y}px`,
@@ -575,9 +577,12 @@ export const ResizableSticker = ({
       <img
         src={sticker.src}
         alt="Sticker"
-        className={`w-full h-full object-contain pointer-events-none ${
+        className={`w-full h-full object-contain pointer-events-none transition-all duration-200 ${
           isPlaying ? stickerAnimation : ''
-        }`}
+        } ${isCurrentStep ? 'animate-pulse scale-110 brightness-125' : ''}`}
+        style={{
+          filter: isCurrentStep ? 'drop-shadow(0 0 15px rgba(255, 215, 0, 0.8))' : 'none'
+        }}
         draggable={false}
       />
       
