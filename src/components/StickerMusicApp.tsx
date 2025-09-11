@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { StickerPalette } from "./StickerPalette";
 import { MusicCanvas } from "./MusicCanvas";
-import { Volume2, Pause, Play } from "lucide-react";
+import { Volume2, Pause, Play, ChevronUp, ChevronDown, FlipHorizontal, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
@@ -463,6 +463,59 @@ const StickerMusicApp = () => {
                 onGroupMove={handleGroupMove}
               />
             </Card>
+            
+            {/* Fixed controls for selected stickers */}
+            {selectedStickers.length === 1 && (
+              <div 
+                className="fixed z-50 flex gap-1 bg-background/95 backdrop-blur-sm p-2 rounded-lg border shadow-lg"
+                style={{
+                  left: '20px',
+                  top: '120px'
+                }}
+              >
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="w-8 h-8 p-0" 
+                  onClick={() => handleLayerChange(selectedStickers[0], 'up')}
+                  title="Move up layer"
+                >
+                  <ChevronUp className="w-4 h-4" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="w-8 h-8 p-0" 
+                  onClick={() => handleLayerChange(selectedStickers[0], 'down')}
+                  title="Move down layer"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="secondary" 
+                  className="w-8 h-8 p-0" 
+                  onClick={() => {
+                    const sticker = placedStickers.find(s => s.id === selectedStickers[0]);
+                    if (sticker) {
+                      handleStickerUpdate(sticker.id, { mirrored: !sticker.mirrored });
+                    }
+                  }}
+                  title="Flip horizontal"
+                >
+                  <FlipHorizontal className="w-4 h-4" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="destructive" 
+                  className="w-8 h-8 p-0" 
+                  onClick={() => handleStickerRemove(selectedStickers[0])}
+                  title="Delete sticker"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
