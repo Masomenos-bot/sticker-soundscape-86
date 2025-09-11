@@ -422,41 +422,16 @@ export const ResizableSticker = ({
         draggable={false}
       />
       
-      {/* Selection highlight overlay */}
+      {/* Selection highlight overlay - IMPROVED */}
       {isSelected && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-primary/10 rounded-lg animate-pulse" />
-          <div className="absolute -inset-1 border-2 border-primary/40 rounded-lg animate-pulse" />
+          <div className="absolute inset-0 bg-yellow-400/20 rounded-lg" />
+          <div className="absolute -inset-2 border-4 border-yellow-400 rounded-lg shadow-lg shadow-yellow-400/50" />
+          <div className="absolute -top-6 -left-2 bg-yellow-400 text-black text-xs px-2 py-1 rounded font-bold">
+            SELECTED
+          </div>
         </div>
       )}
-      
-      {/* Resize handle with inverse transform */}
-      <div 
-        className="absolute bg-primary/60 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-full hover:bg-primary/80"
-        style={{
-          bottom: '-8px',
-          right: '-8px',
-          width: '16px',
-          height: '16px',
-          transform: `scaleX(${sticker.mirrored ? -1 : 1}) rotate(${-(sticker.rotation || 0)}deg) scale(${Math.max(0.8, 80/Math.max(sticker.width, sticker.height))})`,
-          transformOrigin: 'center'
-        }}
-      />
-      
-      {/* Rotation handle with inverse transform */}
-      <div 
-        className="absolute bg-secondary/60 cursor-grab opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-full hover:bg-secondary/80 flex items-center justify-center"
-        style={{
-          top: '-8px',
-          right: '-8px',
-          width: '16px',
-          height: '16px',
-          transform: `scaleX(${sticker.mirrored ? -1 : 1}) rotate(${-(sticker.rotation || 0)}deg) scale(${Math.max(0.8, 80/Math.max(sticker.width, sticker.height))})`,
-          transformOrigin: 'center'
-        }}
-      >
-        <RotateCw className="w-3 h-3" />
-      </div>
     </div>
   );
 };
