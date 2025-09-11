@@ -408,12 +408,13 @@ export const ResizableSticker = ({
         </div>
       )}
       
+      {/* Controls with inverse transforms to maintain fixed size */}
       <div 
         className="absolute opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1"
         style={{
           top: '-48px',
           right: '0px',
-          transform: 'scale(0.8)',
+          transform: `scaleX(${sticker.mirrored ? -1 : 1}) rotate(${-(sticker.rotation || 0)}deg) scale(${Math.max(0.6, 80/Math.max(sticker.width, sticker.height))})`,
           transformOrigin: 'top right'
         }}
       >
@@ -431,22 +432,29 @@ export const ResizableSticker = ({
         </Button>
       </div>
       
+      {/* Resize handle with inverse transform */}
       <div 
-        className="absolute bg-primary/60 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-tl-lg hover:bg-primary/80"
+        className="absolute bg-primary/60 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-full hover:bg-primary/80"
         style={{
-          bottom: '-2px',
-          right: '-2px',
+          bottom: '-8px',
+          right: '-8px',
           width: '16px',
-          height: '16px'
+          height: '16px',
+          transform: `scaleX(${sticker.mirrored ? -1 : 1}) rotate(${-(sticker.rotation || 0)}deg) scale(${Math.max(0.8, 80/Math.max(sticker.width, sticker.height))})`,
+          transformOrigin: 'center'
         }}
       />
+      
+      {/* Rotation handle with inverse transform */}
       <div 
-        className="absolute bg-secondary/60 cursor-grab opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-bl-lg hover:bg-secondary/80 flex items-center justify-center"
+        className="absolute bg-secondary/60 cursor-grab opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-full hover:bg-secondary/80 flex items-center justify-center"
         style={{
-          top: '-2px',
-          right: '-2px',
+          top: '-8px',
+          right: '-8px',
           width: '16px',
-          height: '16px'
+          height: '16px',
+          transform: `scaleX(${sticker.mirrored ? -1 : 1}) rotate(${-(sticker.rotation || 0)}deg) scale(${Math.max(0.8, 80/Math.max(sticker.width, sticker.height))})`,
+          transformOrigin: 'center'
         }}
       >
         <RotateCw className="w-3 h-3" />
