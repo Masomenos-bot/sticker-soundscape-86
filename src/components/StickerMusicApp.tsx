@@ -47,7 +47,7 @@ const StickerMusicApp = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const sequencerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle global mouse events for control board dragging
+  // Handle global mouse and touch events for control board dragging
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingControlBoard) {
@@ -58,18 +58,37 @@ const StickerMusicApp = () => {
       }
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isDraggingControlBoard && e.touches.length === 1) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        setControlBoardPosition({
+          x: touch.clientX - dragOffset.x,
+          y: touch.clientY - dragOffset.y
+        });
+      }
+    };
+
     const handleMouseUp = () => {
+      setIsDraggingControlBoard(false);
+    };
+
+    const handleTouchEnd = () => {
       setIsDraggingControlBoard(false);
     };
 
     if (isDraggingControlBoard) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', handleTouchEnd);
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isDraggingControlBoard, dragOffset]);
 
@@ -508,6 +527,16 @@ const StickerMusicApp = () => {
                     x: e.clientX - controlBoardPosition.x,
                     y: e.clientY - controlBoardPosition.y
                   });
+                }}
+                onTouchStart={(e) => {
+                  if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    setIsDraggingControlBoard(true);
+                    setDragOffset({
+                      x: touch.clientX - controlBoardPosition.x,
+                      y: touch.clientY - controlBoardPosition.y
+                    });
+                  }
                 }}
               >
                 <div className="flex flex-col gap-3">
