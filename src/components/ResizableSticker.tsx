@@ -295,7 +295,7 @@ export const ResizableSticker = ({
     if (isDragging) {
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
-      onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
+      onUpdate(sticker.id, { x: newX, y: newY });
     } else if (isResizing) {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -388,7 +388,7 @@ export const ResizableSticker = ({
       const touch = event.touches[0];
       const newX = touch.clientX - dragStart.x;
       const newY = touch.clientY - dragStart.y;
-      onUpdate(sticker.id, { x: Math.max(0, newX), y: Math.max(0, newY) });
+      onUpdate(sticker.id, { x: newX, y: newY });
     } else if (event.touches.length === 2 && isGesturing && initialTouches && initialSticker) {
       const touch1 = event.touches[0];
       const touch2 = event.touches[1];
@@ -420,8 +420,8 @@ export const ResizableSticker = ({
         x: center.x - initialTouches.center.x,
         y: center.y - initialTouches.center.y
       };
-      const newX = Math.max(0, initialSticker.x + centerDiff.x);
-      const newY = Math.max(0, initialSticker.y + centerDiff.y);
+      const newX = initialSticker.x + centerDiff.x;
+      const newY = initialSticker.y + centerDiff.y;
       
       onUpdate(sticker.id, {
         width: newWidth,
