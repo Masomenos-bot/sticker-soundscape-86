@@ -130,59 +130,8 @@ const StickerMusicApp = () => {
     };
 
     setPlacedStickers(prev => [...prev, newSticker]);
-    
-    // WILD EFFECTS when adding layer! 🎆
-    if (canvasRef.current) {
-      // Screen shake effect
-      canvasRef.current.style.animation = 'none';
-      canvasRef.current.offsetHeight; // Trigger reflow
-      canvasRef.current.style.animation = 'shake 0.6s ease-in-out, float1 0.3s ease-out';
-      
-      // Flash effect
-      const flashOverlay = document.createElement('div');
-      flashOverlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: radial-gradient(circle at ${x}px ${y}px, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.3) 30%, rgba(255,255,255,0) 70%);
-        pointer-events: none;
-        z-index: 9999;
-        animation: flash 0.4s ease-out;
-      `;
-      document.body.appendChild(flashOverlay);
-      setTimeout(() => flashOverlay.remove(), 400);
-    }
-    
-    // Wild audio feedback
-    if (audioContextRef.current) {
-      const ctx = audioContextRef.current;
-      // Create dramatic impact sound
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      const filterNode = ctx.createBiquadFilter();
-      
-      oscillator.connect(filterNode);
-      filterNode.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      
-      oscillator.frequency.setValueAtTime(80, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.1);
-      oscillator.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.5);
-      
-      filterNode.frequency.setValueAtTime(300, ctx.currentTime);
-      filterNode.frequency.exponentialRampToValueAtTime(1500, ctx.currentTime + 0.2);
-      
-      gainNode.gain.setValueAtTime(0.4 * globalVolume, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
-      
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.7);
-    }
-    
-    toast(`🎉 WILD LAYER ${nextStepIndex + 1} ADDED!`, {
-      duration: 2000,
+    toast(`Added step ${nextStepIndex + 1} to sequence!`, {
+      duration: 1500,
     });
   };
 
@@ -312,30 +261,13 @@ const StickerMusicApp = () => {
     }
   };
 
-  // Enhanced Step Sequencer with Musical Patterns
+  // Step Sequencer Logic
   useEffect(() => {
     if (isPlaying && placedStickers.length > 0) {
-      // Calculate tempo with subdivisions for more musical feel
-      const baseTempo = sequenceTempo;
-      const stepDuration = (60 / baseTempo / 2) * 1000; // 16th note subdivisions
+      const stepDuration = (60 / sequenceTempo) * 500; // Half beat steps for more resolution
       
       sequencerRef.current = setInterval(() => {
-        setCurrentStep(prev => {
-          const nextStep = (prev + 1) % (placedStickers.length * 2); // Double steps for 16th notes
-          
-          // Add musical accents every 4 steps (quarter notes)
-          if (nextStep % 4 === 0) {
-            // Trigger accent sound or visual effect on downbeats
-            console.log('Downbeat accent on step:', nextStep);
-          }
-          
-          // Pattern variations every 8 steps (half measures)
-          if (nextStep % 8 === 0) {
-            console.log('Pattern variation on step:', nextStep);
-          }
-          
-          return nextStep;
-        });
+        setCurrentStep(prev => (prev + 1) % placedStickers.length);
       }, stepDuration);
       
       return () => {
