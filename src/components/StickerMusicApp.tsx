@@ -464,8 +464,8 @@ const StickerMusicApp = () => {
               />
             </Card>
             
-            {/* Fixed controls for selected stickers */}
-            {selectedStickers.length === 1 && (
+            {/* Fixed controls for selected stickers - temporarily disabled for debugging */}
+            {false && selectedStickers.length === 1 && (
               <div 
                 className="fixed z-50 flex gap-1 bg-background/95 backdrop-blur-sm p-2 rounded-lg border shadow-lg"
                 style={{
