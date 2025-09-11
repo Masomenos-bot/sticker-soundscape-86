@@ -86,7 +86,7 @@ export const ResizableSticker = ({
       harmonics: [1, 0.8, 0.3, 0.15, 0.05, 0.02], // More complex harmonics for realism
       harmonicGains: [1.0, 0.7, 0.4, 0.2, 0.1, 0.05],
       attack: 0.008,
-      decay: 0.15,
+      decay: 0.05, // Shortened
       sustain: 0.3, // Shorter sustain like real vibes
       release: 2.8,
       filterFreq: 3200,
@@ -102,7 +102,7 @@ export const ResizableSticker = ({
       harmonics: [1, 0.9, 0.6, 0.4, 0.2, 0.1],
       harmonicGains: [1.0, 0.8, 0.5, 0.3, 0.2, 0.1],
       attack: 0.02,
-      decay: 0.1,
+      decay: 0.03, // Shortened
       sustain: 0.7, // Electric piano sustain
       release: 1.5,
       filterFreq: 2800,
@@ -118,7 +118,7 @@ export const ResizableSticker = ({
       harmonics: [1, 0.7, 0.4, 0.2, 0.1],
       harmonicGains: [1.0, 0.6, 0.3, 0.15, 0.08],
       attack: 0.015,
-      decay: 0.08,
+      decay: 0.03, // Shortened
       sustain: 0.2, // Quick plucked decay
       release: 1.2,
       filterFreq: 4500,
@@ -134,7 +134,7 @@ export const ResizableSticker = ({
       harmonics: [1, 0.8, 0.9, 0.7, 0.6, 0.4, 0.3, 0.2, 0.1],
       harmonicGains: [0.8, 0.9, 1.0, 0.8, 0.6, 0.4, 0.3, 0.2, 0.1], // Hammond drawbar simulation
       attack: 0.05,
-      decay: 0.02,
+      decay: 0.01, // Shortened
       sustain: 0.95,
       release: 0.3,
       filterFreq: 1800,
@@ -150,7 +150,7 @@ export const ResizableSticker = ({
       harmonics: [1, 0.8, 0.3, 0.1],
       harmonicGains: [1.0, 0.7, 0.2, 0.05],
       attack: 0.01,
-      decay: 0.05,
+      decay: 0.02, // Shortened
       sustain: 0.6,
       release: 0.8,
       filterFreq: 800,
@@ -166,7 +166,7 @@ export const ResizableSticker = ({
       harmonics: [1, 0.4, 0.15, 0.05],
       harmonicGains: [1.0, 0.5, 0.2, 0.1],
       attack: 0.15,
-      decay: 0.2,
+      decay: 0.1, // Shortened
       sustain: 0.8,
       release: 2.5,
       filterFreq: 4200,
@@ -182,7 +182,7 @@ export const ResizableSticker = ({
       harmonics: [1, 2.1, 1.4, 0.8, 0.3],
       harmonicGains: [1.0, 0.4, 0.3, 0.1, 0.05],
       attack: 0.001,
-      decay: 0.03,
+      decay: 0.015, // Shortened
       sustain: 0.1,
       release: 0.25,
       filterFreq: 1200,
