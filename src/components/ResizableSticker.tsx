@@ -647,7 +647,7 @@ export const ResizableSticker = ({
       <Button
         size="sm"
         variant="secondary"
-        className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
+        className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-75 z-10 bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -663,7 +663,7 @@ export const ResizableSticker = ({
       <Button
         size="sm"
         variant="secondary"
-        className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
+        className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-75 z-10 bg-yellow-400 hover:bg-yellow-500 text-black border-yellow-400 hover:border-yellow-500"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -679,7 +679,7 @@ export const ResizableSticker = ({
       <Button
         size="sm"
         variant="secondary"
-        className="absolute -top-2 -right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-pink-400 hover:bg-pink-500 text-white border-pink-400 hover:border-pink-500"
+        className="absolute -top-2 -right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-75 z-10 bg-pink-400 hover:bg-pink-500 text-white border-pink-400 hover:border-pink-500"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -693,7 +693,7 @@ export const ResizableSticker = ({
       <Button
         size="sm"
         variant="secondary"
-        className="absolute -top-2 -left-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10 cursor-grab active:cursor-grabbing"
+        className="absolute -top-2 -left-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-75 z-10 cursor-grab active:cursor-grabbing"
         onMouseDown={handleRotateStart}
       >
         <RotateCw className="w-3 h-3" />
@@ -717,7 +717,7 @@ export const ResizableSticker = ({
 
       {/* Resize handle */}
       <div
-        className="absolute bottom-0 right-0 w-4 h-4 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute bottom-0 right-0 w-4 h-4 cursor-nw-resize opacity-0 group-hover:opacity-100 transition-opacity duration-75"
         onMouseDown={handleResizeStart}
         style={{
           background: 'linear-gradient(-45deg, transparent 30%, hsl(var(--primary)) 30%, hsl(var(--primary)) 70%, transparent 70%)',
@@ -725,7 +725,7 @@ export const ResizableSticker = ({
       />
 
       {/* Size indicator */}
-      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs bg-primary text-primary-foreground px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-75">
         {Math.round((sticker.width + sticker.height) / 2)}px
       </div>
     </div>
