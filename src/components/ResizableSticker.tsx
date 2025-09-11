@@ -128,20 +128,20 @@ export const ResizableSticker = ({
       reverb: 0.5
     },
     {
-      name: 'tenor_sax_ethio',
+      name: 'masenqo_violin',
       scale: [146.83, 164.81, 185.00, 220.00, 246.94, 293.66, 329.63, 369.99, 440.00, 493.88],
       waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.95, 0.8, 0.5, 0.3, 0.15, 0.08],
-      harmonicGains: [1.0, 0.9, 0.6, 0.4, 0.2, 0.1, 0.05],
-      attack: 0.1,
-      decay: 0.05,
-      sustain: 0.85, // Horn-like sustain
-      release: 0.8,
-      filterFreq: 2200,
-      resonance: 6.0,
-      melodicPattern: [0, 2, 5, 3, 7, 4, 1, 6], // Sax jazz phrases
-      tremolo: { rate: 0, depth: 0 },
-      reverb: 0.25
+      harmonics: [1, 0.7, 0.4, 0.2, 0.1],
+      harmonicGains: [1.0, 0.8, 0.5, 0.3, 0.15],
+      attack: 0.08,
+      decay: 0.1,
+      sustain: 0.85,
+      release: 1.2,
+      filterFreq: 2800,
+      resonance: 4.5,
+      melodicPattern: [0, 2, 5, 3, 7, 4, 1, 6], // Ethiopian violin phrases
+      tremolo: { rate: 6.5, depth: 0.12 }, // Bow vibrato
+      reverb: 0.35
     },
     {
       name: 'hammond_organ',
