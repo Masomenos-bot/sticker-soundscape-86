@@ -23,7 +23,13 @@ export const ResizableSticker = ({
   canvasRef,
 }: ResizableStickerProps) => {
   const stickerRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<{
+    audioContext: AudioContext;
+    masterGain: GainNode;
+    isActive: boolean;
+    stop: () => void;
+    setVolume: (vol: number) => void;
+  } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -51,107 +57,141 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Create rhythmic sequences for each sticker
+  // Create rhythmic audio loops for each sticker
   const createAudioTone = useCallback(async () => {
     if (audioRef.current) return;
     
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      console.log('Creating audio for sticker:', sticker.id);
       
-      // Resume audio context if it's suspended (required by some browsers)
+      // Create audio context
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      console.log('Audio context state:', audioContext.state);
+      
+      // Resume audio context (required by browsers)
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
+        console.log('Audio context resumed');
       }
 
-      // Create different rhythmic patterns for each sticker
-      const rhythmPatterns = [
-        { beats: [1, 0, 1, 0], frequency: 130, waveType: 'square' as OscillatorType }, // Kick pattern
-        { beats: [0, 1, 0, 1], frequency: 220, waveType: 'sawtooth' as OscillatorType }, // Snare pattern  
-        { beats: [1, 1, 0, 1], frequency: 330, waveType: 'triangle' as OscillatorType }, // Hi-hat pattern
-        { beats: [1, 0, 0, 1], frequency: 165, waveType: 'square' as OscillatorType }, // Bass pattern
-        { beats: [0, 0, 1, 0], frequency: 440, waveType: 'sine' as OscillatorType }, // Melody pattern
-        { beats: [1, 1, 1, 0], frequency: 294, waveType: 'triangle' as OscillatorType }, // Rhythm pattern
-        { beats: [0, 1, 1, 1], frequency: 392, waveType: 'sawtooth' as OscillatorType }, // Counter pattern
-        { beats: [1, 0, 1, 1], frequency: 247, waveType: 'square' as OscillatorType }, // Syncopated pattern
+      // Define musical patterns - each sticker gets a different pattern
+      const patterns = [
+        { beats: [1, 0, 1, 0], freq: 200, wave: 'square' as OscillatorType },
+        { beats: [0, 1, 0, 1], freq: 300, wave: 'sawtooth' as OscillatorType },
+        { beats: [1, 1, 0, 1], freq: 400, wave: 'triangle' as OscillatorType },
+        { beats: [1, 0, 0, 1], freq: 150, wave: 'square' as OscillatorType },
+        { beats: [0, 0, 1, 0], freq: 500, wave: 'sine' as OscillatorType },
+        { beats: [1, 1, 1, 0], freq: 250, wave: 'triangle' as OscillatorType },
+        { beats: [0, 1, 1, 1], freq: 350, wave: 'sawtooth' as OscillatorType },
+        { beats: [1, 0, 1, 1], freq: 180, wave: 'square' as OscillatorType },
       ];
       
-      const index = parseInt(sticker.id.split('-')[1] || "0") % rhythmPatterns.length;
-      const pattern = rhythmPatterns[index];
+      // Get pattern for this sticker
+      const patternIndex = sticker.id.length % patterns.length;
+      const pattern = patterns[patternIndex];
       
-      const gainNode = audioContext.createGain();
-      gainNode.connect(audioContext.destination);
+      console.log(`Sticker ${sticker.id} using pattern:`, pattern);
       
-      // Set initial volume based on sticker size
+      // Create master gain node
+      const masterGain = audioContext.createGain();
+      masterGain.connect(audioContext.destination);
+      
+      // Calculate volume based on sticker size
       const sizeRatio = (sticker.width + sticker.height) / 160;
-      const volume = Math.min(sizeRatio * globalVolume * 0.2, 0.3);
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      const volume = Math.min(sizeRatio * globalVolume * sticker.volume * 0.15, 0.2);
+      masterGain.gain.setValueAtTime(volume, audioContext.currentTime);
       
-      let currentBeat = 0;
-      let intervalId: NodeJS.Timeout;
+      console.log('Set volume to:', volume);
       
+      // Beat tracking
+      let beatIndex = 0;
+      let isActive = true;
+      
+      // Play beat function
       const playBeat = () => {
-        if (pattern.beats[currentBeat]) {
-          // Create oscillator for this beat
-          const oscillator = audioContext.createOscillator();
-          const beatGain = audioContext.createGain();
-          
-          oscillator.type = pattern.waveType;
-          oscillator.frequency.setValueAtTime(pattern.frequency, audioContext.currentTime);
-          
-          oscillator.connect(beatGain);
-          beatGain.connect(gainNode);
-          
-          // Create envelope for the beat (attack, decay)
-          beatGain.gain.setValueAtTime(0, audioContext.currentTime);
-          beatGain.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.01);
-          beatGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-          
-          oscillator.start(audioContext.currentTime);
-          oscillator.stop(audioContext.currentTime + 0.15);
-        }
+        if (!isActive || audioContext.state === 'closed') return;
         
-        currentBeat = (currentBeat + 1) % pattern.beats.length;
+        try {
+          // Check if this beat should play
+          if (pattern.beats[beatIndex]) {
+            console.log(`Playing beat ${beatIndex} for sticker ${sticker.id}`);
+            
+            // Create oscillator for this beat
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            
+            osc.type = pattern.wave;
+            osc.frequency.setValueAtTime(pattern.freq, audioContext.currentTime);
+            
+            // Connect audio nodes
+            osc.connect(gain);
+            gain.connect(masterGain);
+            
+            // Create attack/decay envelope
+            const now = audioContext.currentTime;
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(1, now + 0.005); // Quick attack
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); // Quick decay
+            
+            // Start and stop the oscillator
+            osc.start(now);
+            osc.stop(now + 0.1);
+          }
+          
+          // Move to next beat
+          beatIndex = (beatIndex + 1) % pattern.beats.length;
+          
+          // Schedule next beat (600ms = 100 BPM)
+          if (isActive) {
+            setTimeout(playBeat, 600);
+          }
+        } catch (error) {
+          console.error('Error in playBeat:', error);
+        }
       };
       
-      // Start the rhythm loop (120 BPM = 500ms per beat)
-      const beatInterval = 500;
-      intervalId = setInterval(playBeat, beatInterval);
+      // Start the beat loop
+      playBeat();
       
-      // Store reference for cleanup
+      // Store audio reference
       audioRef.current = {
-        gainNode,
         audioContext,
-        intervalId,
+        masterGain,
+        isActive: true,
         stop: () => {
+          console.log('Stopping audio for sticker:', sticker.id);
+          isActive = false;
           try {
-            clearInterval(intervalId);
             audioContext.close();
           } catch (e) {
-            console.log('Audio cleanup error:', e);
+            console.warn('Audio context close error:', e);
           }
         },
         setVolume: (vol: number) => {
           try {
-            const newVolume = Math.min(vol, 0.3);
-            gainNode.gain.setValueAtTime(newVolume, audioContext.currentTime);
+            const newVol = Math.min(vol, 0.2);
+            masterGain.gain.setValueAtTime(newVol, audioContext.currentTime);
+            console.log('Updated volume to:', newVol);
           } catch (e) {
-            console.log('Volume set error:', e);
+            console.warn('Volume update error:', e);
           }
         }
       } as any;
+
+      console.log('Audio setup complete for sticker:', sticker.id);
+      
     } catch (error) {
-      console.log('Audio creation failed:', error);
+      console.error('Failed to create audio:', error);
     }
-  }, [sticker.id, sticker.width, sticker.height, globalVolume]);
+  }, [sticker.id, sticker.width, sticker.height, sticker.volume, globalVolume]);
 
   // Update audio volume when sticker size or global volume changes
   useEffect(() => {
-    if (audioRef.current && isPlaying) {
+    if (audioRef.current && audioRef.current.setVolume && isPlaying) {
       const sizeRatio = (sticker.width + sticker.height) / 160;
-      const volume = sizeRatio * globalVolume * sticker.volume;
-      if ((audioRef.current as any).setVolume) {
-        (audioRef.current as any).setVolume(volume);
-      }
+      const volume = Math.min(sizeRatio * globalVolume * sticker.volume * 0.15, 0.2);
+      audioRef.current.setVolume(volume);
+      console.log(`Volume updated for sticker ${sticker.id}:`, volume);
     }
   }, [sticker.width, sticker.height, sticker.volume, globalVolume, isPlaying]);
 

@@ -157,18 +157,43 @@ const StickerMusicApp = () => {
   const initializeAudio = async () => {
     if (!audioInitialized) {
       try {
-        if (audioContextRef.current) {
-          await audioContextRef.current.resume();
-        }
+        // Create and test audio context to ensure it works
+        const testContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        await testContext.resume();
+        console.log('Audio context initialized successfully');
+        
+        // Play a brief test tone to verify audio is working
+        const testOsc = testContext.createOscillator();
+        const testGain = testContext.createGain();
+        
+        testOsc.connect(testGain);
+        testGain.connect(testContext.destination);
+        
+        testOsc.frequency.setValueAtTime(440, testContext.currentTime);
+        testGain.gain.setValueAtTime(0.1, testContext.currentTime);
+        testGain.gain.exponentialRampToValueAtTime(0.01, testContext.currentTime + 0.1);
+        
+        testOsc.start(testContext.currentTime);
+        testOsc.stop(testContext.currentTime + 0.1);
+        
+        // Clean up test context
+        setTimeout(() => {
+          testContext.close();
+        }, 200);
+        
         setAudioInitialized(true);
         setIsPlaying(true);
-        toast("Audio initialized! 🎵", {
-          duration: 1500,
+        
+        toast("🎵 Audio ready! Place stickers to create music!", {
+          duration: 2000,
         });
+        
+        console.log('Audio system initialized and ready');
+        
       } catch (error) {
         console.error("Failed to initialize audio:", error);
-        toast("Audio initialization failed", {
-          duration: 2000,
+        toast("❌ Audio initialization failed. Check browser settings.", {
+          duration: 3000,
         });
       }
     }
