@@ -74,119 +74,194 @@ export const ResizableSticker = ({
         console.log('Audio context resumed');
       }
 
-      // Define soulful, harmonious musical patterns using pentatonic and blues scales
+      // Define realistic marimba note frequencies (C3 to C6 range)
+      const marimbaFrequencies = [
+        130.81, // C3
+        146.83, // D3  
+        164.81, // E3
+        174.61, // F3
+        196.00, // G3
+        220.00, // A3
+        246.94, // B3
+        261.63, // C4 - Middle C
+        293.66, // D4
+        329.63, // E4
+        349.23, // F4
+        392.00, // G4
+        440.00, // A4
+        493.88, // B4
+        523.25, // C5
+        587.33, // D5
+        659.25, // E5
+        698.46, // F5
+        783.99, // G5
+        880.00, // A5
+        987.77, // B5
+        1046.50, // C6
+      ];
+
+      // Create different rhythmic patterns for polyrhythmic effect
       const patterns = [
-        // Deep bass kick - Root note (C2)
-        { beats: [1, 0, 0, 0, 1, 0, 0, 0], freq: 65.4, wave: 'sine' as OscillatorType, envelope: { attack: 0.01, decay: 0.3, sustain: 0.1 } },
-        
-        // Snare on 2 and 4 - Perfect fifth (G2) 
-        { beats: [0, 0, 1, 0, 0, 0, 1, 0], freq: 98.0, wave: 'triangle' as OscillatorType, envelope: { attack: 0.005, decay: 0.15, sustain: 0.05 } },
-        
-        // Hi-hat pattern - Major third (E3)
-        { beats: [1, 1, 0, 1, 1, 1, 0, 1], freq: 164.8, wave: 'sawtooth' as OscillatorType, envelope: { attack: 0.001, decay: 0.05, sustain: 0.01 } },
-        
-        // Bass line - Minor third (Eb2)
-        { beats: [1, 0, 1, 1, 0, 0, 1, 0], freq: 77.8, wave: 'square' as OscillatorType, envelope: { attack: 0.02, decay: 0.25, sustain: 0.15 } },
-        
-        // Melodic percussion - Perfect fourth (F3) 
-        { beats: [0, 1, 0, 0, 1, 0, 1, 0], freq: 174.6, wave: 'sine' as OscillatorType, envelope: { attack: 0.01, decay: 0.2, sustain: 0.08 } },
-        
-        // Syncopated rhythm - Sixth (A3)
-        { beats: [1, 0, 1, 0, 0, 1, 0, 1], freq: 220.0, wave: 'triangle' as OscillatorType, envelope: { attack: 0.005, decay: 0.18, sustain: 0.06 } },
-        
-        // Counter melody - Seventh (Bb3)
-        { beats: [0, 0, 1, 1, 0, 1, 0, 0], freq: 233.1, wave: 'sine' as OscillatorType, envelope: { attack: 0.015, decay: 0.22, sustain: 0.1 } },
-        
-        // Polyrhythmic element - Octave (C4)
-        { beats: [1, 0, 0, 1, 0, 1, 1, 0], freq: 261.6, wave: 'sawtooth' as OscillatorType, envelope: { attack: 0.008, decay: 0.12, sustain: 0.04 } },
+        { beats: [1, 0, 0, 0, 1, 0, 0, 0], noteIndex: 0 }, // Low C - Bass pattern
+        { beats: [0, 0, 1, 0, 0, 0, 1, 0], noteIndex: 7 }, // Middle C - Accent pattern
+        { beats: [1, 0, 1, 0, 1, 0, 1, 0], noteIndex: 4 }, // G - Steady rhythm
+        { beats: [0, 1, 0, 1, 0, 0, 0, 1], noteIndex: 9 }, // E - Syncopated
+        { beats: [1, 1, 0, 0, 1, 0, 0, 0], noteIndex: 11 }, // G high - Melodic
+        { beats: [0, 0, 1, 1, 0, 1, 0, 0], noteIndex: 14 }, // C high - Counter melody
+        { beats: [1, 0, 0, 1, 0, 1, 0, 1], noteIndex: 16 }, // E high - Arpeggiated
+        { beats: [0, 1, 1, 0, 0, 1, 1, 0], noteIndex: 19 }, // A high - Flourish
       ];
       
       // Get pattern for this sticker
       const patternIndex = sticker.id.length % patterns.length;
       const pattern = patterns[patternIndex];
+      const noteFreq = marimbaFrequencies[pattern.noteIndex];
       
-      console.log(`Sticker ${sticker.id} using pattern:`, pattern);
+      console.log(`Sticker ${sticker.id} using marimba note:`, noteFreq, 'Hz');
       
       // Create master gain node
       const masterGain = audioContext.createGain();
+      
+      // Create reverb using ConvolverNode simulation
+      const reverbGain = audioContext.createGain();
+      const dryGain = audioContext.createGain();
+      
+      // Create a simple reverb using multiple delays
+      const delays = [];
+      const feedbacks = [];
+      const delayTimes = [0.03, 0.05, 0.09, 0.15, 0.23, 0.35]; // Different delay times for room simulation
+      const feedbackGains = [0.3, 0.25, 0.2, 0.15, 0.1, 0.05]; // Decreasing feedback
+      
+      for (let i = 0; i < delayTimes.length; i++) {
+        const delay = audioContext.createDelay(1);
+        const feedback = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
+        
+        delay.delayTime.setValueAtTime(delayTimes[i], audioContext.currentTime);
+        feedback.gain.setValueAtTime(feedbackGains[i], audioContext.currentTime);
+        
+        // Add filtering to simulate air absorption in room
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(3000 - (i * 400), audioContext.currentTime);
+        filter.Q.setValueAtTime(0.7, audioContext.currentTime);
+        
+        delay.connect(filter);
+        filter.connect(feedback);
+        feedback.connect(delay);
+        filter.connect(reverbGain);
+        
+        delays.push(delay);
+        feedbacks.push(feedback);
+      }
+      
+      // Mix dry and wet signals
+      dryGain.gain.setValueAtTime(0.6, audioContext.currentTime); // 60% dry
+      reverbGain.gain.setValueAtTime(0.4, audioContext.currentTime); // 40% reverb
+      
+      dryGain.connect(masterGain);
+      reverbGain.connect(masterGain);
       masterGain.connect(audioContext.destination);
       
       // Calculate volume based on sticker size
       const sizeRatio = (sticker.width + sticker.height) / 160;
-      const volume = Math.min(sizeRatio * globalVolume * sticker.volume * 0.15, 0.2);
+      const volume = Math.min(sizeRatio * globalVolume * sticker.volume * 0.08, 0.12);
       masterGain.gain.setValueAtTime(volume, audioContext.currentTime);
       
-      console.log('Set volume to:', volume);
+      console.log('Set marimba volume to:', volume);
       
       // Beat tracking
       let beatIndex = 0;
       let isActive = true;
       
-      // Play beat function
-      const playBeat = () => {
+      // Create marimba strike sound
+      const createMarimbaStrike = () => {
         if (!isActive || audioContext.state === 'closed') return;
         
         try {
           // Check if this beat should play
           if (pattern.beats[beatIndex]) {
-            console.log(`Playing beat ${beatIndex} for sticker ${sticker.id}`);
+            console.log(`Playing marimba note ${noteFreq}Hz for sticker ${sticker.id}`);
             
-            // Create oscillator for this beat
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
+            // Create multiple oscillators for richer marimba sound
+            const fundamental = audioContext.createOscillator();
+            const harmonics = [];
             
-            // Add subtle filtering for more soulful sound
-            const filter = audioContext.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(pattern.freq * 4, audioContext.currentTime);
-            filter.Q.setValueAtTime(1, audioContext.currentTime);
+            // Marimba has specific harmonic content
+            const harmonicRatios = [1, 2.76, 5.4, 8.93]; // Typical marimba harmonics
+            const harmonicGains = [1.0, 0.4, 0.15, 0.08];
             
-            osc.type = pattern.wave;
-            osc.frequency.setValueAtTime(pattern.freq, audioContext.currentTime);
-            
-            // Connect audio nodes with filter
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(masterGain);
-            
-            // Create soulful envelope using pattern envelope settings
-            const now = audioContext.currentTime;
-            const { attack, decay, sustain } = pattern.envelope;
-            
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(1, now + attack); // Attack
-            gain.gain.exponentialRampToValueAtTime(sustain, now + attack + decay); // Decay to sustain
-            gain.gain.exponentialRampToValueAtTime(0.001, now + attack + decay + 0.1); // Release
-            
-            // Start and stop the oscillator with longer duration for soulful sound
-            osc.start(now);
-            osc.stop(now + attack + decay + 0.1);
+            for (let i = 0; i < harmonicRatios.length; i++) {
+              const osc = audioContext.createOscillator();
+              const gain = audioContext.createGain();
+              
+              osc.type = 'sine'; // Pure tones for marimba
+              osc.frequency.setValueAtTime(noteFreq * harmonicRatios[i], audioContext.currentTime);
+              
+              const now = audioContext.currentTime;
+              
+              // Marimba-like envelope - quick attack, exponential decay
+              gain.gain.setValueAtTime(0, now);
+              gain.gain.linearRampToValueAtTime(harmonicGains[i], now + 0.005); // Very quick attack
+              gain.gain.exponentialRampToValueAtTime(harmonicGains[i] * 0.3, now + 0.1); // Initial decay
+              gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0); // Long sustain like wooden bar
+              
+              osc.connect(gain);
+              gain.connect(dryGain); // Dry signal
+              
+              // Also send to reverb
+              const reverbSend = audioContext.createGain();
+              reverbSend.gain.setValueAtTime(0.3, audioContext.currentTime);
+              gain.connect(reverbSend);
+              
+              // Connect to each delay for reverb
+              delays.forEach(delay => {
+                reverbSend.connect(delay);
+              });
+              
+              osc.start(now);
+              osc.stop(now + 2.0);
+              
+              harmonics.push({ osc, gain });
+            }
           }
           
           // Move to next beat
           beatIndex = (beatIndex + 1) % pattern.beats.length;
           
-          // Schedule next beat (750ms = 80 BPM for more soulful, relaxed tempo)
+          // Schedule next beat (600ms = 100 BPM for relaxed marimba tempo)
           if (isActive) {
-            setTimeout(playBeat, 750);
+            setTimeout(createMarimbaStrike, 600);
           }
         } catch (error) {
-          console.error('Error in playBeat:', error);
+          console.error('Error in marimba strike:', error);
         }
       };
       
-      // Start the beat loop
-      playBeat();
+      // Start the marimba pattern
+      createMarimbaStrike();
       
-      // Store audio reference
+      // Store audio reference for cleanup
       audioRef.current = {
         audioContext,
         masterGain,
+        delays,
+        feedbacks,
         isActive: true,
         stop: () => {
-          console.log('Stopping audio for sticker:', sticker.id);
+          console.log('Stopping marimba audio for sticker:', sticker.id);
           isActive = false;
           try {
+            // Clean up delays and feedback loops
+            delays.forEach(delay => {
+              try {
+                delay.disconnect();
+              } catch (e) {}
+            });
+            feedbacks.forEach(feedback => {
+              try {
+                feedback.disconnect();
+              } catch (e) {}
+            });
             audioContext.close();
           } catch (e) {
             console.warn('Audio context close error:', e);
@@ -194,16 +269,16 @@ export const ResizableSticker = ({
         },
         setVolume: (vol: number) => {
           try {
-            const newVol = Math.min(vol, 0.2);
+            const newVol = Math.min(vol, 0.12);
             masterGain.gain.setValueAtTime(newVol, audioContext.currentTime);
-            console.log('Updated volume to:', newVol);
+            console.log('Updated marimba volume to:', newVol);
           } catch (e) {
             console.warn('Volume update error:', e);
           }
         }
       } as any;
 
-      console.log('Audio setup complete for sticker:', sticker.id);
+      console.log('Marimba audio setup complete for sticker:', sticker.id);
       
     } catch (error) {
       console.error('Failed to create audio:', error);
