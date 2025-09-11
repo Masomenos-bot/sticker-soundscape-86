@@ -53,6 +53,20 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
+  // Musical scale selection based on Y position (must come first)
+  const musicalScale = useMemo(() => {
+    const scales = [
+      { name: 'pentatonic', notes: [261.63, 293.66, 329.63, 392.00, 440.00] },
+      { name: 'blues', notes: [261.63, 311.13, 349.23, 369.99, 415.30, 466.16] },
+      { name: 'dorian', notes: [261.63, 293.66, 311.13, 349.23, 392.00, 440.00, 466.16] },
+      { name: 'mixolydian', notes: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 466.16] },
+      { name: 'minor', notes: [261.63, 293.66, 311.13, 349.23, 392.00, 415.30, 466.16] },
+    ];
+    
+    const scaleIndex = Math.floor((sticker.y || 0) / 100) % scales.length;
+    return scales[scaleIndex];
+  }, [sticker.y]);
+
   // Enhanced musical patterns and rhythmic system
   const rhythmPattern = useMemo(() => {
     const patterns = {
@@ -91,21 +105,7 @@ export const ResizableSticker = ({
     return Math.max(0.5, Math.min(1.0, 0.6 + swingAmount * 0.3)); // 60% to 90% swing
   }, [sticker.x]);
 
-  // Musical scale selection based on Y position
-  const musicalScale = useMemo(() => {
-    const scales = [
-      { name: 'pentatonic', notes: [261.63, 293.66, 329.63, 392.00, 440.00] },
-      { name: 'blues', notes: [261.63, 311.13, 349.23, 369.99, 415.30, 466.16] },
-      { name: 'dorian', notes: [261.63, 293.66, 311.13, 349.23, 392.00, 440.00, 466.16] },
-      { name: 'mixolydian', notes: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 466.16] },
-      { name: 'minor', notes: [261.63, 293.66, 311.13, 349.23, 392.00, 415.30, 466.16] },
-    ];
-    
-    const scaleIndex = Math.floor((sticker.y || 0) / 100) % scales.length;
-    return scales[scaleIndex];
-  }, [sticker.y]);
-
-  // Enhanced Ethiopian instruments with rhythm patterns
+  // Enhanced Ethiopian instruments with rhythm patterns (now musicalScale is available)
   const ethioInstruments = useMemo(() => [
     {
       name: 'vibraphone',
