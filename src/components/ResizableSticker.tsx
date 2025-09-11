@@ -112,22 +112,6 @@ export const ResizableSticker = ({
       reverb: 0.5
     },
     {
-      name: 'hammond_organ',
-      scale: [138.59, 155.56, 174.61, 207.65, 233.08, 277.18, 311.13, 369.99, 415.30, 466.16],
-      waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.8, 0.9, 0.7, 0.6, 0.4, 0.3, 0.2, 0.1],
-      harmonicGains: [0.8, 0.9, 1.0, 0.8, 0.6, 0.4, 0.3, 0.2, 0.1], // Hammond drawbar simulation
-      attack: 0.05,
-      decay: 0.01, // Shortened
-      sustain: 0.95,
-      release: 0.3,
-      filterFreq: 1800,
-      resonance: 1.5,
-      melodicPattern: [0, 4, 7, 3, 5, 1, 6, 2], // Organ chord progressions
-      tremolo: { rate: 6.5, depth: 0.2 }, // Classic Hammond tremolo
-      reverb: 0.6
-    },
-    {
       name: 'washint_real',
       scale: [277.18, 311.13, 349.23, 415.30, 466.16, 554.37, 622.25, 739.99, 830.61, 932.33],
       waveType: 'sine' as OscillatorType,
@@ -144,7 +128,7 @@ export const ResizableSticker = ({
       reverb: 0.7
     },
     {
-      name: 'congas_ethio',
+      name: 'congas_ethio_low',
       scale: [174.61, 196.00, 220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88],
       waveType: 'triangle' as OscillatorType,
       harmonics: [1, 2.1, 1.4, 0.8, 0.3],
@@ -158,6 +142,22 @@ export const ResizableSticker = ({
       melodicPattern: [0, 0, 2, 0, 3, 0, 1, 2], // Percussion rhythm
       tremolo: { rate: 0, depth: 0 },
       reverb: 0.3
+    },
+    {
+      name: 'congas_ethio_high',
+      scale: [261.63, 293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33, 659.25, 739.99], // Higher pitch
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 2.3, 1.6, 0.9, 0.4],
+      harmonicGains: [1.0, 0.35, 0.25, 0.08, 0.04],
+      attack: 0.001,
+      decay: 0.012, // Even shorter for higher pitch
+      sustain: 0.08,
+      release: 0.2,
+      filterFreq: 1800, // Higher filter frequency
+      resonance: 14.0, // More resonant for crisp high percussion
+      melodicPattern: [0, 2, 0, 4, 1, 0, 3, 2], // Complementary rhythm pattern
+      tremolo: { rate: 0, depth: 0 },
+      reverb: 0.25
     }
   ];
 
