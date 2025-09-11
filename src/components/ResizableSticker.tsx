@@ -369,7 +369,7 @@ export const ResizableSticker = ({
       ref={stickerRef}
       className={`absolute select-none cursor-move group transition-all duration-200 ${
         isCurrentStep ? 'z-50' : ''
-      } ${isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+      } ${isSelected ? 'ring-4 ring-primary/60 ring-offset-2 shadow-lg shadow-primary/30 scale-105' : ''}`}
       style={{
         left: `${sticker.x}px`,
         top: `${sticker.y}px`,
@@ -389,9 +389,19 @@ export const ResizableSticker = ({
         alt="Sticker"
         className={`w-full h-full object-contain pointer-events-none transition-all duration-200 ${
           isPlaying ? stickerAnimation : ''
-        } ${isCurrentStep ? 'animate-pulse scale-110 brightness-125' : ''}`}
+        } ${isCurrentStep ? 'animate-pulse scale-110 brightness-125' : ''} ${
+          isSelected ? 'brightness-110 contrast-110' : ''
+        }`}
         draggable={false}
       />
+      
+      {/* Selection highlight overlay */}
+      {isSelected && (
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute inset-0 bg-primary/10 rounded-lg animate-pulse" />
+          <div className="absolute -inset-1 border-2 border-primary/40 rounded-lg animate-pulse" />
+        </div>
+      )}
       
       <div className="absolute -top-10 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
         <Button size="sm" variant="secondary" className="w-6 h-6 p-0" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'up'); }}>
