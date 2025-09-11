@@ -51,50 +51,80 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Create a simple tone for each sticker based on its ID
+  // Create rhythmic sequences for each sticker
   const createAudioTone = useCallback(async () => {
     if (audioRef.current) return;
     
     try {
-      // Generate a simple beep tone - in a real app, you'd load actual audio files
-      const frequencies = [220, 262, 294, 330, 349, 392, 440, 494]; // Musical notes
-      const index = parseInt(sticker.id.split('-')[1] || "0") % frequencies.length;
-      const frequency = frequencies[index];
-      
-      // Create a simple sine wave tone
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       
       // Resume audio context if it's suspended (required by some browsers)
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
       }
+
+      // Create different rhythmic patterns for each sticker
+      const rhythmPatterns = [
+        { beats: [1, 0, 1, 0], frequency: 130, waveType: 'square' as OscillatorType }, // Kick pattern
+        { beats: [0, 1, 0, 1], frequency: 220, waveType: 'sawtooth' as OscillatorType }, // Snare pattern  
+        { beats: [1, 1, 0, 1], frequency: 330, waveType: 'triangle' as OscillatorType }, // Hi-hat pattern
+        { beats: [1, 0, 0, 1], frequency: 165, waveType: 'square' as OscillatorType }, // Bass pattern
+        { beats: [0, 0, 1, 0], frequency: 440, waveType: 'sine' as OscillatorType }, // Melody pattern
+        { beats: [1, 1, 1, 0], frequency: 294, waveType: 'triangle' as OscillatorType }, // Rhythm pattern
+        { beats: [0, 1, 1, 1], frequency: 392, waveType: 'sawtooth' as OscillatorType }, // Counter pattern
+        { beats: [1, 0, 1, 1], frequency: 247, waveType: 'square' as OscillatorType }, // Syncopated pattern
+      ];
       
-      const oscillator = audioContext.createOscillator();
+      const index = parseInt(sticker.id.split('-')[1] || "0") % rhythmPatterns.length;
+      const pattern = rhythmPatterns[index];
+      
       const gainNode = audioContext.createGain();
-      
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-      oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
       // Set initial volume based on sticker size
-      const sizeRatio = (sticker.width + sticker.height) / 160; // Base size is 80x80
-      const volume = Math.min(sizeRatio * globalVolume * 0.3, 0.5); // Lower max volume
-      gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+      const sizeRatio = (sticker.width + sticker.height) / 160;
+      const volume = Math.min(sizeRatio * globalVolume * 0.2, 0.3);
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
       
-      oscillator.start();
+      let currentBeat = 0;
+      let intervalId: NodeJS.Timeout;
       
-      // Loop the oscillator
-      oscillator.loop = true;
+      const playBeat = () => {
+        if (pattern.beats[currentBeat]) {
+          // Create oscillator for this beat
+          const oscillator = audioContext.createOscillator();
+          const beatGain = audioContext.createGain();
+          
+          oscillator.type = pattern.waveType;
+          oscillator.frequency.setValueAtTime(pattern.frequency, audioContext.currentTime);
+          
+          oscillator.connect(beatGain);
+          beatGain.connect(gainNode);
+          
+          // Create envelope for the beat (attack, decay)
+          beatGain.gain.setValueAtTime(0, audioContext.currentTime);
+          beatGain.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.01);
+          beatGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+          
+          oscillator.start(audioContext.currentTime);
+          oscillator.stop(audioContext.currentTime + 0.15);
+        }
+        
+        currentBeat = (currentBeat + 1) % pattern.beats.length;
+      };
+      
+      // Start the rhythm loop (120 BPM = 500ms per beat)
+      const beatInterval = 500;
+      intervalId = setInterval(playBeat, beatInterval);
       
       // Store reference for cleanup
       audioRef.current = {
-        oscillator,
         gainNode,
         audioContext,
+        intervalId,
         stop: () => {
           try {
-            oscillator.stop();
+            clearInterval(intervalId);
             audioContext.close();
           } catch (e) {
             console.log('Audio cleanup error:', e);
@@ -102,7 +132,8 @@ export const ResizableSticker = ({
         },
         setVolume: (vol: number) => {
           try {
-            gainNode.gain.setValueAtTime(Math.min(vol, 0.5), audioContext.currentTime);
+            const newVolume = Math.min(vol, 0.3);
+            gainNode.gain.setValueAtTime(newVolume, audioContext.currentTime);
           } catch (e) {
             console.log('Volume set error:', e);
           }
