@@ -430,29 +430,29 @@ export const ResizableSticker = ({
         </div>
       )}
       
-      {/* Controls with inverse transforms to maintain fixed size */}
-      <div 
-        className="absolute opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-1"
-        style={{
-          top: '-48px',
-          right: '0px',
-          transform: `scaleX(${sticker.mirrored ? -1 : 1}) rotate(${-(sticker.rotation || 0)}deg) scale(${Math.max(0.6, 80/Math.max(sticker.width, sticker.height))})`,
-          transformOrigin: 'top right'
-        }}
-      >
-        <Button size="sm" variant="secondary" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'up'); }}>
-          <ChevronUp className="w-4 h-4" />
-        </Button>
-        <Button size="sm" variant="secondary" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'down'); }}>
-          <ChevronDown className="w-4 h-4" />
-        </Button>
-        <Button size="sm" variant="secondary" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onUpdate(sticker.id, { mirrored: !sticker.mirrored }); }}>
-          <FlipHorizontal className="w-4 h-4" />
-        </Button>
-        <Button size="sm" variant="destructive" className="w-8 h-8 p-0 text-xs" onClick={(e) => { e.stopPropagation(); onRemove(sticker.id); }}>
-          <Trash2 className="w-4 h-4" />
-        </Button>
-      </div>
+      {/* Fixed controls at top-left when selected */}
+      {isSelected && (
+        <div 
+          className="fixed z-50 flex gap-1 bg-background/90 backdrop-blur-sm p-1 rounded-lg border shadow-lg"
+          style={{
+            left: '20px',
+            top: '20px'
+          }}
+        >
+          <Button size="sm" variant="secondary" className="w-8 h-8 p-0" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'up'); }}>
+            <ChevronUp className="w-4 h-4" />
+          </Button>
+          <Button size="sm" variant="secondary" className="w-8 h-8 p-0" onClick={(e) => { e.stopPropagation(); onLayerChange(sticker.id, 'down'); }}>
+            <ChevronDown className="w-4 h-4" />
+          </Button>
+          <Button size="sm" variant="secondary" className="w-8 h-8 p-0" onClick={(e) => { e.stopPropagation(); onUpdate(sticker.id, { mirrored: !sticker.mirrored }); }}>
+            <FlipHorizontal className="w-4 h-4" />
+          </Button>
+          <Button size="sm" variant="destructive" className="w-8 h-8 p-0" onClick={(e) => { e.stopPropagation(); onRemove(sticker.id); }}>
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
       
       {/* Resize handle with inverse transform */}
       <div 
