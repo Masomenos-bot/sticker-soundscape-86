@@ -96,22 +96,6 @@ export const ResizableSticker = ({
       reverb: 0.4
     },
     {
-      name: 'wurlitzer_piano',
-      scale: [138.59, 155.56, 174.61, 185.00, 207.65, 233.08, 261.63, 277.18, 311.13, 349.23],
-      waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.9, 0.6, 0.4, 0.2, 0.1],
-      harmonicGains: [1.0, 0.8, 0.5, 0.3, 0.2, 0.1],
-      attack: 0.02,
-      decay: 0.03, // Shortened
-      sustain: 0.7, // Electric piano sustain
-      release: 1.5,
-      filterFreq: 2800,
-      resonance: 2.2,
-      melodicPattern: [0, 3, 7, 2, 5, 1, 4, 6], // Jazz chord voicings
-      tremolo: { rate: 6.0, depth: 0.08 },
-      reverb: 0.3
-    },
-    {
       name: 'real_krar',
       scale: [207.65, 233.08, 261.63, 311.13, 349.23, 415.30, 466.16, 523.25, 622.25, 698.46],
       waveType: 'triangle' as OscillatorType,
@@ -142,22 +126,6 @@ export const ResizableSticker = ({
       melodicPattern: [0, 4, 7, 3, 5, 1, 6, 2], // Organ chord progressions
       tremolo: { rate: 6.5, depth: 0.2 }, // Classic Hammond tremolo
       reverb: 0.6
-    },
-    {
-      name: 'electric_bass',
-      scale: [69.30, 77.78, 87.31, 103.83, 116.54, 138.59, 155.56, 184.99, 207.65, 233.08],
-      waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.8, 0.3, 0.1],
-      harmonicGains: [1.0, 0.7, 0.2, 0.05],
-      attack: 0.01,
-      decay: 0.02, // Shortened
-      sustain: 0.6,
-      release: 0.8,
-      filterFreq: 800,
-      resonance: 2.0,
-      melodicPattern: [0, 0, 4, 0, 2, 0, 5, 0], // Walking bass line
-      tremolo: { rate: 0, depth: 0 },
-      reverb: 0.2
     },
     {
       name: 'washint_real',
