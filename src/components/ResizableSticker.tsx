@@ -364,10 +364,7 @@ export const ResizableSticker = ({
         alt="Sticker"
         className={`w-full h-full object-contain pointer-events-none transition-all duration-200 ${
           isPlaying ? stickerAnimation : ''
-        } ${isCurrentStep ? 'animate-pulse scale-110 brightness-125' : ''}`}
-        style={{
-          filter: isCurrentStep ? 'drop-shadow(0 0 10px rgba(147, 51, 234, 0.6))' : 'none'
-        }}
+        }`}
         draggable={false}
       />
       
