@@ -240,6 +240,9 @@ export const ResizableSticker = ({
   }, [isPlaying, createAudioTone]);
 
   const handleMouseDown = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
     if (event.target === event.currentTarget || (event.target as HTMLElement).tagName === 'IMG') {
       setIsDragging(true);
       setDragStart({
@@ -413,6 +416,9 @@ export const ResizableSticker = ({
 
   // Touch event handlers
   const handleTouchStart = (event: React.TouchEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
     if (event.touches.length === 1) {
       // Single finger - drag
       const touch = event.touches[0];
@@ -541,7 +547,7 @@ export const ResizableSticker = ({
   return (
     <div
       ref={stickerRef}
-      className={`absolute cursor-move select-none group sticker-bounce touch-manipulation ${
+      className={`absolute cursor-move select-none group sticker-bounce touch-none ${
         isDragging || isGesturing || isRotating ? 'z-50 scale-105' : sticker.rotation && sticker.rotation !== 0 ? '' : stickerAnimation
       }`}
       style={{
@@ -552,9 +558,15 @@ export const ResizableSticker = ({
         transform: `rotate(${sticker.rotation || 0}deg) scaleX(${sticker.mirrored ? -1 : 1})`,
         transformOrigin: 'center center',
         zIndex: sticker.zIndex,
+        touchAction: 'none',
+        WebkitUserSelect: 'none',
+        WebkitTouchCallout: 'none',
+        WebkitTapHighlightColor: 'transparent',
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
+      onDragStart={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {/* Layer up button */}
       <Button
