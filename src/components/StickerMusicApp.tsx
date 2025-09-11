@@ -570,6 +570,39 @@ const StickerMusicApp = () => {
                         </Button>
                       </div>
 
+                      {/* Layer Controls */}
+                      <div className="flex gap-2 items-center">
+                        <span className="text-sm font-medium text-gray-700 w-16">Layers:</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-10 h-10 p-0" 
+                          onClick={() => {
+                            console.log("Move down layer clicked");
+                            selectedStickers.forEach(stickerId => {
+                              handleLayerChange(stickerId, 'down');
+                            });
+                          }}
+                          title="Move to back layer"
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-10 h-10 p-0" 
+                          onClick={() => {
+                            console.log("Move up layer clicked");
+                            selectedStickers.forEach(stickerId => {
+                              handleLayerChange(stickerId, 'up');
+                            });
+                          }}
+                          title="Move to front layer"
+                        >
+                          <ChevronUp className="w-4 h-4" />
+                        </Button>
+                      </div>
+
                       {/* Mirror and Delete Controls */}
                       <div className="flex gap-2 items-center">
                         <span className="text-sm font-medium text-gray-700 w-16">Tools:</span>
