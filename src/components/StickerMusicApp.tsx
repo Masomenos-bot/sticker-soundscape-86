@@ -21,6 +21,7 @@ export interface Sticker {
   rotation?: number;
   zIndex: number;
   mirrored?: boolean;
+  stepIndex: number;
 }
 
 export interface StickerData {
@@ -35,8 +36,11 @@ const StickerMusicApp = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [globalVolume, setGlobalVolume] = useState(0.7);
   const [audioInitialized, setAudioInitialized] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [sequenceTempo, setSequenceTempo] = useState(120); // BPM
   const audioContextRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const sequencerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize audio context
   useEffect(() => {
@@ -58,6 +62,7 @@ const StickerMusicApp = () => {
 
   const handleStickerDrop = (stickerData: StickerData, x: number, y: number) => {
     const maxZIndex = Math.max(0, ...placedStickers.map(s => s.zIndex));
+    const nextStepIndex = placedStickers.length; // Add as next step in sequence
     const newSticker: Sticker = {
       id: `${stickerData.id}-${Date.now()}`,
       src: stickerData.src,
@@ -70,10 +75,11 @@ const StickerMusicApp = () => {
       rotation: 0,
       zIndex: maxZIndex + 1,
       mirrored: false,
+      stepIndex: nextStepIndex,
     };
 
     setPlacedStickers(prev => [...prev, newSticker]);
-    toast(`Added ${stickerData.alt}!`, {
+    toast(`Added step ${nextStepIndex + 1} to sequence!`, {
       duration: 1500,
     });
   };
@@ -144,15 +150,45 @@ const StickerMusicApp = () => {
   };
 
   const handleStickerRemove = (id: string) => {
-    setPlacedStickers(prev => prev.filter(sticker => sticker.id !== id));
+    setPlacedStickers(prev => {
+      const filtered = prev.filter(sticker => sticker.id !== id);
+      // Re-index remaining stickers to maintain sequence order
+      return filtered.map((sticker, index) => ({
+        ...sticker,
+        stepIndex: index
+      }));
+    });
   };
 
   const clearCanvas = () => {
     setPlacedStickers([]);
+    setCurrentStep(0);
     toast("Canvas cleared!", {
       duration: 1500,
     });
   };
+
+  // Step Sequencer Logic
+  useEffect(() => {
+    if (isPlaying && placedStickers.length > 0) {
+      const stepDuration = (60 / sequenceTempo) * 500; // Half beat steps for more resolution
+      
+      sequencerRef.current = setInterval(() => {
+        setCurrentStep(prev => (prev + 1) % placedStickers.length);
+      }, stepDuration);
+      
+      return () => {
+        if (sequencerRef.current) {
+          clearInterval(sequencerRef.current);
+        }
+      };
+    } else {
+      if (sequencerRef.current) {
+        clearInterval(sequencerRef.current);
+        sequencerRef.current = null;
+      }
+    }
+  }, [isPlaying, placedStickers.length, sequenceTempo]);
 
   const initializeAudio = async () => {
     if (!audioInitialized) {
@@ -369,6 +405,8 @@ const StickerMusicApp = () => {
                 onLayerChange={handleLayerChange}
                 isPlaying={isPlaying}
                 globalVolume={globalVolume}
+                currentStep={currentStep}
+                sequenceTempo={sequenceTempo}
               />
             </Card>
           </div>

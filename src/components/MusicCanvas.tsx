@@ -10,6 +10,8 @@ interface MusicCanvasProps {
   onLayerChange: (id: string, direction: 'up' | 'down') => void;
   isPlaying: boolean;
   globalVolume: number;
+  currentStep: number;
+  sequenceTempo: number;
 }
 
 export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
@@ -20,6 +22,8 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   onLayerChange,
   isPlaying,
   globalVolume,
+  currentStep,
+  sequenceTempo,
 }, ref) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -90,6 +94,8 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
             isPlaying={isPlaying}
             globalVolume={globalVolume}
             canvasRef={canvasRef}
+            isCurrentStep={sticker.stepIndex === currentStep}
+            sequenceTempo={sequenceTempo}
           />
         ))}
       </div>
