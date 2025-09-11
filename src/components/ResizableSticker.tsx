@@ -353,6 +353,7 @@ export const ResizableSticker = ({
         transform: `rotate(${sticker.rotation || 0}deg) scaleX(${sticker.mirrored ? -1 : 1})`,
         zIndex: sticker.zIndex,
         touchAction: 'none',
+        boxShadow: isCurrentStep ? '0 8px 25px rgba(147, 51, 234, 0.15)' : 'none',
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
@@ -364,7 +365,12 @@ export const ResizableSticker = ({
         alt="Sticker"
         className={`w-full h-full object-contain pointer-events-none transition-all duration-200 ${
           isPlaying ? stickerAnimation : ''
-        }`}
+        } ${isCurrentStep ? 'scale-105 brightness-110' : ''}`}
+        style={{
+          filter: isCurrentStep ? 'hue-rotate(15deg) saturate(1.2)' : 'none',
+          transform: isCurrentStep ? 'translateY(-2px)' : 'translateY(0px)',
+          transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
         draggable={false}
       />
       
