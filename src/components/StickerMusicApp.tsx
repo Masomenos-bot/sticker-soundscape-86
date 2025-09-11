@@ -443,9 +443,14 @@ const StickerMusicApp = () => {
   };
 
   const handleControlBoardToggle = () => {
-    setIsControlBoardCollapsed(!isControlBoardCollapsed);
-    setSelectedStickers([]);
-    setIsMultiSelectMode(false);
+    const willBeCollapsed = !isControlBoardCollapsed;
+    setIsControlBoardCollapsed(willBeCollapsed);
+    
+    // Only deselect stickers when closing the control board
+    if (willBeCollapsed) {
+      setSelectedStickers([]);
+      setIsMultiSelectMode(false);
+    }
   };
 
   return (
