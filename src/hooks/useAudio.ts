@@ -6,18 +6,12 @@ export const useAudio = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [globalVolume, setGlobalVolume] = useState(0.7);
   const audioContextRef = useRef<AudioContext | null>(null);
-  const audioDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null);
 
   // Initialize audio context
   useEffect(() => {
     const initAudio = async () => {
       try {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        
-        // Create destination for recording
-        if (audioContextRef.current) {
-          audioDestinationRef.current = audioContextRef.current.createMediaStreamDestination();
-        }
       } catch (error) {
         console.error("Audio context not supported:", error);
       }
@@ -96,7 +90,6 @@ export const useAudio = () => {
     globalVolume,
     setGlobalVolume,
     audioContextRef,
-    audioDestinationRef,
     initializeAudio,
     togglePlayback,
     handlePlay,
