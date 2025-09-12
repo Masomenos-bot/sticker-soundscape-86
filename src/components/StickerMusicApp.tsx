@@ -45,7 +45,7 @@ const StickerMusicApp = () => {
   const audio = useAudio();
   const stickers = useStickers();
   const sequencer = useSequencer(stickers.placedStickers, audio.isPlaying);
-  const exportTools = useExport(canvasRef, audio.isPlaying);
+  const exportTools = useExport(canvasRef, audio.isPlaying, audio.audioContextRef, audio.audioDestinationRef);
 
   // Handle sticker drop with audio initialization
   const handleStickerDrop = async (stickerData: StickerData, x: number, y: number) => {
