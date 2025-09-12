@@ -66,8 +66,8 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
         workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
       });
 
-      const frameCount = 60; // 60 frames for 15 seconds (4 fps)
-      const frameDelay = 250; // 250ms between frames (4 fps)
+      const frameCount = 60;
+      const frameDelay = 250;
       
       for (let i = 0; i < frameCount; i++) {
         const canvas = await html2canvas(canvasRef.current, {
@@ -83,11 +83,22 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
 
       gif.on('finished', function(blob: Blob) {
         const url = URL.createObjectURL(blob);
+        const timestamp = Date.now();
+        
+        const newGif: VideoGalleryItem = {
+          id: `gif-${timestamp}`,
+          url,
+          timestamp,
+          name: `animation-${timestamp}.gif`
+        };
+        
+        setExportedVideos(prev => [newGif, ...prev]);
+        
         const link = document.createElement('a');
-        link.download = `sticker-animation-${Date.now()}.gif`;
+        link.download = newGif.name;
         link.href = url;
         link.click();
-        URL.revokeObjectURL(url);
+        
         toast("15-second GIF exported! 🎬", { duration: 2000 });
       });
 
@@ -96,6 +107,72 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
       console.error('GIF export failed:', error);
       toast("GIF export failed, exporting as PNG instead", { duration: 2000 });
       exportAsPNG();
+    }
+  };
+
+  const startVideoRecording = async () => {
+    if (!canvasRef.current) return;
+    
+    try {
+      setIsRecording(true);
+      recordedChunksRef.current = [];
+      
+      toast("Starting video recording...", { duration: 2000 });
+      
+      const stream = await (canvasRef.current as any).captureStream?.(30) || 
+        await navigator.mediaDevices.getDisplayMedia({ video: true });
+      
+      const options = {
+        mimeType: 'video/webm;codecs=vp9',
+      };
+      
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'video/webm';
+      }
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = mediaRecorder;
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const timestamp = Date.now();
+        
+        const newVideo: VideoGalleryItem = {
+          id: `video-${timestamp}`,
+          url,
+          timestamp,
+          name: `video-${timestamp}.webm`
+        };
+        
+        setExportedVideos(prev => [newVideo, ...prev]);
+        setIsRecording(false);
+        
+        toast("Video recording saved to gallery! 🎥", { duration: 2000 });
+        
+        if (stream.getTracks) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+      };
+      
+      mediaRecorder.start();
+      
+      setTimeout(() => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+        }
+      }, 15000);
+      
+    } catch (error) {
+      console.error('Video recording failed:', error);
+      setIsRecording(false);
+      toast("Video recording failed, try PNG export instead", { duration: 2000 });
     }
   };
 
@@ -116,6 +193,7 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     isRecording,
     handleExport,
     handleDeleteVideo,
-    setExportedVideos
+    setExportedVideos,
+    startVideoRecording
   };
 };
