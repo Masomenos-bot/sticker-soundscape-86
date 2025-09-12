@@ -107,6 +107,133 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     }
   };
 
+  const handleVideoExport = async () => {
+    if (!canvasRef.current || isRecording) return;
+    
+    setIsRecording(true);
+    toast("🎬 Creating 8-second MP4 video...", { duration: 3000 });
+
+    try {
+      // Create a hidden canvas to capture the content
+      const sourceCanvas = await html2canvas(canvasRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 1,
+        useCORS: true,
+        allowTaint: true,
+        width: canvasRef.current.offsetWidth,
+        height: canvasRef.current.offsetHeight
+      });
+
+      // Create a new canvas for recording
+      const recordCanvas = document.createElement('canvas');
+      recordCanvas.width = sourceCanvas.width;
+      recordCanvas.height = sourceCanvas.height;
+      const ctx = recordCanvas.getContext('2d');
+
+      if (!ctx) {
+        throw new Error('Could not get canvas context');
+      }
+
+      // Get canvas stream for video
+      const canvasStream = recordCanvas.captureStream(30); // 30 FPS
+
+      // Check for supported video formats
+      const supportedTypes = [
+        'video/webm; codecs=vp9',
+        'video/webm; codecs=vp8',
+        'video/webm',
+        'video/mp4'
+      ];
+
+      let mimeType = '';
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
+        }
+      }
+
+      if (!mimeType) {
+        throw new Error('No supported video format found');
+      }
+
+      const mediaRecorder = new MediaRecorder(canvasStream, { mimeType });
+      recordedChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        canvasStream.getTracks().forEach(track => track.stop());
+        
+        if (recordedChunksRef.current.length > 0) {
+          const blob = new Blob(recordedChunksRef.current, { type: mimeType });
+          const url = URL.createObjectURL(blob);
+          const timestamp = Date.now();
+          
+          const newVideo: VideoGalleryItem = {
+            id: `video-${timestamp}`,
+            url,
+            timestamp,
+            name: `canvas-recording-${timestamp}.webm`
+          };
+          
+          setExportedVideos(prev => [newVideo, ...prev]);
+          toast("🎬 8-second video saved to gallery!", { duration: 2000 });
+        } else {
+          toast("❌ Recording failed", { duration: 2000 });
+        }
+        setIsRecording(false);
+      };
+
+      // Start recording
+      mediaRecorder.start(100);
+
+      // Animate the canvas for 8 seconds
+      const startTime = Date.now();
+      const duration = 8000; // 8 seconds
+
+      const animate = async () => {
+        const elapsed = Date.now() - startTime;
+        
+        if (elapsed < duration) {
+          // Capture current state of the canvas
+          const currentCanvas = await html2canvas(canvasRef.current!, {
+            backgroundColor: '#ffffff',
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+            width: canvasRef.current!.offsetWidth,
+            height: canvasRef.current!.offsetHeight
+          });
+          
+          // Draw to recording canvas
+          ctx.clearRect(0, 0, recordCanvas.width, recordCanvas.height);
+          ctx.drawImage(currentCanvas, 0, 0);
+          
+          // Continue animation
+          requestAnimationFrame(animate);
+        } else {
+          // Stop recording after 8 seconds
+          mediaRecorder.stop();
+        }
+      };
+
+      animate();
+
+    } catch (error) {
+      console.error('Video recording failed:', error);
+      setIsRecording(false);
+      
+      // Fallback to PNG
+      toast("❌ Video export failed, saving as PNG instead", { duration: 2000 });
+      await exportAsPNG();
+    }
+  };
+
   const handleDeleteVideo = (videoId: string) => {
     setExportedVideos(prev => prev.filter(video => video.id !== videoId));
   };
@@ -115,6 +242,7 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     exportedVideos,
     isRecording,
     handleExport,
+    handleVideoExport,
     handleDeleteVideo,
     setExportedVideos
   };
