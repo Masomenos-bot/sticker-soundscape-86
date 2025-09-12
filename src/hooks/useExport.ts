@@ -33,12 +33,17 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.download = `sticker-canvas-${Date.now()}.png`;
-          link.href = url;
-          link.click();
-          URL.revokeObjectURL(url);
-          toast("Canvas exported! 📸", { duration: 2000 });
+          const timestamp = Date.now();
+          
+          const imageItem: VideoGalleryItem = {
+            id: `image-${timestamp}`,
+            url,
+            timestamp,
+            name: `sticker-canvas-${timestamp}.png`
+          };
+
+          setExportedVideos(prev => [...prev, imageItem]);
+          toast("Image added to gallery! 📸", { duration: 2000 });
         }
       }, 'image/png');
     } catch (error) {
@@ -78,12 +83,17 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
 
       gif.on('finished', function(blob: Blob) {
         const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = `sticker-animation-${Date.now()}.gif`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-        toast("15-second GIF exported! 🎬", { duration: 2000 });
+        const timestamp = Date.now();
+        
+        const gifItem: VideoGalleryItem = {
+          id: `gif-${timestamp}`,
+          url,
+          timestamp,
+          name: `sticker-animation-${timestamp}.gif`
+        };
+
+        setExportedVideos(prev => [...prev, gifItem]);
+        toast("GIF added to gallery! 🎬", { duration: 2000 });
       });
 
       gif.render();
@@ -103,89 +113,100 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
   };
 
   const exportAsVideo = async () => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || isRecording) return;
     
-    toast("Creating 10-second video from canvas... This may take a moment!", { duration: 3000 });
+    setIsRecording(true);
+    toast("Creating 5-second video from canvas frames...", { duration: 2000 });
     
     try {
-      // Create a temporary canvas for video recording
-      const tempCanvas = document.createElement('canvas');
-      const ctx = tempCanvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-
-      tempCanvas.width = canvasRef.current.offsetWidth;
-      tempCanvas.height = canvasRef.current.offsetHeight;
-
-      // Create MediaRecorder stream from canvas
-      const stream = tempCanvas.captureStream(30); // 30 fps
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp8'
-      });
-
-      recordedChunksRef.current = [];
-      mediaRecorderRef.current = mediaRecorder;
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const timestamp = Date.now();
-        
-        const videoItem: VideoGalleryItem = {
-          id: `video-${timestamp}`,
-          url,
-          timestamp,
-          name: `canvas-video-${timestamp}.webm`
-        };
-
-        setExportedVideos(prev => [...prev, videoItem]);
-        toast("Canvas video exported! 🎥", { duration: 2000 });
-      };
-
-      mediaRecorder.start();
-      setIsRecording(true);
-
-      // Capture frames for 10 seconds
-      const duration = 10000; // 10 seconds
-      const frameInterval = 1000 / 30; // 30 fps
-      let frameCount = 0;
-      const maxFrames = duration / frameInterval;
-
-      const captureFrame = async () => {
-        if (frameCount >= maxFrames) {
-          mediaRecorder.stop();
-          setIsRecording(false);
-          return;
-        }
-
-        const canvas = await html2canvas(canvasRef.current!, {
+      const frames: string[] = [];
+      const frameCount = 75; // 5 seconds at 15 fps
+      const frameDelay = 1000 / 15; // 15 fps
+      
+      // Capture frames
+      for (let i = 0; i < frameCount; i++) {
+        const canvas = await html2canvas(canvasRef.current, {
           backgroundColor: null,
           scale: 1,
           useCORS: true,
           allowTaint: true,
         });
+        
+        frames.push(canvas.toDataURL('image/webp', 0.8));
+        await new Promise(resolve => setTimeout(resolve, frameDelay));
+      }
 
-        // Draw the captured frame to our recording canvas
-        ctx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-        ctx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
-
-        frameCount++;
-        setTimeout(captureFrame, frameInterval);
+      // Create video from frames using a simple approach
+      const timestamp = Date.now();
+      const videoBlob = await createVideoFromFrames(frames);
+      const url = URL.createObjectURL(videoBlob);
+      
+      const videoItem: VideoGalleryItem = {
+        id: `video-${timestamp}`,
+        url,
+        timestamp,
+        name: `canvas-video-${timestamp}.webm`
       };
 
-      captureFrame();
-
+      setExportedVideos(prev => [...prev, videoItem]);
+      toast("Video added to gallery! 🎥", { duration: 2000 });
+      
     } catch (error) {
       console.error('Video export failed:', error);
-      toast("Video export failed, exporting as PNG instead", { duration: 2000 });
+      toast("Video export failed", { duration: 2000 });
+    } finally {
       setIsRecording(false);
-      exportAsPNG();
     }
+  };
+
+  const createVideoFromFrames = async (frames: string[]): Promise<Blob> => {
+    // Create a simple WebM video using MediaRecorder with a canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    
+    // Set canvas size from first frame
+    const firstImg = new Image();
+    firstImg.src = frames[0];
+    await new Promise(resolve => firstImg.onload = resolve);
+    
+    canvas.width = firstImg.width;
+    canvas.height = firstImg.height;
+
+    const stream = canvas.captureStream(15); // 15 fps
+    const recorder = new MediaRecorder(stream, {
+      mimeType: 'video/webm'
+    });
+
+    const chunks: Blob[] = [];
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+
+    return new Promise((resolve) => {
+      recorder.onstop = () => {
+        resolve(new Blob(chunks, { type: 'video/webm' }));
+      };
+
+      recorder.start();
+
+      // Draw frames to canvas
+      let frameIndex = 0;
+      const drawFrame = () => {
+        if (frameIndex >= frames.length) {
+          recorder.stop();
+          return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          frameIndex++;
+          setTimeout(drawFrame, 1000 / 15); // 15 fps
+        };
+        img.src = frames[frameIndex];
+      };
+
+      drawFrame();
+    });
   };
 
   const handleVideoRecord = async () => {
