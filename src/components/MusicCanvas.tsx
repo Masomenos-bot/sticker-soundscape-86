@@ -35,6 +35,22 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
 }, ref) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  // Handle custom drop events from touch
+  const handleCustomDrop = useCallback((event: CustomEvent) => {
+    const { sticker, x, y } = event.detail;
+    onStickerDrop(sticker, x, y);
+  }, [onStickerDrop]);
+
+  React.useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.addEventListener('stickerDrop', handleCustomDrop as EventListener);
+      return () => {
+        canvas.removeEventListener('stickerDrop', handleCustomDrop as EventListener);
+      };
+    }
+  }, [handleCustomDrop]);
+
   const handleDragOver = useCallback((event: React.DragEvent) => {
     // Only handle drag events from palette, not from existing stickers
     const dragType = event.dataTransfer?.types?.includes('application/json');
@@ -83,6 +99,7 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
     <div ref={ref} className="relative h-full p-3">
       <div
         ref={canvasRef}
+        data-canvas="true"
         className="relative w-full h-full min-h-[400px] bg-muted/20 transition-all duration-300"
         style={{
           WebkitUserSelect: 'none',
