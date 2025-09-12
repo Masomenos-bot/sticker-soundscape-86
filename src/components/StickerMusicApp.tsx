@@ -472,7 +472,7 @@ const StickerMusicApp = () => {
     if (!canvasRef.current || isRecording) return;
     
     try {
-      console.log("Starting video export...");
+      console.log("Starting canvas video export...");
       
       // Check if MediaRecorder is supported
       if (!window.MediaRecorder) {
@@ -487,68 +487,22 @@ const StickerMusicApp = () => {
       }
       
       setIsRecording(true);
-      toast("🔴 Recording 8-second video...", { duration: 2000 });
+      toast("🔴 Recording canvas for 8 seconds...", { duration: 2000 });
       
-      // Use screen capture API for more reliable recording
-      let stream: MediaStream;
+      // Create a canvas specifically for recording the stickers area
+      const recordingCanvas = document.createElement('canvas');
+      const ctx = recordingCanvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
       
-      try {
-        // Try to use getDisplayMedia for screen capture
-        if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
-          stream = await navigator.mediaDevices.getDisplayMedia({
-            video: {
-              width: { ideal: 1280 },
-              height: { ideal: 720 },
-              frameRate: { ideal: 30 }
-            },
-            audio: false
-          });
-        } else {
-          throw new Error('Screen capture not supported');
-        }
-      } catch (screenError) {
-        console.log("Screen capture failed, trying canvas approach:", screenError);
-        
-        // Fallback: Create a canvas and stream from it
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        if (!ctx) throw new Error('Could not get canvas context');
-        
-        const rect = canvasRef.current.getBoundingClientRect();
-        canvas.width = Math.min(1280, rect.width);
-        canvas.height = Math.min(720, rect.height);
-        
-        // Create stream from canvas
-        stream = canvas.captureStream(30);
-        
-        // Function to continuously capture the canvas content
-        const captureLoop = async () => {
-          if (canvasRef.current && isRecording) {
-            try {
-              const htmlCanvas = await html2canvas(canvasRef.current, {
-                backgroundColor: '#ffffff',
-                scale: 0.5,
-                useCORS: true,
-                allowTaint: true,
-                logging: false
-              });
-              
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-              ctx.drawImage(htmlCanvas, 0, 0, canvas.width, canvas.height);
-            } catch (captureError) {
-              console.error('Frame capture error:', captureError);
-            }
-            
-            // Continue capturing if still recording
-            if (isRecording) {
-              requestAnimationFrame(captureLoop);
-            }
-          }
-        };
-        
-        // Start the capture loop
-        requestAnimationFrame(captureLoop);
-      }
+      // Get the actual canvas dimensions
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      recordingCanvas.width = Math.floor(canvasRect.width);
+      recordingCanvas.height = Math.floor(canvasRect.height);
+      
+      console.log("Canvas dimensions:", recordingCanvas.width, recordingCanvas.height);
+      
+      // Create stream from our recording canvas
+      const stream = recordingCanvas.captureStream(30); // 30 FPS
       
       // Determine the best supported MIME type
       let mimeType = 'video/webm';
@@ -579,9 +533,6 @@ const StickerMusicApp = () => {
       mediaRecorder.onstop = () => {
         console.log("Recording stopped, creating blob...");
         
-        // Stop all tracks in the stream
-        stream.getTracks().forEach(track => track.stop());
-        
         if (recordedChunksRef.current.length === 0) {
           setIsRecording(false);
           toast("❌ No video data recorded", { duration: 2000 });
@@ -603,7 +554,7 @@ const StickerMusicApp = () => {
         const videoUrl = URL.createObjectURL(blob);
         const timestamp = Date.now();
         const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
-        const videoName = `sticker-sequence-${timestamp}.${extension}`;
+        const videoName = `canvas-sequence-${timestamp}.${extension}`;
         
         const newVideo: VideoGalleryItem = {
           id: `video-${timestamp}`,
@@ -614,7 +565,7 @@ const StickerMusicApp = () => {
         
         setExportedVideos(prev => [newVideo, ...prev]);
         setIsRecording(false);
-        toast("🎬 Video exported to gallery!", { duration: 2000 });
+        toast("🎬 Canvas video exported to gallery!", { duration: 2000 });
       };
       
       mediaRecorder.onerror = (event) => {
@@ -625,13 +576,46 @@ const StickerMusicApp = () => {
       
       mediaRecorderRef.current = mediaRecorder;
       
+      // Function to continuously capture only the canvas area
+      const captureCanvasFrame = async () => {
+        if (canvasRef.current && isRecording) {
+          try {
+            // Capture only the canvas area with stickers
+            const htmlCanvas = await html2canvas(canvasRef.current, {
+              backgroundColor: '#f0f0f0', // Light background for better contrast
+              scale: 1,
+              useCORS: true,
+              allowTaint: true,
+              logging: false,
+              width: canvasRect.width,
+              height: canvasRect.height
+            });
+            
+            // Draw the captured canvas frame to our recording canvas
+            ctx.clearRect(0, 0, recordingCanvas.width, recordingCanvas.height);
+            ctx.drawImage(htmlCanvas, 0, 0, recordingCanvas.width, recordingCanvas.height);
+          } catch (captureError) {
+            console.error('Frame capture error:', captureError);
+          }
+          
+          // Continue capturing if still recording
+          if (isRecording) {
+            requestAnimationFrame(captureCanvasFrame);
+          }
+        }
+      };
+      
       // Start recording
       console.log("Starting MediaRecorder...");
       mediaRecorder.start(100); // Collect data every 100ms
       
+      // Start the canvas capture loop
+      requestAnimationFrame(captureCanvasFrame);
+      
       // Stop recording after 8 seconds
       setTimeout(() => {
         console.log("Stopping recording...");
+        setIsRecording(false); // This will stop the capture loop
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           mediaRecorderRef.current.stop();
         }
@@ -640,7 +624,7 @@ const StickerMusicApp = () => {
     } catch (error) {
       console.error('Video export failed:', error);
       setIsRecording(false);
-      toast(`❌ Video export failed: ${error.message}`, { duration: 3000 });
+      toast(`❌ Canvas video export failed: ${error.message}`, { duration: 3000 });
     }
   };
 
