@@ -472,27 +472,162 @@ const StickerMusicApp = () => {
     if (!canvasRef.current || isRecording) return;
     
     setIsRecording(true);
-    toast("🎬 Creating 8-second MP4 of canvas only...", { duration: 3000 });
+    toast("🎬 Recording 8-second video...", { duration: 2000 });
 
     try {
-      // Ensure audio is initialized
+      // Ensure audio is initialized and playing
       if (!audioInitialized) {
         await initializeAudio();
       }
 
-      // Ensure playback is running for audio capture
       if (!isPlaying) {
         await togglePlayback();
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 800));
       }
 
-      // Create offscreen canvas for high-quality recording
-      const canvasElement = canvasRef.current;
-      const rect = canvasElement.getBoundingClientRect();
+      // Create recording canvas that's appended to DOM (required for captureStream)
+      const recordCanvas = document.createElement('canvas');
+      recordCanvas.width = 1280;
+      recordCanvas.height = 720;
+      recordCanvas.style.position = 'fixed';
+      recordCanvas.style.top = '-9999px';
+      recordCanvas.style.left = '-9999px';
+      recordCanvas.style.zIndex = '-1';
+      document.body.appendChild(recordCanvas);
       
-      const offscreenCanvas = document.createElement('canvas');
-      offscreenCanvas.width = 1280;  // HD width
-      offscreenCanvas.height = 720;  // HD height
+      const ctx = recordCanvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context failed');
+
+      // Get video stream from canvas
+      const videoStream = recordCanvas.captureStream(30);
+      
+      // Try to get microphone for audio (optional)
+      let audioStream = null;
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          } 
+        });
+        toast("🎤 Recording with microphone audio", { duration: 1000 });
+      } catch (audioError) {
+        console.log('No microphone access, video only');
+      }
+
+      // Combine streams
+      const tracks = [...videoStream.getVideoTracks()];
+      if (audioStream) {
+        tracks.push(...audioStream.getAudioTracks());
+      }
+      
+      const combinedStream = new MediaStream(tracks);
+
+      // Create MediaRecorder
+      const mediaRecorder = new MediaRecorder(combinedStream, {
+        mimeType: 'video/webm; codecs=vp8',
+        videoBitsPerSecond: 3000000
+      });
+
+      recordedChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        // Clean up
+        document.body.removeChild(recordCanvas);
+        combinedStream.getTracks().forEach(track => track.stop());
+        
+        if (recordedChunksRef.current.length > 0) {
+          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const timestamp = Date.now();
+          
+          // Add to gallery instead of downloading
+          const newVideo: VideoGalleryItem = {
+            id: `video-${timestamp}`,
+            url,
+            timestamp,
+            name: `music-canvas-${timestamp}.webm`
+          };
+          
+          setExportedVideos(prev => [newVideo, ...prev]);
+          toast("🎬 Video saved to gallery!", { duration: 2000 });
+        } else {
+          toast("❌ Video recording failed", { duration: 2000 });
+        }
+        setIsRecording(false);
+      };
+
+      // Start recording
+      mediaRecorder.start(100);
+
+      // Animate canvas for 8 seconds
+      const startTime = Date.now();
+      const duration = 8000;
+      let frameCount = 0;
+
+      const animate = async () => {
+        const elapsed = Date.now() - startTime;
+        
+        if (elapsed < duration && mediaRecorder.state === 'recording') {
+          try {
+            // Capture current canvas state
+            const canvasElement = canvasRef.current!;
+            const screenshot = await html2canvas(canvasElement, {
+              backgroundColor: '#f8f9fa',
+              scale: 0.8, // Reduce for performance
+              useCORS: true,
+              allowTaint: true
+            });
+            
+            // Draw to recording canvas
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, recordCanvas.width, recordCanvas.height);
+            ctx.drawImage(screenshot, 0, 0, recordCanvas.width, recordCanvas.height);
+            
+            frameCount++;
+            requestAnimationFrame(animate);
+          } catch (error) {
+            console.error('Frame error:', error);
+            requestAnimationFrame(animate);
+          }
+        } else {
+          // Stop recording after duration
+          if (mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+          }
+        }
+      };
+
+      animate();
+
+    } catch (error) {
+      console.error('Video export failed:', error);
+      setIsRecording(false);
+      toast("❌ Video export failed", { duration: 2000 });
+    }
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+    setExportedVideos(prev => prev.filter(video => video.id !== videoId));
+  };
+
+  const handleControlBoardToggle = () => {
+    const willBeCollapsed = !isControlBoardCollapsed;
+    setIsControlBoardCollapsed(willBeCollapsed);
+    
+    // Only deselect stickers when closing the control board
+    if (willBeCollapsed) {
+      setSelectedStickers([]);
+      setIsMultiSelectMode(false);
+    }
+  };
       const offscreenCtx = offscreenCanvas.getContext('2d');
       
       if (!offscreenCtx) {
@@ -613,7 +748,6 @@ const StickerMusicApp = () => {
       
       toast("📹 Recording canvas for 8 seconds...", { duration: 2000 });
 
-    } catch (error) {
       console.error('Canvas video export failed:', error);
       setIsRecording(false);
       
