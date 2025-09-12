@@ -34,60 +34,12 @@ export const StickerPalette = () => {
   }));
 
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>, sticker: StickerData) => {
-    console.log("Drag started for sticker:", sticker.id);
     event.dataTransfer.setData("application/json", JSON.stringify(sticker));
-    event.dataTransfer.effectAllowed = "copy";
     event.currentTarget.classList.add("dragging");
-    
-    // Set drag image
-    const dragImage = event.currentTarget.cloneNode(true) as HTMLElement;
-    dragImage.style.transform = "scale(1.2)";
-    event.dataTransfer.setDragImage(dragImage, 40, 40);
   };
 
   const handleDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
-    console.log("Drag ended");
     event.currentTarget.classList.remove("dragging");
-  };
-
-  // Touch events for mobile support
-  const handleTouchStart = (sticker: StickerData) => {
-    console.log("Touch started for sticker:", sticker.id);
-    // Store sticker data for touch drag
-    (window as any).draggedSticker = sticker;
-  };
-
-  const handleTouchMove = (event: React.TouchEvent) => {
-    event.preventDefault();
-  };
-
-  const handleTouchEnd = (event: React.TouchEvent) => {
-    if (!(window as any).draggedSticker) return;
-    
-    const touch = event.changedTouches[0];
-    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-    const canvas = target?.closest('[data-canvas="true"]');
-    
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left - 40;
-      const y = touch.clientY - rect.top - 40;
-      
-      // Find the MusicCanvas component and trigger drop
-      const canvasElement = document.querySelector('[data-canvas="true"]') as HTMLElement;
-      if (canvasElement) {
-        const dropEvent = new CustomEvent('stickerDrop', {
-          detail: {
-            sticker: (window as any).draggedSticker,
-            x: Math.max(0, x),
-            y: Math.max(0, y)
-          }
-        });
-        canvasElement.dispatchEvent(dropEvent);
-      }
-    }
-    
-    delete (window as any).draggedSticker;
   };
 
   return (
@@ -100,9 +52,6 @@ export const StickerPalette = () => {
             draggable
             onDragStart={(e) => handleDragStart(e, sticker)}
             onDragEnd={handleDragEnd}
-            onTouchStart={() => handleTouchStart(sticker)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
             <img
               src={sticker.src}
@@ -121,9 +70,6 @@ export const StickerPalette = () => {
             draggable
             onDragStart={(e) => handleDragStart(e, sticker)}
             onDragEnd={handleDragEnd}
-            onTouchStart={() => handleTouchStart(sticker)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
           >
             <img
               src={sticker.src}
