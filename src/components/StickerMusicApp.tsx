@@ -471,149 +471,104 @@ const StickerMusicApp = () => {
   const handleVideoExport = async () => {
     if (!canvasRef.current || isRecording) return;
     
+    setIsRecording(true);
+    
+    // Simple fallback: Just export current canvas as image if recording fails
+    const exportStaticImage = async () => {
+      try {
+        const canvas = await html2canvas(canvasRef.current!, {
+          backgroundColor: '#ffffff',
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+        });
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const url = URL.createObjectURL(blob);
+            const timestamp = Date.now();
+            const newVideo: VideoGalleryItem = {
+              id: `image-${timestamp}`,
+              url,
+              timestamp,
+              name: `canvas-${timestamp}.png`
+            };
+            setExportedVideos(prev => [newVideo, ...prev]);
+            toast("📸 Canvas image saved to gallery!", { duration: 2000 });
+          }
+        }, 'image/png');
+      } catch (error) {
+        toast("❌ Export failed", { duration: 2000 });
+      }
+      setIsRecording(false);
+    };
+
     try {
-      console.log("Starting video export with screen recording...");
-      
       // Ensure playback is running
       if (!isPlaying) {
         setIsPlaying(true);
         await new Promise(resolve => setTimeout(resolve, 500));
       }
-      
-      setIsRecording(true);
-      toast("🔴 Please select the browser tab to record for 8 seconds", { duration: 4000 });
-      
-      // Request screen share - user will select the current tab
+
+      toast("🔴 Click 'Share this tab' when browser asks for permission", { duration: 3000 });
+
+      // Try screen recording
       const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-          frameRate: { ideal: 30 }
-        },
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          sampleRate: 44100
-        }
+        video: true,
+        audio: true
       });
-      
-      console.log("Screen capture stream obtained");
-      
-      // Find best supported format
-      let mimeType = 'video/webm';
-      const supportedTypes = [
-        'video/webm;codecs=vp9,opus',
-        'video/webm;codecs=vp8,opus', 
-        'video/webm;codecs=h264,opus',
-        'video/webm',
-        'video/mp4'
-      ];
-      
-      for (const type of supportedTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type;
-          break;
-        }
-      }
-      
-      console.log("Using MIME type:", mimeType);
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType,
-        videoBitsPerSecond: 5000000, // 5 Mbps for good quality
-        audioBitsPerSecond: 128000   // 128 kbps for audio
-      });
-      
+
+      const mediaRecorder = new MediaRecorder(stream);
       recordedChunksRef.current = [];
-      
+
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
-          console.log("Recorded chunk:", event.data.size, "bytes");
         }
       };
-      
-      mediaRecorder.onstop = async () => {
-        console.log("Recording finished, processing video...");
-        
-        // Stop all tracks
-        stream.getTracks().forEach(track => {
-          track.stop();
-          console.log("Stopped track:", track.kind);
-        });
-        
-        if (recordedChunksRef.current.length === 0) {
-          setIsRecording(false);
-          toast("❌ No video data recorded", { duration: 2000 });
-          return;
-        }
-        
-        const blob = new Blob(recordedChunksRef.current, { type: mimeType });
-        console.log("Final video blob size:", blob.size, "bytes");
-        
-        if (blob.size < 1000) {
-          setIsRecording(false);
-          toast("❌ Video file too small, recording may have failed", { duration: 2000 });
-          return;
-        }
-        
-        const videoUrl = URL.createObjectURL(blob);
-        const timestamp = Date.now();
-        const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
-        const videoName = `sticker-music-${timestamp}.${extension}`;
-        
-        const newVideo: VideoGalleryItem = {
-          id: `video-${timestamp}`,
-          url: videoUrl,
-          timestamp,
-          name: videoName
-        };
-        
-        setExportedVideos(prev => [newVideo, ...prev]);
-        setIsRecording(false);
-        toast("🎬 Video with sound saved to gallery!", { duration: 3000 });
-      };
-      
-      mediaRecorder.onerror = (event) => {
-        console.error('MediaRecorder error:', event);
+
+      mediaRecorder.onstop = () => {
         stream.getTracks().forEach(track => track.stop());
+        
+        if (recordedChunksRef.current.length > 0) {
+          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const timestamp = Date.now();
+          
+          const newVideo: VideoGalleryItem = {
+            id: `video-${timestamp}`,
+            url,
+            timestamp,
+            name: `recording-${timestamp}.webm`
+          };
+          
+          setExportedVideos(prev => [newVideo, ...prev]);
+          toast("🎬 Video saved to gallery!", { duration: 2000 });
+        } else {
+          exportStaticImage();
+        }
         setIsRecording(false);
-        toast("❌ Recording failed", { duration: 2000 });
       };
-      
-      // Handle user stopping the screen share
+
+      // Handle user canceling screen share
       stream.getVideoTracks()[0].onended = () => {
-        console.log("User stopped screen sharing");
         if (mediaRecorder.state === 'recording') {
           mediaRecorder.stop();
         }
       };
+
+      mediaRecorder.start();
       
-      mediaRecorderRef.current = mediaRecorder;
-      
-      // Start recording
-      mediaRecorder.start(1000); // Collect data every second
-      console.log("Recording started");
-      
-      // Auto-stop after 8 seconds
+      // Stop after 8 seconds
       setTimeout(() => {
-        console.log("Auto-stopping recording after 8 seconds");
         if (mediaRecorder.state === 'recording') {
           mediaRecorder.stop();
         }
       }, 8000);
-      
+
     } catch (error) {
-      console.error('Video export error:', error);
-      setIsRecording(false);
-      
-      if (error.name === 'NotAllowedError') {
-        toast("❌ Screen recording permission denied", { duration: 3000 });
-      } else if (error.name === 'NotSupportedError') {
-        toast("❌ Screen recording not supported in this browser", { duration: 3000 });
-      } else {
-        toast(`❌ Export failed: ${error.message}`, { duration: 3000 });
-      }
+      console.log("Screen recording failed, using static image:", error);
+      exportStaticImage();
     }
   };
 
