@@ -116,24 +116,25 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     if (!canvasRef.current || isRecording) return;
     
     setIsRecording(true);
-    toast("Creating 8-second video from canvas...", { duration: 2000 });
+    toast("Creating high-quality 8-second video...", { duration: 2000 });
     
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       
-      // Set canvas dimensions
-      canvas.width = canvasRef.current.offsetWidth;
-      canvas.height = canvasRef.current.offsetHeight;
+      // Set higher resolution canvas dimensions
+      const scaleFactor = 2; // Double the resolution
+      canvas.width = canvasRef.current.offsetWidth * scaleFactor;
+      canvas.height = canvasRef.current.offsetHeight * scaleFactor;
 
-      const stream = canvas.captureStream(10); // 10 fps for better performance
+      const stream = canvas.captureStream(24); // 24 fps for smoother video
       
-      // Check supported mime types
+      // Check supported mime types with quality settings
       const supportedTypes = [
         'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8', 
+        'video/webm;codecs=vp8,opus', 
         'video/webm',
-        'video/mp4'
+        'video/mp4;codecs=h264'
       ];
       
       let mimeType = 'video/webm';
@@ -144,7 +145,11 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
         }
       }
 
-      const recorder = new MediaRecorder(stream, { mimeType });
+      // Use higher bitrate for better quality
+      const recorder = new MediaRecorder(stream, { 
+        mimeType,
+        videoBitsPerSecond: 2500000 // 2.5 Mbps for high quality
+      });
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
@@ -160,19 +165,19 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
           id: `video-${timestamp}`,
           url,
           timestamp,
-          name: `canvas-video-${timestamp}.webm`
+          name: `hq-canvas-video-${timestamp}.webm`
         };
 
         setExportedVideos(prev => [...prev, videoItem]);
-        toast("8-second video added to gallery! 🎥", { duration: 2000 });
+        toast("High-quality video added to gallery! 🎥", { duration: 2000 });
         setIsRecording(false);
       };
 
       recorder.start();
 
-      // Capture frames for 8 seconds
+      // Capture frames for 8 seconds at higher quality
       const duration = 8000; // 8 seconds
-      const frameRate = 10; // 10 fps
+      const frameRate = 24; // 24 fps for smoother motion
       let frameCount = 0;
       const totalFrames = (duration / 1000) * frameRate;
 
@@ -185,13 +190,20 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
         try {
           const frameCanvas = await html2canvas(canvasRef.current!, {
             backgroundColor: null,
-            scale: 0.8,
+            scale: 2, // High resolution capture
             useCORS: true,
             allowTaint: true,
-            logging: false
+            logging: false,
+            width: canvasRef.current!.offsetWidth,
+            height: canvasRef.current!.offsetHeight,
+            windowWidth: canvasRef.current!.offsetWidth,
+            windowHeight: canvasRef.current!.offsetHeight
           });
 
+          // Clear and draw with high quality
           ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(frameCanvas, 0, 0, canvas.width, canvas.height);
           
           frameCount++;
@@ -202,11 +214,76 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
         }
       };
 
+      // Start capturing after a short delay
       setTimeout(() => captureFrame(), 100);
 
     } catch (error) {
       console.error('Video export failed:', error);
-      toast("Video export failed - browser may not support video recording", { duration: 3000 });
+      toast("Video export failed - trying fallback quality", { duration: 2000 });
+      // Fallback to lower quality if high quality fails
+      await exportAsVideoFallback();
+    }
+  };
+
+  const exportAsVideoFallback = async () => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d')!;
+      
+      canvas.width = canvasRef.current!.offsetWidth;
+      canvas.height = canvasRef.current!.offsetHeight;
+
+      const stream = canvas.captureStream(15);
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const timestamp = Date.now();
+        
+        const videoItem: VideoGalleryItem = {
+          id: `video-${timestamp}`,
+          url,
+          timestamp,
+          name: `canvas-video-${timestamp}.webm`
+        };
+
+        setExportedVideos(prev => [...prev, videoItem]);
+        toast("Video added to gallery! 🎥", { duration: 2000 });
+        setIsRecording(false);
+      };
+
+      recorder.start();
+      
+      let frameCount = 0;
+      const totalFrames = 120; // 8 seconds at 15fps
+      
+      const captureFrame = async () => {
+        if (frameCount >= totalFrames) {
+          recorder.stop();
+          return;
+        }
+
+        const frameCanvas = await html2canvas(canvasRef.current!, {
+          backgroundColor: null,
+          scale: 1.5,
+          useCORS: true,
+          allowTaint: true,
+          logging: false
+        });
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(frameCanvas, 0, 0);
+        frameCount++;
+        setTimeout(captureFrame, 1000 / 15);
+      };
+
+      captureFrame();
+    } catch (error) {
+      console.error('Fallback video export failed:', error);
+      toast("Video export failed", { duration: 2000 });
       setIsRecording(false);
     }
   };
