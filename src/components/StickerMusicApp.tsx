@@ -493,10 +493,19 @@ const StickerMusicApp = () => {
       
       const combinedStream = new MediaStream(tracks);
 
-      // Create MediaRecorder
+      // Create MediaRecorder with fallback mimeType
+      let mimeType = 'video/webm';
+      if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8')) {
+        mimeType = 'video/webm; codecs=vp8';
+      } else if (MediaRecorder.isTypeSupported('video/webm')) {
+        mimeType = 'video/webm';
+      } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4';
+      }
+
       const mediaRecorder = new MediaRecorder(combinedStream, {
-        mimeType: 'video/webm; codecs=vp8',
-        videoBitsPerSecond: 3000000
+        mimeType,
+        videoBitsPerSecond: 2000000
       });
 
       recordedChunksRef.current = [];
