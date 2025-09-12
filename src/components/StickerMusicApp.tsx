@@ -111,7 +111,7 @@ const StickerMusicApp = () => {
     };
   }, []);
 
-  const handleStickerDrop = (stickerData: StickerData, x: number, y: number) => {
+  const handleStickerDrop = async (stickerData: StickerData, x: number, y: number) => {
     const maxZIndex = Math.max(0, ...placedStickers.map(s => s.zIndex));
     const nextStepIndex = placedStickers.length; // Add as next step in sequence
     const newSticker: Sticker = {
@@ -130,9 +130,20 @@ const StickerMusicApp = () => {
     };
 
     setPlacedStickers(prev => [...prev, newSticker]);
-    toast(`Added step ${nextStepIndex + 1} to sequence!`, {
-      duration: 1500,
-    });
+    
+    // Auto-start playback when first sticker is placed
+    if (placedStickers.length === 0) {
+      if (!audioInitialized) {
+        await initializeAudio();
+      } else {
+        setIsPlaying(true);
+        toast("🎵 Playing your sequence!", { duration: 1500 });
+      }
+    } else {
+      toast(`Added step ${nextStepIndex + 1} to sequence!`, {
+        duration: 1500,
+      });
+    }
   };
 
   const handleStickerUpdate = (id: string, updates: Partial<Sticker>) => {
