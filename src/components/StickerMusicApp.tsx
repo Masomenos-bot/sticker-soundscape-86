@@ -147,14 +147,26 @@ const StickerMusicApp = () => {
         <div className="flex flex-col gap-8 sm:gap-12">
           {/* Sticker Palette */}
           <div className="w-full">
-            <Card className="p-3 bg-gradient-card shadow-card border-0 h-[200px] flex-shrink-0 mb-4 sm:mb-6">
+            <Card 
+              className="p-3 bg-gradient-card shadow-card border-0 h-[200px] flex-shrink-0 mb-4 sm:mb-6"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => e.preventDefault()}
+            >
               <StickerPalette />
             </Card>
           </div>
 
           {/* Music Canvas */}
-          <div className="w-full flex-1">
-            <Card className="bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px] relative">
+          <div 
+            className="w-full flex-1"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => e.preventDefault()}
+          >
+            <Card 
+              className="bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px] relative"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => e.preventDefault()}
+            >
               {/* Control Buttons */}
               <div className="absolute top-2 right-2 z-20 flex gap-2">
                 <button

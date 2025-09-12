@@ -55,13 +55,13 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
     event.preventDefault();
     event.stopPropagation();
     event.dataTransfer.dropEffect = "copy";
-    console.log("Drag over canvas");
+    console.log("✅ CANVAS: Drag over canvas detected");
   }, []);
 
   const handleDragEnter = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    console.log("Drag enter canvas");
+    console.log("✅ CANVAS: Drag enter canvas");
   }, []);
 
   const handleDragLeave = useCallback((event: React.DragEvent) => {
@@ -73,7 +73,7 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   const handleDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    console.log("Drop event triggered on canvas");
+    console.log("🎯 CANVAS: Drop event triggered!");
 
     try {
       const stickerDataString = event.dataTransfer.getData("application/json");
