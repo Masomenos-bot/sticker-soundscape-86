@@ -472,12 +472,7 @@ const StickerMusicApp = () => {
     if (!canvasRef.current || isRecording) return;
     
     try {
-      console.log("Starting video with audio export...");
-      
-      // Check MediaRecorder support
-      if (!window.MediaRecorder) {
-        throw new Error('MediaRecorder not supported in this browser');
-      }
+      console.log("Starting video export with screen recording...");
       
       // Ensure playback is running
       if (!isPlaying) {
@@ -486,71 +481,47 @@ const StickerMusicApp = () => {
       }
       
       setIsRecording(true);
-      toast("🔴 Recording 8-second video with sound...", { duration: 2000 });
+      toast("🔴 Please select the browser tab to record for 8 seconds", { duration: 4000 });
       
-      // Create a canvas for recording
-      const recordingCanvas = document.createElement('canvas');
-      const ctx = recordingCanvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-      
-      const canvasRect = canvasRef.current.getBoundingClientRect();
-      recordingCanvas.width = Math.floor(canvasRect.width);
-      recordingCanvas.height = Math.floor(canvasRect.height);
-      
-      // Get video stream from canvas
-      const canvasStream = recordingCanvas.captureStream(30);
-      
-      // Get audio stream - create a new audio context destination for recording
-      let audioStream: MediaStream | null = null;
-      if (audioContextRef.current) {
-        try {
-          // Create a MediaStreamDestination to capture audio
-          const audioDestination = audioContextRef.current.createMediaStreamDestination();
-          
-          // Connect all audio to this destination for recording
-          // We'll need to route the sticker audio through this
-          audioStream = audioDestination.stream;
-          
-          console.log("Audio stream created for recording");
-        } catch (audioError) {
-          console.error("Could not create audio stream:", audioError);
+      // Request screen share - user will select the current tab
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+          frameRate: { ideal: 30 }
+        },
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          sampleRate: 44100
         }
-      }
+      });
       
-      // Combine video and audio streams
-      const combinedStream = new MediaStream();
+      console.log("Screen capture stream obtained");
       
-      // Add video track
-      const videoTrack = canvasStream.getVideoTracks()[0];
-      if (videoTrack) {
-        combinedStream.addTrack(videoTrack);
-        console.log("Video track added to combined stream");
-      }
-      
-      // Add audio track if available
-      if (audioStream) {
-        const audioTrack = audioStream.getAudioTracks()[0];
-        if (audioTrack) {
-          combinedStream.addTrack(audioTrack);
-          console.log("Audio track added to combined stream");
-        }
-      }
-      
-      // Determine MIME type
+      // Find best supported format
       let mimeType = 'video/webm';
-      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
-        mimeType = 'video/webm;codecs=vp9,opus';
-      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
-        mimeType = 'video/webm;codecs=vp8,opus';
-      } else if (MediaRecorder.isTypeSupported('video/webm')) {
-        mimeType = 'video/webm';
+      const supportedTypes = [
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus', 
+        'video/webm;codecs=h264,opus',
+        'video/webm',
+        'video/mp4'
+      ];
+      
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
+        }
       }
       
       console.log("Using MIME type:", mimeType);
       
-      const mediaRecorder = new MediaRecorder(combinedStream, {
-        mimeType: mimeType,
-        videoBitsPerSecond: 2500000
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType,
+        videoBitsPerSecond: 5000000, // 5 Mbps for good quality
+        audioBitsPerSecond: 128000   // 128 kbps for audio
       });
       
       recordedChunksRef.current = [];
@@ -558,15 +529,18 @@ const StickerMusicApp = () => {
       mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
-          console.log("Data chunk received:", event.data.size, "bytes");
+          console.log("Recorded chunk:", event.data.size, "bytes");
         }
       };
       
-      mediaRecorder.onstop = () => {
-        console.log("Recording stopped, creating video...");
+      mediaRecorder.onstop = async () => {
+        console.log("Recording finished, processing video...");
         
         // Stop all tracks
-        combinedStream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(track => {
+          track.stop();
+          console.log("Stopped track:", track.kind);
+        });
         
         if (recordedChunksRef.current.length === 0) {
           setIsRecording(false);
@@ -575,18 +549,18 @@ const StickerMusicApp = () => {
         }
         
         const blob = new Blob(recordedChunksRef.current, { type: mimeType });
-        console.log("Video blob created:", blob.size, "bytes");
+        console.log("Final video blob size:", blob.size, "bytes");
         
-        if (blob.size === 0) {
+        if (blob.size < 1000) {
           setIsRecording(false);
-          toast("❌ Video recording failed", { duration: 2000 });
+          toast("❌ Video file too small, recording may have failed", { duration: 2000 });
           return;
         }
         
         const videoUrl = URL.createObjectURL(blob);
         const timestamp = Date.now();
         const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
-        const videoName = `canvas-video-${timestamp}.${extension}`;
+        const videoName = `sticker-music-${timestamp}.${extension}`;
         
         const newVideo: VideoGalleryItem = {
           id: `video-${timestamp}`,
@@ -597,76 +571,49 @@ const StickerMusicApp = () => {
         
         setExportedVideos(prev => [newVideo, ...prev]);
         setIsRecording(false);
-        toast("🎬 Video with sound exported!", { duration: 2000 });
+        toast("🎬 Video with sound saved to gallery!", { duration: 3000 });
       };
       
       mediaRecorder.onerror = (event) => {
         console.error('MediaRecorder error:', event);
+        stream.getTracks().forEach(track => track.stop());
         setIsRecording(false);
-        toast("❌ Recording error occurred", { duration: 2000 });
+        toast("❌ Recording failed", { duration: 2000 });
+      };
+      
+      // Handle user stopping the screen share
+      stream.getVideoTracks()[0].onended = () => {
+        console.log("User stopped screen sharing");
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
       };
       
       mediaRecorderRef.current = mediaRecorder;
       
-      // Start the canvas capture loop
-      let frameCount = 0;
-      const maxFrames = 240; // 8 seconds at 30fps
-      
-      const captureFrame = async () => {
-        if (frameCount >= maxFrames || !isRecording) {
-          // Stop recording
-          if (mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-          }
-          return;
-        }
-        
-        if (canvasRef.current) {
-          try {
-            const htmlCanvas = await html2canvas(canvasRef.current, {
-              backgroundColor: '#ffffff',
-              scale: 1,
-              useCORS: true,
-              allowTaint: true,
-              logging: false
-            });
-            
-            // Clear and draw the new frame
-            ctx.clearRect(0, 0, recordingCanvas.width, recordingCanvas.height);
-            ctx.drawImage(htmlCanvas, 0, 0, recordingCanvas.width, recordingCanvas.height);
-            
-            frameCount++;
-          } catch (error) {
-            console.error('Frame capture error:', error);
-          }
-        }
-        
-        // Continue capturing
-        if (isRecording) {
-          setTimeout(captureFrame, 1000 / 30); // 30 FPS
-        }
-      };
-      
       // Start recording
-      mediaRecorder.start(100);
+      mediaRecorder.start(1000); // Collect data every second
+      console.log("Recording started");
       
-      // Start frame capture
-      captureFrame();
-      
-      // Safety timeout
+      // Auto-stop after 8 seconds
       setTimeout(() => {
-        if (isRecording) {
-          setIsRecording(false);
-          if (mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-          }
+        console.log("Auto-stopping recording after 8 seconds");
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
         }
-      }, 9000);
+      }, 8000);
       
     } catch (error) {
-      console.error('Video export failed:', error);
+      console.error('Video export error:', error);
       setIsRecording(false);
-      toast(`❌ Video export failed: ${error.message}`, { duration: 3000 });
+      
+      if (error.name === 'NotAllowedError') {
+        toast("❌ Screen recording permission denied", { duration: 3000 });
+      } else if (error.name === 'NotSupportedError') {
+        toast("❌ Screen recording not supported in this browser", { duration: 3000 });
+      } else {
+        toast(`❌ Export failed: ${error.message}`, { duration: 3000 });
+      }
     }
   };
 
