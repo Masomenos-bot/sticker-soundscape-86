@@ -22,8 +22,6 @@ export interface Sticker {
   zIndex: number;
   mirrored?: boolean;
   stepIndex: number;
-  scaleMode?: string;
-  polyrhythmOffset?: number;
 }
 
 export interface StickerData {
@@ -46,7 +44,6 @@ const StickerMusicApp = () => {
   const [isDraggingControlBoard, setIsDraggingControlBoard] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isControlBoardCollapsed, setIsControlBoardCollapsed] = useState(false);
-  const [globalScaleMode, setGlobalScaleMode] = useState('tizita');
   const audioContextRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const sequencerRef = useRef<NodeJS.Timeout | null>(null);
@@ -130,8 +127,6 @@ const StickerMusicApp = () => {
       zIndex: maxZIndex + 1,
       mirrored: false,
       stepIndex: nextStepIndex,
-      scaleMode: globalScaleMode,
-      polyrhythmOffset: Math.floor(Math.random() * 8), // Random rhythm offset
     };
 
     setPlacedStickers(prev => [...prev, newSticker]);
@@ -527,7 +522,6 @@ const StickerMusicApp = () => {
                 isMultiSelectMode={isMultiSelectMode}
                 onStickerSelect={handleStickerSelect}
                 onGroupMove={handleGroupMove}
-                globalScaleMode={globalScaleMode}
               />
             </Card>
             
@@ -569,54 +563,11 @@ const StickerMusicApp = () => {
                   
                   {!isControlBoardCollapsed && (
                     <>
-                      {/* Global Music Controls */}
-                      <div className="space-y-3 border-b pb-3 mb-3">
-                        {/* Tempo Control */}
-                        <div className="flex gap-2 items-center">
-                          <span className="text-sm font-medium text-gray-700 w-16">Tempo:</span>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="w-8 h-8 p-0" 
-                            onClick={() => setSequenceTempo(Math.max(60, sequenceTempo - 10))}
-                            title="Decrease tempo"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </Button>
-                          <span className="text-sm font-mono w-12 text-center">{sequenceTempo}</span>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="w-8 h-8 p-0" 
-                            onClick={() => setSequenceTempo(Math.min(200, sequenceTempo + 10))}
-                            title="Increase tempo"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </Button>
-                        </div>
-                        
-                        {/* Scale Mode Selector */}
-                        <div className="flex gap-2 items-center">
-                          <span className="text-sm font-medium text-gray-700 w-16">Scale:</span>
-                          <select 
-                            value={globalScaleMode}
-                            onChange={(e) => setGlobalScaleMode(e.target.value)}
-                            className="text-xs px-2 py-1 border rounded focus:outline-none focus:ring-1 focus:ring-primary"
-                          >
-                            <option value="tizita">Tizita (Traditional)</option>
-                            <option value="bati">Bati (Pentatonic)</option>
-                            <option value="ambassel">Ambassel (Bright)</option>
-                            <option value="anchihoye">Anchihoye (Modal)</option>
-                            <option value="yekermo">Yèkèrmo Sèw</option>
-                          </select>
-                        </div>
-                      </div>
-
                       {selectedStickers.length > 0 ? (
                         <>
-                          {/* Size Controls */}
+                          {/* Scale Controls */}
                           <div className="flex gap-2 items-center">
-                            <span className="text-sm font-medium text-gray-700 w-16">Size:</span>
+                            <span className="text-sm font-medium text-gray-700 w-16">Scale:</span>
                             <Button 
                               size="sm" 
                               variant="outline" 

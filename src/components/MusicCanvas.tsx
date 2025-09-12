@@ -16,7 +16,6 @@ interface MusicCanvasProps {
   isMultiSelectMode: boolean;
   onStickerSelect: (id: string, isSelected: boolean) => void;
   onGroupMove: (deltaX: number, deltaY: number) => void;
-  globalScaleMode: string;
 }
 
 export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
@@ -33,7 +32,6 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   isMultiSelectMode,
   onStickerSelect,
   onGroupMove,
-  globalScaleMode,
 }, ref) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -110,7 +108,6 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
             isMultiSelectMode={isMultiSelectMode}
             onSelect={onStickerSelect}
             onGroupMove={onGroupMove}
-            globalScaleMode={globalScaleMode}
           />
         ))}
       </div>

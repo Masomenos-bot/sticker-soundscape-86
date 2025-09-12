@@ -17,7 +17,6 @@ interface ResizableStickerProps {
   isMultiSelectMode: boolean;
   onSelect: (id: string, isSelected: boolean) => void;
   onGroupMove: (deltaX: number, deltaY: number) => void;
-  globalScaleMode: string;
 }
 
 export const ResizableSticker = ({
@@ -34,7 +33,6 @@ export const ResizableSticker = ({
   isMultiSelectMode,
   onSelect,
   onGroupMove,
-  globalScaleMode,
 }: ResizableStickerProps) => {
   const stickerRef = useRef<HTMLDivElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -55,146 +53,79 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Enhanced Ethiopian Musical Scales
-  const ethioScales = useMemo(() => ({
-    tizita: [261.63, 293.66, 311.13, 349.23, 392.00, 415.30, 466.16, 523.25], // C-D-Eb-F-G-Ab-Bb-C
-    bati: [261.63, 277.18, 329.63, 349.23, 392.00, 415.30, 493.88, 523.25], // C-Db-E-F-G-Ab-B-C
-    ambassel: [261.63, 293.66, 329.63, 369.99, 392.00, 440.00, 493.88, 523.25], // C-D-E-F#-G-A-B-C
-    anchihoye: [261.63, 277.18, 311.13, 369.99, 392.00, 415.30, 466.16, 523.25], // C-Db-Eb-F#-G-Ab-Bb-C
-    yekermo: [246.94, 277.18, 311.13, 349.23, 392.00, 415.30, 466.16, 493.88], // B-Db-Eb-F-G-Ab-Bb-B
-  }), []);
-
-  // Expanded Ethiopian instruments with better synthesis
+  // Optimized Ethiopian instruments
   const ethioInstruments = useMemo(() => [
     {
-      name: 'krar_traditional',
-      scale: ethioScales.tizita,
-      waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.7, 0.5, 0.3, 0.2],
-      harmonicGains: [1.0, 0.6, 0.4, 0.2, 0.1],
-      attack: 0.01,
-      decay: 0.1,
-      sustain: 0.3,
-      release: 1.2,
-      filterFreq: 2800,
-      resonance: 4.0,
-      rhythmPattern: [1, 0, 1, 0, 1, 1, 0, 1], // 8-beat polyrhythm
-      chordIntervals: [0, 2, 4], // Traditional triads
-      scaleMode: 'tizita'
-    },
-    {
-      name: 'masinko_violin',
-      scale: ethioScales.bati,
+      name: 'vibraphone',
+      scale: [277.18, 311.13, 349.23, 415.30, 466.16, 523.25, 622.25, 698.46], 
       waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.8, 0.4, 0.2],
-      harmonicGains: [1.0, 0.7, 0.3, 0.15],
-      attack: 0.15,
-      decay: 0.05,
-      sustain: 0.8,
-      release: 0.6,
-      filterFreq: 5000,
-      resonance: 2.0,
-      rhythmPattern: [1, 0, 0, 1, 0, 1, 0, 0], // Syncopated
-      chordIntervals: [0, 3, 5], // Quartal harmony
-      scaleMode: 'bati'
-    },
-    {
-      name: 'washint_flute',
-      scale: ethioScales.ambassel,
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.3, 0.1],
-      harmonicGains: [1.0, 0.4, 0.2],
-      attack: 0.2,
-      decay: 0.1,
-      sustain: 0.7,
-      release: 0.8,
-      filterFreq: 6000,
-      resonance: 1.5,
-      rhythmPattern: [1, 0, 1, 1, 0, 0, 1, 0], // Melodic rhythm
-      chordIntervals: [0, 2, 5], // Pentatonic-based
-      scaleMode: 'ambassel'
-    },
-    {
-      name: 'kebero_drum',
-      scale: ethioScales.anchihoye.map(f => f * 0.5), // Lower octave
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 2.1, 1.5],
-      harmonicGains: [1.0, 0.4, 0.2],
-      attack: 0.001,
-      decay: 0.02,
-      sustain: 0.1,
-      release: 0.3,
-      filterFreq: 800,
-      resonance: 12.0,
-      rhythmPattern: [1, 0, 1, 0, 1, 1, 1, 0], // Complex polyrhythm
-      chordIntervals: [0], // No chords for percussion
-      scaleMode: 'anchihoye'
-    },
-    {
-      name: 'begena_harp',
-      scale: ethioScales.yekermo,
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 0.5, 0.3, 0.2, 0.1],
-      harmonicGains: [1.0, 0.6, 0.4, 0.3, 0.2],
-      attack: 0.05,
-      decay: 0.2,
-      sustain: 0.4,
-      release: 2.0,
-      filterFreq: 3500,
-      resonance: 2.5,
-      rhythmPattern: [1, 0, 0, 1, 0, 0, 1, 1], // Arpeggiated
-      chordIntervals: [0, 2, 4, 6], // Extended chords
-      scaleMode: 'yekermo'
-    },
-    {
-      name: 'tom_drum',
-      scale: [87.31, 98.00, 110.00, 123.47, 130.81, 146.83, 164.81, 174.61], // Lower frequencies
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 1.8, 0.8],
+      harmonics: [1, 0.6, 0.2],
       harmonicGains: [1.0, 0.5, 0.2],
-      attack: 0.001,
-      decay: 0.015,
-      sustain: 0.08,
-      release: 0.4,
-      filterFreq: 1200,
-      resonance: 8.0,
-      rhythmPattern: [1, 1, 0, 1, 0, 0, 1, 0], // Driving rhythm
-      chordIntervals: [0], // No chords for percussion
-      scaleMode: 'tizita'
-    },
-    {
-      name: 'sistrum_bells',
-      scale: ethioScales.tizita.map(f => f * 2), // Higher octave
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.8, 0.4, 0.2, 0.1],
-      harmonicGains: [1.0, 0.6, 0.3, 0.15, 0.08],
       attack: 0.01,
-      decay: 0.05,
+      decay: 0.04,
       sustain: 0.2,
-      release: 1.5,
-      filterFreq: 8000,
-      resonance: 3.0,
-      rhythmPattern: [0, 1, 0, 1, 0, 1, 0, 1], // Constant rhythm
-      chordIntervals: [0, 4, 7], // Bright triads
-      scaleMode: 'tizita'
+      release: 0.6,
+      filterFreq: 3200,
+      resonance: 1.5,
+      pattern: [0, 2, 4, 1, 5, 3, 6, 2]
     },
     {
-      name: 'dohol_bass',
-      scale: [65.41, 73.42, 82.41, 87.31, 98.00, 110.00, 123.47, 130.81], // Bass frequencies
-      waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.8, 0.3],
-      harmonicGains: [1.0, 0.4, 0.2],
-      attack: 0.001,
-      decay: 0.03,
+      name: 'krar',
+      scale: [207.65, 233.08, 261.63, 311.13, 349.23, 415.30, 523.25, 622.25],
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 0.5, 0.2],
+      harmonicGains: [1.0, 0.4, 0.15],
+      attack: 0.01,
+      decay: 0.02,
       sustain: 0.15,
-      release: 0.6,
-      filterFreq: 600,
-      resonance: 6.0,
-      rhythmPattern: [1, 0, 0, 0, 1, 0, 1, 0], // Sparse bass pattern
-      chordIntervals: [0, 7], // Octaves and fifths
-      scaleMode: 'bati'
+      release: 0.8,
+      filterFreq: 4000,
+      resonance: 3.0,
+      pattern: [0, 4, 2, 6, 1, 5, 3, 0]
+    },
+    {
+      name: 'flute',
+      scale: [277.18, 311.13, 349.23, 415.30, 466.16, 554.37, 622.25, 739.99],
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.3],
+      harmonicGains: [1.0, 0.4],
+      attack: 0.1,
+      decay: 0.03,
+      sustain: 0.7,
+      release: 0.4,
+      filterFreq: 4200,
+      resonance: 1.0,
+      pattern: [0, 3, 1, 5, 2, 6, 4, 0]
+    },
+    {
+      name: 'conga_low',
+      scale: [174.61, 196.00, 220.00, 246.94, 277.18, 311.13, 349.23, 392.00],
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 1.8],
+      harmonicGains: [1.0, 0.3],
+      attack: 0.001,
+      decay: 0.01,
+      sustain: 0.05,
+      release: 0.15,
+      filterFreq: 1000,
+      resonance: 8.0,
+      pattern: [0, 0, 2, 0, 3, 0, 1, 2]
+    },
+    {
+      name: 'conga_high',
+      scale: [261.63, 293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33],
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1, 2.0],
+      harmonicGains: [1.0, 0.25],
+      attack: 0.001,
+      decay: 0.008,
+      sustain: 0.04,
+      release: 0.12,
+      filterFreq: 1600,
+      resonance: 10.0,
+      pattern: [0, 2, 0, 4, 1, 0, 3, 2]
     }
-  ], [ethioScales]);
+  ], []);
 
   // Initialize audio
   useEffect(() => {
@@ -260,7 +191,7 @@ export const ResizableSticker = ({
     }
   }, [globalVolume, sticker.volume]);
 
-  // Enhanced polyrhythmic step sound with scale-aware note selection and chord playing
+  // Optimized step sound with MP3 support
   const playStepSound = useCallback(async () => {
     if (!isCurrentStep || !isPlaying) return;
 
@@ -279,77 +210,38 @@ export const ResizableSticker = ({
       const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioInstruments.length;
       const instrument = ethioInstruments[instrumentIndex];
       
-      // Polyrhythmic pattern check - only play if rhythm pattern allows
-      const rhythmStep = stickerProps.stepIndex % instrument.rhythmPattern.length;
-      if (!instrument.rhythmPattern[rhythmStep]) return;
+      const noteIndex = instrument.pattern[stickerProps.stepIndex % instrument.pattern.length];
+      const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
-      // Use sticker's scale mode or global scale mode
-      const currentScaleMode = sticker.scaleMode || globalScaleMode;
-      const currentScale = ethioScales[currentScaleMode as keyof typeof ethioScales] || instrument.scale;
-      
-      // Scale-aware note selection based on sticker position and size
-      const scalePosition = Math.floor((stickerProps.width + stickerProps.height) / 40) % currentScale.length;
-      const noteFreq = currentScale[scalePosition];
-      
-      // Chord playing - play multiple notes based on sticker size
-      const shouldPlayChord = stickerProps.width > 120 || stickerProps.height > 120;
-      const notesToPlay = shouldPlayChord ? instrument.chordIntervals : [0];
-      
-      const baseVolume = Math.min((stickerProps.width + stickerProps.height) / 200 * globalVolume * stickerProps.volume * 0.08, 0.12);
+      const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.1, 0.15);
       const now = audioContextRef.current.currentTime;
       
-        // Play each note in the chord (or single note)
-        notesToPlay.forEach((interval, chordIndex) => {
-          const chordNoteIndex = (scalePosition + interval) % currentScale.length;
-          const chordNoteFreq = currentScale[chordNoteIndex];
-        const chordVolume = baseVolume / Math.sqrt(notesToPlay.length); // Reduce volume for chords
+      // Simplified audio generation
+      for (let i = 0; i < instrument.harmonics.length; i++) {
+        const osc = audioContextRef.current.createOscillator();
+        const gain = audioContextRef.current.createGain();
+        const filter = audioContextRef.current.createBiquadFilter();
         
-        // Create harmonics for each chord note
-        for (let i = 0; i < instrument.harmonics.length; i++) {
-          const osc = audioContextRef.current.createOscillator();
-          const gain = audioContextRef.current.createGain();
-          const filter = audioContextRef.current.createBiquadFilter();
-          const panner = audioContextRef.current.createStereoPanner();
-          
-          osc.type = instrument.waveType;
-          osc.frequency.setValueAtTime(chordNoteFreq * instrument.harmonics[i], now);
-          
-          // Stereo positioning based on chord note
-          panner.pan.setValueAtTime((chordIndex - notesToPlay.length / 2) * 0.3, now);
-          
-          const harmonicGain = instrument.harmonicGains[i] * chordVolume;
-          gain.gain.setValueAtTime(0, now);
-          gain.gain.linearRampToValueAtTime(harmonicGain, now + instrument.attack);
-          gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * instrument.sustain, 0.001), now + instrument.attack + instrument.decay);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + instrument.release);
-          
-          // Enhanced filtering with modulation
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(instrument.filterFreq, now);
-          filter.frequency.exponentialRampToValueAtTime(instrument.filterFreq * 0.7, now + instrument.release);
-          filter.Q.setValueAtTime(instrument.resonance, now);
-          
-          // Add subtle vibrato for melodic instruments
-          if (instrument.name.includes('flute') || instrument.name.includes('violin')) {
-            const lfo = audioContextRef.current.createOscillator();
-            const lfoGain = audioContextRef.current.createGain();
-            lfo.frequency.setValueAtTime(5, now); // 5Hz vibrato
-            lfoGain.gain.setValueAtTime(chordNoteFreq * 0.02, now); // 2% modulation depth
-            lfo.connect(lfoGain);
-            lfoGain.connect(osc.frequency);
-            lfo.start(now);
-            lfo.stop(now + instrument.release);
-          }
-          
-          osc.connect(filter);
-          filter.connect(gain);
-          gain.connect(panner);
-          panner.connect(audioContextRef.current.destination);
-          
-          osc.start(now + chordIndex * 0.01); // Slight chord spread
-          osc.stop(now + instrument.release);
-        }
-      });
+        osc.type = instrument.waveType;
+        osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], now);
+        
+        const harmonicGain = instrument.harmonicGains[i] * volume;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(harmonicGain, now + instrument.attack);
+        gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * instrument.sustain, 0.001), now + instrument.attack + instrument.decay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + instrument.release);
+        
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(instrument.filterFreq, now);
+        filter.Q.setValueAtTime(instrument.resonance, now);
+        
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioContextRef.current.destination);
+        
+        osc.start(now);
+        osc.stop(now + instrument.release);
+      }
       
     } catch (error) {
       console.error("Audio error:", error);
@@ -565,42 +457,6 @@ export const ResizableSticker = ({
         } ${isCurrentStep ? 'animate-pulse scale-110 brightness-125' : ''}`}
         draggable={false}
       />
-      
-      {/* Scale Mode Indicator */}
-      {isSelected && (
-        <div className="absolute -top-6 left-0 right-0 text-center">
-          <div className="inline-block px-2 py-1 text-xs font-bold bg-primary/80 text-primary-foreground rounded-full">
-            {sticker.scaleMode || globalScaleMode || 'tizita'}
-          </div>
-        </div>
-      )}
-      
-      {/* Rhythm Pattern Indicator */}
-      {isPlaying && (
-        <div className="absolute -bottom-8 left-0 right-0 flex justify-center">
-          <div className="flex gap-1">
-            {ethioInstruments[sticker.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioInstruments.length]?.rhythmPattern.map((beat, index) => (
-              <div
-                key={index}
-                className={`w-2 h-2 rounded-full transition-all duration-100 ${
-                  beat === 1 
-                    ? (index === (sticker.stepIndex % 8) ? 'bg-accent scale-125' : 'bg-primary/60') 
-                    : 'bg-muted/40'
-                }`}
-              />
-            )) || []}
-          </div>
-        </div>
-      )}
-      
-      {/* Chord Indicator for Large Stickers */}
-      {(sticker.width > 120 || sticker.height > 120) && isCurrentStep && (
-        <div className="absolute top-2 right-2">
-          <div className="w-3 h-3 bg-accent rounded-full animate-pulse">
-            <div className="w-full h-full bg-accent-foreground/20 rounded-full animate-ping"></div>
-          </div>
-        </div>
-      )}
       
     </div>
   );
