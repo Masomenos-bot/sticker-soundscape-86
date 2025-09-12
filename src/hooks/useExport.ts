@@ -102,7 +102,80 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     }
   };
 
+  const startVideoRecording = async () => {
+    if (!canvasRef.current || isRecording) return;
+
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          width: { ideal: canvasRef.current.offsetWidth },
+          height: { ideal: canvasRef.current.offsetHeight }
+        },
+        audio: true
+      });
+
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9'
+      });
+
+      recordedChunksRef.current = [];
+      mediaRecorderRef.current = mediaRecorder;
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const timestamp = Date.now();
+        
+        const videoItem: VideoGalleryItem = {
+          id: `video-${timestamp}`,
+          url,
+          timestamp,
+          name: `recording-${timestamp}.webm`
+        };
+
+        setExportedVideos(prev => [...prev, videoItem]);
+        toast("Video recorded successfully! 🎥", { duration: 2000 });
+        
+        // Stop all tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      toast("Recording started! Click again to stop.", { duration: 2000 });
+
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      toast("Failed to start recording. Please allow screen capture.", { duration: 3000 });
+    }
+  };
+
+  const stopVideoRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  const handleVideoRecord = async () => {
+    if (isRecording) {
+      stopVideoRecording();
+    } else {
+      await startVideoRecording();
+    }
+  };
+
   const handleDeleteVideo = (videoId: string) => {
+    const video = exportedVideos.find(v => v.id === videoId);
+    if (video) {
+      URL.revokeObjectURL(video.url);
+    }
     setExportedVideos(prev => prev.filter(video => video.id !== videoId));
   };
 
@@ -110,6 +183,7 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     exportedVideos,
     isRecording,
     handleExport,
+    handleVideoRecord,
     handleDeleteVideo,
     setExportedVideos
   };

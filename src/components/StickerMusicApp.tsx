@@ -188,12 +188,11 @@ const StickerMusicApp = () => {
                   />
                 </button>
                 <button
-                  onClick={() => {}} // Video export to be implemented
-                  disabled={exportTools.isRecording}
+                  onClick={exportTools.handleVideoRecord}
                   className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
-                    exportTools.isRecording ? 'opacity-50 cursor-not-allowed' : ''
+                    exportTools.isRecording ? 'bg-red-500/20' : ''
                   }`}
-                  title="Export video (coming soon)"
+                  title={exportTools.isRecording ? "Stop recording" : "Start video recording"}
                 >
                   <Video className={`w-6 h-6 ${exportTools.isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
                 </button>
@@ -232,16 +231,12 @@ const StickerMusicApp = () => {
           </div>
 
           {/* Media Gallery */}
-          {exportTools.exportedVideos.length > 0 && (
-            <div className="w-full">
-              <Card className="p-4 bg-gradient-card shadow-card border-0">
-                <MediaGallery
-                  videos={exportTools.exportedVideos}
-                  onDeleteVideo={exportTools.handleDeleteVideo}
-                />
-              </Card>
-            </div>
-          )}
+          <div className="w-full">
+            <MediaGallery
+              videos={exportTools.exportedVideos}
+              onDeleteVideo={exportTools.handleDeleteVideo}
+            />
+          </div>
         </div>
       </div>
     </div>
