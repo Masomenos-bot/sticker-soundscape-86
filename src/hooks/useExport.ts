@@ -116,30 +116,35 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     if (!canvasRef.current || isRecording) return;
     
     setIsRecording(true);
-    toast("Creating playable 8-second video...", { duration: 2000 });
+    toast("Creating 8-second video from canvas...", { duration: 2000 });
     
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       
-      // Use standard dimensions without scaling to avoid issues
+      // Set canvas dimensions
       canvas.width = canvasRef.current.offsetWidth;
       canvas.height = canvasRef.current.offsetHeight;
 
-      const stream = canvas.captureStream(15); // 15 fps for good balance
+      const stream = canvas.captureStream(10); // 10 fps for better performance
       
-      // Use the most basic supported format
-      let recorder;
-      try {
-        // Try the most basic webm first
-        recorder = new MediaRecorder(stream);
-      } catch (error) {
-        console.error('Basic MediaRecorder failed:', error);
-        setIsRecording(false);
-        toast("Video recording not supported in this browser", { duration: 3000 });
-        return;
+      // Check supported mime types
+      const supportedTypes = [
+        'video/webm;codecs=vp9',
+        'video/webm;codecs=vp8', 
+        'video/webm',
+        'video/mp4'
+      ];
+      
+      let mimeType = 'video/webm';
+      for (const type of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(type)) {
+          mimeType = type;
+          break;
+        }
       }
 
+      const recorder = new MediaRecorder(stream, { mimeType });
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
@@ -147,7 +152,7 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
+        const blob = new Blob(chunks, { type: mimeType });
         const url = URL.createObjectURL(blob);
         const timestamp = Date.now();
         
@@ -155,11 +160,11 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
           id: `video-${timestamp}`,
           url,
           timestamp,
-          name: `playable-video-${timestamp}.webm`
+          name: `canvas-video-${timestamp}.webm`
         };
 
         setExportedVideos(prev => [...prev, videoItem]);
-        toast("Playable video added to gallery! 🎥", { duration: 2000 });
+        toast("8-second video added to gallery! 🎥", { duration: 2000 });
         setIsRecording(false);
       };
 
@@ -167,7 +172,7 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
 
       // Capture frames for 8 seconds
       const duration = 8000; // 8 seconds
-      const frameRate = 15; // 15 fps
+      const frameRate = 10; // 10 fps
       let frameCount = 0;
       const totalFrames = (duration / 1000) * frameRate;
 
@@ -180,13 +185,12 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
         try {
           const frameCanvas = await html2canvas(canvasRef.current!, {
             backgroundColor: null,
-            scale: 1, // Standard scale to avoid issues
+            scale: 0.8,
             useCORS: true,
             allowTaint: true,
             logging: false
           });
 
-          // Clear and draw frame
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(frameCanvas, 0, 0, canvas.width, canvas.height);
           
@@ -194,20 +198,16 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
           setTimeout(captureFrame, 1000 / frameRate);
         } catch (error) {
           console.error('Frame capture error:', error);
-          frameCount++;
           setTimeout(captureFrame, 1000 / frameRate);
         }
       };
 
-      // Start capturing
-      setTimeout(() => captureFrame(), 200);
+      setTimeout(() => captureFrame(), 100);
 
     } catch (error) {
       console.error('Video export failed:', error);
-      toast("Video export failed - using fallback method", { duration: 2000 });
+      toast("Video export failed - browser may not support video recording", { duration: 3000 });
       setIsRecording(false);
-      // Just export as GIF if video fails completely
-      exportAsGIF();
     }
   };
 
