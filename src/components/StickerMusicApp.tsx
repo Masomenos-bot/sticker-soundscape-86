@@ -472,198 +472,39 @@ const StickerMusicApp = () => {
     if (!canvasRef.current || isRecording) return;
     
     setIsRecording(true);
-    toast("🎬 Recording 8-second video...", { duration: 2000 });
+    toast("🎬 Starting screen recording for 10 seconds...", { duration: 3000 });
 
     try {
-      // Ensure audio is initialized and playing
+      // Ensure audio is initialized
       if (!audioInitialized) {
         await initializeAudio();
       }
 
+      // Ensure playback is running
       if (!isPlaying) {
         await togglePlayback();
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // Give audio time to start
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Create recording canvas that's appended to DOM (required for captureStream)
-      const recordCanvas = document.createElement('canvas');
-      recordCanvas.width = 1280;
-      recordCanvas.height = 720;
-      recordCanvas.style.position = 'fixed';
-      recordCanvas.style.top = '-9999px';
-      recordCanvas.style.left = '-9999px';
-      recordCanvas.style.zIndex = '-1';
-      document.body.appendChild(recordCanvas);
-      
-      const ctx = recordCanvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas context failed');
-
-      // Get video stream from canvas
-      const videoStream = recordCanvas.captureStream(30);
-      
-      // Try to get microphone for audio (optional)
-      let audioStream = null;
-      try {
-        audioStream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false
-          } 
-        });
-        toast("🎤 Recording with microphone audio", { duration: 1000 });
-      } catch (audioError) {
-        console.log('No microphone access, video only');
-      }
-
-      // Combine streams
-      const tracks = [...videoStream.getVideoTracks()];
-      if (audioStream) {
-        tracks.push(...audioStream.getAudioTracks());
-      }
-      
-      const combinedStream = new MediaStream(tracks);
-
-      // Create MediaRecorder
-      const mediaRecorder = new MediaRecorder(combinedStream, {
-        mimeType: 'video/webm; codecs=vp8',
-        videoBitsPerSecond: 3000000
+      // Use getDisplayMedia for high-quality screen recording
+      const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+        video: {
+          mediaSource: 'screen',
+          width: { ideal: 1920, max: 1920 },
+          height: { ideal: 1080, max: 1080 },
+          frameRate: { ideal: 30, max: 60 }
+        },
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          sampleRate: 44100
+        }
       });
 
-      recordedChunksRef.current = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        // Clean up
-        document.body.removeChild(recordCanvas);
-        combinedStream.getTracks().forEach(track => track.stop());
-        
-        if (recordedChunksRef.current.length > 0) {
-          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
-          const url = URL.createObjectURL(blob);
-          const timestamp = Date.now();
-          
-          // Add to gallery instead of downloading
-          const newVideo: VideoGalleryItem = {
-            id: `video-${timestamp}`,
-            url,
-            timestamp,
-            name: `music-canvas-${timestamp}.webm`
-          };
-          
-          setExportedVideos(prev => [newVideo, ...prev]);
-          toast("🎬 Video saved to gallery!", { duration: 2000 });
-        } else {
-          toast("❌ Video recording failed", { duration: 2000 });
-        }
-        setIsRecording(false);
-      };
-
-      // Start recording
-      mediaRecorder.start(100);
-
-      // Animate canvas for 8 seconds
-      const startTime = Date.now();
-      const duration = 8000;
-      let frameCount = 0;
-
-      const animate = async () => {
-        const elapsed = Date.now() - startTime;
-        
-        if (elapsed < duration && mediaRecorder.state === 'recording') {
-          try {
-            // Capture current canvas state
-            const canvasElement = canvasRef.current!;
-            const screenshot = await html2canvas(canvasElement, {
-              backgroundColor: '#f8f9fa',
-              scale: 0.8, // Reduce for performance
-              useCORS: true,
-              allowTaint: true
-            });
-            
-            // Draw to recording canvas
-            ctx.fillStyle = '#f8f9fa';
-            ctx.fillRect(0, 0, recordCanvas.width, recordCanvas.height);
-            ctx.drawImage(screenshot, 0, 0, recordCanvas.width, recordCanvas.height);
-            
-            frameCount++;
-            requestAnimationFrame(animate);
-          } catch (error) {
-            console.error('Frame error:', error);
-            requestAnimationFrame(animate);
-          }
-        } else {
-          // Stop recording after duration
-          if (mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-          }
-        }
-      };
-
-      animate();
-
-    } catch (error) {
-      console.error('Video export failed:', error);
-      setIsRecording(false);
-      toast("❌ Video export failed", { duration: 2000 });
-    }
-  };
-
-  const handleDeleteVideo = (videoId: string) => {
-    setExportedVideos(prev => prev.filter(video => video.id !== videoId));
-  };
-
-  const handleControlBoardToggle = () => {
-    const willBeCollapsed = !isControlBoardCollapsed;
-    setIsControlBoardCollapsed(willBeCollapsed);
-    
-    // Only deselect stickers when closing the control board
-    if (willBeCollapsed) {
-      setSelectedStickers([]);
-      setIsMultiSelectMode(false);
-    }
-  };
-      const offscreenCtx = offscreenCanvas.getContext('2d');
-      
-      if (!offscreenCtx) {
-        throw new Error('Could not create offscreen canvas context');
-      }
-
-      // Create video stream from canvas
-      const canvasStream = offscreenCanvas.captureStream(30); // 30 FPS
-      
-      // Create audio context destination for capturing audio
-      let audioStream: MediaStream | null = null;
-      if (audioContextRef.current) {
-        try {
-          const audioDestination = audioContextRef.current.createMediaStreamDestination();
-          
-          // Connect all playing audio sources to the destination
-          // Note: Audio capture from Web Audio API requires specific setup
-          audioStream = audioDestination.stream;
-          
-          audioStream = audioDestination.stream;
-        } catch (audioError) {
-          console.log('Audio capture setup failed:', audioError);
-        }
-      }
-
-      // Combine video and audio streams
-      const combinedStream = new MediaStream();
-      canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-      if (audioStream && audioStream.getAudioTracks().length > 0) {
-        audioStream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
-      }
-
-      // Create MediaRecorder
-      const mediaRecorder = new MediaRecorder(combinedStream, {
+      const mediaRecorder = new MediaRecorder(stream, {
         mimeType: 'video/webm; codecs=vp8,opus',
-        videoBitsPerSecond: 4000000 // 4 Mbps for good quality
+        videoBitsPerSecond: 5000000 // High quality
       });
 
       recordedChunksRef.current = [];
@@ -675,11 +516,10 @@ const StickerMusicApp = () => {
       };
 
       mediaRecorder.onstop = () => {
-        // Cleanup streams
-        combinedStream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(track => track.stop());
         
         if (recordedChunksRef.current.length > 0) {
-          const blob = new Blob(recordedChunksRef.current, { type: 'video/mp4' });
+          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
           const url = URL.createObjectURL(blob);
           const timestamp = Date.now();
           
@@ -687,73 +527,50 @@ const StickerMusicApp = () => {
             id: `video-${timestamp}`,
             url,
             timestamp,
-            name: `canvas-sequence-${timestamp}.mp4`
+            name: `music-sequence-${timestamp}.webm`
           };
           
           setExportedVideos(prev => [newVideo, ...prev]);
-          toast("🎬 8-second MP4 video created successfully!", { duration: 3000 });
+          toast("🎬 Video recorded successfully with audio!", { duration: 3000 });
         } else {
           toast("❌ No video data recorded", { duration: 2000 });
         }
         setIsRecording(false);
       };
 
-      // Start recording
-      mediaRecorder.start(100);
-
-      // Record for 8 seconds with animation frames
-      const startTime = Date.now();
-      const recordDuration = 8000; // 8 seconds
-      let frameCount = 0;
-
-      const captureFrame = async () => {
-        const elapsed = Date.now() - startTime;
-        
-        if (elapsed < recordDuration && mediaRecorder.state === 'recording') {
-          try {
-            // Capture current canvas state using html2canvas
-            const screenshot = await html2canvas(canvasElement, {
-              backgroundColor: '#f8f9fa',
-              scale: 1,
-              useCORS: true,
-              allowTaint: true,
-              width: rect.width,
-              height: rect.height,
-              windowWidth: rect.width,
-              windowHeight: rect.height
-            });
-            
-            // Draw to offscreen canvas
-            offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-            offscreenCtx.drawImage(screenshot, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
-            
-            frameCount++;
-            
-            // Continue capturing
-            requestAnimationFrame(captureFrame);
-          } catch (frameError) {
-            console.error('Frame capture error:', frameError);
-            requestAnimationFrame(captureFrame);
-          }
-        } else {
-          // Stop recording after 8 seconds
-          if (mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-          }
-        }
+      mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        toast("❌ Recording failed", { duration: 2000 });
+        setIsRecording(false);
       };
 
-      // Start frame capture
-      captureFrame();
+      // Start recording
+      mediaRecorder.start(100);
       
-      toast("📹 Recording canvas for 8 seconds...", { duration: 2000 });
+      toast("📹 Recording started! Focus on the canvas area. Recording will stop in 10 seconds.", { 
+        duration: 4000 
+      });
 
-      console.error('Canvas video export failed:', error);
+      // Stop recording after 10 seconds
+      setTimeout(() => {
+        if (mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+        }
+      }, 10000);
+
+    } catch (error) {
+      console.error('Screen recording failed:', error);
       setIsRecording(false);
       
-      // Fallback to static PNG
-      toast("Video export failed, creating PNG instead...", { duration: 2000 });
-      exportAsPNG();
+      if (error.name === 'NotAllowedError') {
+        toast("❌ Screen recording permission denied. Please allow screen sharing.", { 
+          duration: 4000 
+        });
+      } else {
+        toast("❌ Screen recording not supported or failed. Try the PNG export instead.", { 
+          duration: 3000 
+        });
+      }
     }
   };
 
