@@ -53,18 +53,27 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
+    event.stopPropagation();
     event.dataTransfer.dropEffect = "copy";
-    event.currentTarget.classList.add("drop-zone-active");
+    console.log("Drag over canvas");
+  }, []);
+
+  const handleDragEnter = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    console.log("Drag enter canvas");
   }, []);
 
   const handleDragLeave = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    event.currentTarget.classList.remove("drop-zone-active");
+    event.stopPropagation();
+    console.log("Drag leave canvas");
   }, []);
 
   const handleDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
-    event.currentTarget.classList.remove("drop-zone-active");
+    event.stopPropagation();
+    console.log("Drop event triggered on canvas");
 
     try {
       const stickerDataString = event.dataTransfer.getData("application/json");
@@ -102,6 +111,7 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
           WebkitTouchCallout: 'none',
         }}
         onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
