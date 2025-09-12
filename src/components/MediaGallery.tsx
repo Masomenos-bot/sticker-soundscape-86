@@ -75,9 +75,8 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({ videos, onDeleteVide
                   className="w-full h-full object-cover"
                   controls
                   preload="metadata"
-                  muted={false}
-                  onError={(e) => {
-                    console.error("Video playback error for:", item.name, e);
+                  onError={() => {
+                    console.error("Video playback error for:", item.name);
                   }}
                 />
               )}

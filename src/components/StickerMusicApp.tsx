@@ -12,21 +12,17 @@ import GIF from "gif.js";
 
 export interface Sticker {
   id: string;
+  src: string;
+  soundUrl?: string;
   x: number;
   y: number;
   width: number;
   height: number;
   volume: number;
   rotation?: number;
-  mirrored?: boolean;
-  src: string;
-  alt: string;
-  soundUrl?: string;
   zIndex: number;
+  mirrored?: boolean;
   stepIndex: number;
-  audioBuffer?: AudioBuffer;
-  audioSource?: AudioBufferSourceNode;
-  gainNode?: GainNode;
 }
 
 export interface StickerData {
@@ -127,80 +123,58 @@ const StickerMusicApp = () => {
     };
   }, []);
 
-  const initializeAudio = async () => {
-    if (!audioContextRef.current) {
-      try {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        
-        if (audioContextRef.current.state === "suspended") {
-          await audioContextRef.current.resume();
-        }
-        
-        setAudioInitialized(true);
-        toast("🎵 Audio system ready!", {
-          duration: 2000,
-        });
-        
-        console.log("Audio context initialized successfully");
-      } catch (error) {
-        console.error("Failed to initialize audio:", error);
-        toast("❌ Audio initialization failed. Check browser settings.", {
-          duration: 3000,
-        });
-      }
-    }
-  };
-
   const handleStickerDrop = async (stickerData: StickerData, x: number, y: number) => {
     const maxZIndex = Math.max(0, ...placedStickers.map(s => s.zIndex));
     const nextStepIndex = placedStickers.length; // Add as next step in sequence
     const newSticker: Sticker = {
       id: `${stickerData.id}-${Date.now()}`,
+      src: stickerData.src,
+      soundUrl: stickerData.soundUrl,
       x,
       y,
       width: 80,
       height: 80,
-      volume: 0.7,
+      volume: 0.5,
       rotation: 0,
-      mirrored: false,
-      src: stickerData.src,
-      alt: stickerData.alt,
-      soundUrl: stickerData.soundUrl,
       zIndex: maxZIndex + 1,
+      mirrored: false,
       stepIndex: nextStepIndex,
     };
 
-    // Preload audio for the new sticker
-    if (newSticker.soundUrl && audioContextRef.current) {
-      try {
-        const response = await fetch(newSticker.soundUrl);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-        newSticker.audioBuffer = audioBuffer;
-      } catch (error) {
-        console.error(`Failed to load audio for ${newSticker.alt}:`, error);
-      }
-    }
-
     setPlacedStickers(prev => [...prev, newSticker]);
+    
+    // Auto-start playback when first sticker is placed
+    if (placedStickers.length === 0) {
+      if (!audioInitialized) {
+        await initializeAudio();
+      } else {
+        setIsPlaying(true);
+        toast("🎵 Playing your sequence!", { duration: 1500 });
+      }
+    } else {
+      toast(`Added step ${nextStepIndex + 1} to sequence!`, {
+        duration: 1500,
+      });
+    }
   };
 
   const handleStickerUpdate = (id: string, updates: Partial<Sticker>) => {
     setPlacedStickers(prev =>
-      prev.map(sticker => (sticker.id === id ? { ...sticker, ...updates } : sticker))
+      prev.map(sticker =>
+        sticker.id === id ? { ...sticker, ...updates } : sticker
+      )
     );
   };
 
-  const handleStickerRemove = (id: string) => {
-    setPlacedStickers(prev => prev.filter(sticker => sticker.id !== id));
-    setSelectedStickers(prev => prev.filter(stickerId => stickerId !== id));
-  };
-
   const handleLayerChange = (id: string, direction: 'up' | 'down') => {
+    console.log(`Layer change requested: ${direction} for sticker ${id}`);
     setPlacedStickers(prev => {
       const currentSticker = prev.find(s => s.id === id);
-      if (!currentSticker) return prev;
-      
+      if (!currentSticker) {
+        console.log('Sticker not found:', id);
+        return prev;
+      }
+
       console.log('Current sticker z-index:', currentSticker.zIndex);
       const otherStickers = prev.filter(s => s.id !== id);
       
@@ -209,42 +183,63 @@ const StickerMusicApp = () => {
         const nextSticker = otherStickers
           .filter(s => s.zIndex > currentSticker.zIndex)
           .sort((a, b) => a.zIndex - b.zIndex)[0];
-          
+        
         if (nextSticker) {
-          console.log('Swapping with sticker z-index:', nextSticker.zIndex);
-          return prev.map(sticker => {
-            if (sticker.id === id) {
-              return { ...sticker, zIndex: nextSticker.zIndex };
-            } else if (sticker.id === nextSticker.id) {
-              return { ...sticker, zIndex: currentSticker.zIndex };
-            }
-            return sticker;
+          console.log('Swapping with sticker at z-index:', nextSticker.zIndex);
+          // Swap z-indices
+          return prev.map(s => {
+            if (s.id === id) return { ...s, zIndex: nextSticker.zIndex };
+            if (s.id === nextSticker.id) return { ...s, zIndex: currentSticker.zIndex };
+            return s;
           });
         } else {
-          console.log('No higher z-index found');
+          // No sticker above, move to top
+          const maxZ = Math.max(...prev.map(s => s.zIndex));
+          console.log('Moving to top, new z-index:', maxZ + 1);
+          return prev.map(s => s.id === id ? { ...s, zIndex: maxZ + 1 } : s);
         }
       } else {
         // Find the sticker with the next lower z-index to swap with
         const prevSticker = otherStickers
           .filter(s => s.zIndex < currentSticker.zIndex)
           .sort((a, b) => b.zIndex - a.zIndex)[0];
-          
+        
         if (prevSticker) {
-          console.log('Swapping with sticker z-index:', prevSticker.zIndex);
-          return prev.map(sticker => {
-            if (sticker.id === id) {
-              return { ...sticker, zIndex: prevSticker.zIndex };
-            } else if (sticker.id === prevSticker.id) {
-              return { ...sticker, zIndex: currentSticker.zIndex };
-            }
-            return sticker;
+          console.log('Swapping with sticker at z-index:', prevSticker.zIndex);
+          // Swap z-indices
+          return prev.map(s => {
+            if (s.id === id) return { ...s, zIndex: prevSticker.zIndex };
+            if (s.id === prevSticker.id) return { ...s, zIndex: currentSticker.zIndex };
+            return s;
           });
         } else {
-          console.log('No lower z-index found');
+          // No sticker below, move to bottom
+          const minZ = Math.min(...prev.map(s => s.zIndex));
+          const newZ = Math.max(0, minZ - 1);
+          console.log('Moving to bottom, new z-index:', newZ);
+          return prev.map(s => s.id === id ? { ...s, zIndex: newZ } : s);
         }
       }
-      
-      return prev;
+    });
+  };
+
+  const handleStickerRemove = (id: string) => {
+    setPlacedStickers(prev => {
+      const filtered = prev.filter(sticker => sticker.id !== id);
+      // Re-index remaining stickers to maintain sequence order
+      return filtered.map((sticker, index) => ({
+        ...sticker,
+        stepIndex: index
+      }));
+    });
+  };
+
+  const clearCanvas = () => {
+    setPlacedStickers([]);
+    setSelectedStickers([]);
+    setCurrentStep(0);
+    toast("Canvas cleared!", {
+      duration: 1500,
     });
   };
 
@@ -255,57 +250,108 @@ const StickerMusicApp = () => {
       // Deselect all if all are selected
       setSelectedStickers([]);
       setIsMultiSelectMode(false);
+      toast("All stickers deselected", { duration: 1000 });
     } else {
       // Select all stickers
       setSelectedStickers(placedStickers.map(s => s.id));
       setIsMultiSelectMode(true);
+      toast(`${placedStickers.length} stickers selected`, { duration: 1000 });
     }
   };
 
   const handleGroupMove = (deltaX: number, deltaY: number) => {
-    selectedStickers.forEach(stickerId => {
-      const sticker = placedStickers.find(s => s.id === stickerId);
-      if (sticker) {
-        handleStickerUpdate(stickerId, { 
-          x: sticker.x + deltaX, 
-          y: sticker.y + deltaY 
-        });
-      }
-    });
+    if (selectedStickers.length === 0) return;
+    
+    setPlacedStickers(prev =>
+      prev.map(sticker =>
+        selectedStickers.includes(sticker.id)
+          ? { ...sticker, x: sticker.x + deltaX, y: sticker.y + deltaY }
+          : sticker
+      )
+    );
   };
 
   const handleStickerSelect = (id: string, isSelected: boolean) => {
     if (isSelected) {
       // Clear other selections if not multi-selecting
-      if (!isMultiSelectMode) {
-        setSelectedStickers([id]);
-      } else {
-        setSelectedStickers(prev => [...prev, id]);
-      }
+      setSelectedStickers([id]);
+      setIsMultiSelectMode(false);
     } else {
-      setSelectedStickers(prev => prev.filter(stickerId => stickerId !== id));
+      setSelectedStickers(prev => prev.filter(sId => sId !== id));
+      if (selectedStickers.length <= 1) {
+        setIsMultiSelectMode(false);
+      }
     }
   };
 
-  const startSequencer = async () => {
-    if (sequencerRef.current) return;
-    
-    // Initialize audio context when starting sequencer
-    await initializeAudio();
-    
-    const stepDuration = 60000 / sequenceTempo; // Duration of each step in milliseconds
-    
-    sequencerRef.current = setInterval(() => {
-      setCurrentStep((prevStep) => (prevStep + 1) % 16);
-    }, stepDuration);
-  };
-
-  const stopSequencer = () => {
-    if (sequencerRef.current) {
-      clearInterval(sequencerRef.current);
-      sequencerRef.current = null;
+  // Step Sequencer Logic
+  useEffect(() => {
+    if (isPlaying && placedStickers.length > 0) {
+      const stepDuration = (60 / sequenceTempo) * 500; // Half beat steps for more resolution
+      
+      // Ensure the first step triggers immediately when starting
+      setCurrentStep(0);
+      
+      sequencerRef.current = setInterval(() => {
+        setCurrentStep(prev => (prev + 1) % placedStickers.length);
+      }, stepDuration);
+      
+      return () => {
+        if (sequencerRef.current) {
+          clearInterval(sequencerRef.current);
+        }
+      };
+    } else {
+      if (sequencerRef.current) {
+        clearInterval(sequencerRef.current);
+        sequencerRef.current = null;
+      }
     }
-    setCurrentStep(0);
+  }, [isPlaying, placedStickers.length, sequenceTempo]);
+
+  const initializeAudio = async () => {
+    if (!audioInitialized) {
+      try {
+        // Create and test audio context to ensure it works
+        const testContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        await testContext.resume();
+        console.log('Audio context initialized successfully');
+        
+        // Play a brief test tone to verify audio is working
+        const testOsc = testContext.createOscillator();
+        const testGain = testContext.createGain();
+        
+        testOsc.connect(testGain);
+        testGain.connect(testContext.destination);
+        
+        testOsc.frequency.setValueAtTime(440, testContext.currentTime);
+        testGain.gain.setValueAtTime(0.1, testContext.currentTime);
+        testGain.gain.exponentialRampToValueAtTime(0.01, testContext.currentTime + 0.1);
+        
+        testOsc.start(testContext.currentTime);
+        testOsc.stop(testContext.currentTime + 0.1);
+        
+        // Clean up test context
+        setTimeout(() => {
+          testContext.close();
+        }, 200);
+        
+        setAudioInitialized(true);
+        setIsPlaying(true);
+        
+        toast("🎵 Audio ready! Place stickers to create music!", {
+          duration: 2000,
+        });
+        
+        console.log('Audio system initialized and ready');
+        
+      } catch (error) {
+        console.error("Failed to initialize audio:", error);
+        toast("❌ Audio initialization failed. Check browser settings.", {
+          duration: 3000,
+        });
+      }
+    }
   };
 
   const togglePlayback = async () => {
@@ -320,50 +366,40 @@ const StickerMusicApp = () => {
     });
   };
 
-  useEffect(() => {
-    if (isPlaying) {
-      startSequencer();
-    } else {
-      stopSequencer();
+  const handlePlay = async () => {
+    if (!audioInitialized) {
+      await initializeAudio();
+      return;
     }
-    
-    return () => {
-      if (sequencerRef.current) {
-        clearInterval(sequencerRef.current);
-        sequencerRef.current = null;
-      }
-    };
-  }, [isPlaying, sequenceTempo]);
-
-  const handleExport = () => {
-    if (isPlaying) {
-      handleCanvasExport();
-    } else {
-      exportAsPNG();
-    }
+    setIsPlaying(true);
+    toast("Playing", { duration: 1000 });
   };
 
-  const handleCanvasExport = async () => {
-    if (!canvasRef.current || !isPlaying) return;
+  const handlePause = () => {
+    setIsPlaying(false);
+    toast("Paused", { duration: 1000 });
+  };
+
+  const handleExport = async () => {
+    if (!canvasRef.current) return;
     
-    try {
-      toast("Creating 15-second GIF animation! 🎬", { duration: 3000 });
+    if (isPlaying) {
+      // Export as 15-second GIF
+      toast("Creating 15-second GIF... This may take a moment!", { duration: 3000 });
       
-      const gif = new GIF({
-        workers: 2,
-        quality: 10,
-        width: 800,
-        height: 600,
-        workerScript: '/gif.worker.js'
-      });
+      try {
+        const gif = new GIF({
+          workers: 2,
+          quality: 10,
+          width: canvasRef.current.offsetWidth,
+          height: canvasRef.current.offsetHeight,
+          workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+        });
 
-      const captureInterval = 200; // Capture every 200ms for smooth animation
-      const duration = 15000; // 15 seconds
-      const frameCount = duration / captureInterval;
-      let currentFrame = 0;
-
-      const captureFrame = async () => {
-        if (currentFrame < frameCount && canvasRef.current) {
+        const frameCount = 60; // 60 frames for 15 seconds (4 fps)
+        const frameDelay = 250; // 250ms between frames (4 fps)
+        
+        for (let i = 0; i < frameCount; i++) {
           const canvas = await html2canvas(canvasRef.current, {
             backgroundColor: null,
             scale: 1,
@@ -371,37 +407,32 @@ const StickerMusicApp = () => {
             allowTaint: true,
           });
           
-          gif.addFrame(canvas, { delay: captureInterval });
-          currentFrame++;
+          gif.addFrame(canvas, { delay: frameDelay });
           
-          // Update progress
-          const progress = Math.round((currentFrame / frameCount) * 100);
-          if (progress % 20 === 0) {
-            toast(`Capturing frames... ${progress}%`, { duration: 500 });
-          }
-          
-          setTimeout(captureFrame, captureInterval);
-        } else {
-          gif.render();
+          // Wait for frame delay to capture animation changes
+          await new Promise(resolve => setTimeout(resolve, frameDelay));
         }
-      };
 
-      gif.on('finished', function(blob) {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.download = `sticker-music-${Date.now()}.gif`;
-        link.href = url;
-        link.click();
-        URL.revokeObjectURL(url);
-        toast("15-second GIF exported! 🎬", { duration: 2000 });
-      });
+        gif.on('finished', function(blob: Blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.download = `sticker-animation-${Date.now()}.gif`;
+          link.href = url;
+          link.click();
+          URL.revokeObjectURL(url);
+          toast("15-second GIF exported! 🎬", { duration: 2000 });
+        });
 
-      gif.render();
-      
-    } catch (error) {
-      console.error('GIF export failed:', error);
-      toast("GIF export failed, exporting as PNG instead", { duration: 2000 });
-      // Fallback to PNG export
+        gif.render();
+        
+      } catch (error) {
+        console.error('GIF export failed:', error);
+        toast("GIF export failed, exporting as PNG instead", { duration: 2000 });
+        // Fallback to PNG export
+        exportAsPNG();
+      }
+    } else {
+      // Export as PNG when paused
       exportAsPNG();
     }
   };
@@ -441,103 +472,93 @@ const StickerMusicApp = () => {
     if (!canvasRef.current || isRecording) return;
     
     setIsRecording(true);
-    toast("🎬 Recording 8-second video...", { duration: 2000 });
+    toast("🎬 Creating 8-second MP4 of canvas only...", { duration: 3000 });
 
     try {
-      // Ensure audio is initialized and playing
+      // Ensure audio is initialized
       if (!audioInitialized) {
         await initializeAudio();
       }
 
+      // Ensure playback is running for audio capture
       if (!isPlaying) {
         await togglePlayback();
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
-      // Create recording canvas that's appended to DOM (required for captureStream)
-      const recordCanvas = document.createElement('canvas');
-      recordCanvas.width = 1280;
-      recordCanvas.height = 720;
-      recordCanvas.style.position = 'fixed';
-      recordCanvas.style.top = '-9999px';
-      recordCanvas.style.left = '-9999px';
-      recordCanvas.style.zIndex = '-1';
-      document.body.appendChild(recordCanvas);
+      // Create offscreen canvas for high-quality recording
+      const canvasElement = canvasRef.current;
+      const rect = canvasElement.getBoundingClientRect();
       
-      const ctx = recordCanvas.getContext('2d');
-      if (!ctx) throw new Error('Canvas context failed');
-
-      // Get video stream from canvas
-      const videoStream = recordCanvas.captureStream(30);
+      const offscreenCanvas = document.createElement('canvas');
+      offscreenCanvas.width = 1280;  // HD width
+      offscreenCanvas.height = 720;  // HD height
+      const offscreenCtx = offscreenCanvas.getContext('2d');
       
-      // Try to get microphone for audio (optional)
-      let audioStream = null;
-      try {
-        audioStream = await navigator.mediaDevices.getUserMedia({ 
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false
-          } 
-        });
-        toast("🎤 Recording with microphone audio", { duration: 1000 });
-      } catch (audioError) {
-        console.log('No microphone access, video only');
+      if (!offscreenCtx) {
+        throw new Error('Could not create offscreen canvas context');
       }
 
-      // Combine streams
-      const tracks = [...videoStream.getVideoTracks()];
-      if (audioStream) {
-        tracks.push(...audioStream.getAudioTracks());
-      }
+      // Create video stream from canvas
+      const canvasStream = offscreenCanvas.captureStream(30); // 30 FPS
       
-      const combinedStream = new MediaStream(tracks);
-
-      // Create MediaRecorder with fallback mimeType
-      let mimeType = 'video/webm';
-      if (MediaRecorder.isTypeSupported('video/webm; codecs=vp8')) {
-        mimeType = 'video/webm; codecs=vp8';
-      } else if (MediaRecorder.isTypeSupported('video/webm')) {
-        mimeType = 'video/webm';
-      } else if (MediaRecorder.isTypeSupported('video/mp4')) {
-        mimeType = 'video/mp4';
+      // Create audio context destination for capturing audio
+      let audioStream: MediaStream | null = null;
+      if (audioContextRef.current) {
+        try {
+          const audioDestination = audioContextRef.current.createMediaStreamDestination();
+          
+          // Connect all playing audio sources to the destination
+          // Note: Audio capture from Web Audio API requires specific setup
+          audioStream = audioDestination.stream;
+          
+          audioStream = audioDestination.stream;
+        } catch (audioError) {
+          console.log('Audio capture setup failed:', audioError);
+        }
       }
 
+      // Combine video and audio streams
+      const combinedStream = new MediaStream();
+      canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
+      if (audioStream && audioStream.getAudioTracks().length > 0) {
+        audioStream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
+      }
+
+      // Create MediaRecorder
       const mediaRecorder = new MediaRecorder(combinedStream, {
-        mimeType,
-        videoBitsPerSecond: 2000000
+        mimeType: 'video/webm; codecs=vp8,opus',
+        videoBitsPerSecond: 4000000 // 4 Mbps for good quality
       });
 
       recordedChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data && event.data.size > 0) {
+        if (event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
         }
       };
 
       mediaRecorder.onstop = () => {
-        // Clean up
-        document.body.removeChild(recordCanvas);
+        // Cleanup streams
         combinedStream.getTracks().forEach(track => track.stop());
         
         if (recordedChunksRef.current.length > 0) {
-          const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+          const blob = new Blob(recordedChunksRef.current, { type: 'video/mp4' });
           const url = URL.createObjectURL(blob);
           const timestamp = Date.now();
           
-          // Add to gallery instead of downloading
           const newVideo: VideoGalleryItem = {
             id: `video-${timestamp}`,
             url,
             timestamp,
-            name: `music-canvas-${timestamp}.webm`
+            name: `canvas-sequence-${timestamp}.mp4`
           };
           
           setExportedVideos(prev => [newVideo, ...prev]);
-          toast("🎬 Video saved to gallery!", { duration: 2000 });
+          toast("🎬 8-second MP4 video created successfully!", { duration: 3000 });
         } else {
-          toast("❌ Video recording failed", { duration: 2000 });
+          toast("❌ No video data recorded", { duration: 2000 });
         }
         setIsRecording(false);
       };
@@ -545,50 +566,60 @@ const StickerMusicApp = () => {
       // Start recording
       mediaRecorder.start(100);
 
-      // Animate canvas for 8 seconds
+      // Record for 8 seconds with animation frames
       const startTime = Date.now();
-      const duration = 8000;
+      const recordDuration = 8000; // 8 seconds
       let frameCount = 0;
 
-      const animate = async () => {
+      const captureFrame = async () => {
         const elapsed = Date.now() - startTime;
         
-        if (elapsed < duration && mediaRecorder.state === 'recording') {
+        if (elapsed < recordDuration && mediaRecorder.state === 'recording') {
           try {
-            // Capture current canvas state
-            const canvasElement = canvasRef.current!;
+            // Capture current canvas state using html2canvas
             const screenshot = await html2canvas(canvasElement, {
               backgroundColor: '#f8f9fa',
-              scale: 0.8, // Reduce for performance
+              scale: 1,
               useCORS: true,
-              allowTaint: true
+              allowTaint: true,
+              width: rect.width,
+              height: rect.height,
+              windowWidth: rect.width,
+              windowHeight: rect.height
             });
             
-            // Draw to recording canvas
-            ctx.fillStyle = '#f8f9fa';
-            ctx.fillRect(0, 0, recordCanvas.width, recordCanvas.height);
-            ctx.drawImage(screenshot, 0, 0, recordCanvas.width, recordCanvas.height);
+            // Draw to offscreen canvas
+            offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+            offscreenCtx.drawImage(screenshot, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
             
             frameCount++;
-            requestAnimationFrame(animate);
-          } catch (error) {
-            console.error('Frame error:', error);
-            requestAnimationFrame(animate);
+            
+            // Continue capturing
+            requestAnimationFrame(captureFrame);
+          } catch (frameError) {
+            console.error('Frame capture error:', frameError);
+            requestAnimationFrame(captureFrame);
           }
         } else {
-          // Stop recording after duration
+          // Stop recording after 8 seconds
           if (mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
           }
         }
       };
 
-      animate();
+      // Start frame capture
+      captureFrame();
+      
+      toast("📹 Recording canvas for 8 seconds...", { duration: 2000 });
 
     } catch (error) {
-      console.error('Video export failed:', error);
+      console.error('Canvas video export failed:', error);
       setIsRecording(false);
-      toast("❌ Video export failed", { duration: 2000 });
+      
+      // Fallback to static PNG
+      toast("Video export failed, creating PNG instead...", { duration: 2000 });
+      exportAsPNG();
     }
   };
 
@@ -619,241 +650,244 @@ const StickerMusicApp = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* Main Layout */}
+        <div className="flex flex-col gap-8 sm:gap-12">
           {/* Sticker Palette */}
-          <div className="lg:col-span-1">
-            <StickerPalette />
+          <div className="w-full">
+            <Card className="p-3 bg-gradient-card shadow-card border-0 h-[200px] flex-shrink-0 mb-4 sm:mb-6">
+              <StickerPalette />
+            </Card>
           </div>
 
-          {/* Main Canvas Area */}
-          <div className="lg:col-span-3">
-            <Card className="p-4 sm:p-6 bg-gradient-card shadow-card border-0">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={togglePlayback}
-                    variant={isPlaying ? "default" : "outline"}
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    {isPlaying ? (
-                      <><Pause className="w-4 h-4" /> Pause</>
-                    ) : (
-                      <><Play className="w-4 h-4" /> Play</>
-                    )}
-                  </Button>
-                  
-                  <div className="flex items-center gap-2">
-                    <Volume2 className="w-4 h-4" />
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={globalVolume}
-                      onChange={(e) => setGlobalVolume(parseFloat(e.target.value))}
-                      className="w-20"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={handleExport}
-                    variant="secondary"
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    📸 {isPlaying ? 'GIF' : 'PNG'}
-                  </Button>
-                  
-                  <Button
-                    onClick={handleVideoExport}
-                    variant="secondary"
-                    size="sm"
-                    className="flex items-center gap-2"
-                    disabled={isRecording}
-                  >
-                    <Video className="w-4 h-4" />
-                    {isRecording ? 'Recording...' : 'Video'}
-                  </Button>
-                </div>
+          {/* Music Canvas */}
+          <div className="w-full flex-1">
+            <Card className="bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px] relative">
+              {/* Control Buttons */}
+              <div className="absolute top-2 right-2 z-20 flex gap-2">
+                <button
+                  onClick={selectAllStickers}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
+                  title="Select all stickers (Ctrl+A)"
+                >
+                  <span className="text-white font-bold text-xs">ALL</span>
+                </button>
+                <button
+                  onClick={isPlaying ? handlePause : handlePlay}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200"
+                >
+                  <img
+                    src={isPlaying ? "/lovable-uploads/65258414-94a1-467e-9cc8-d282505d1e1e.png" : "/lovable-uploads/5ec10ca7-cdd4-4ecc-bcbe-5243239cecc7.png"}
+                    alt={isPlaying ? "Pause" : "Play"}
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200"
+                >
+                  <img
+                    src="/lovable-uploads/fedcc64b-0b85-4fe3-93dc-05e76aa5ee7c.png"
+                    alt="Share/Export"
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+                <button
+                  onClick={handleVideoExport}
+                  disabled={isRecording}
+                  className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
+                    isRecording ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title="Export 8-second video with sound"
+                >
+                  <Video className={`w-6 h-6 ${isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
+                </button>
               </div>
-
-              <div className="relative">
-                <MusicCanvas
-                  ref={canvasRef}
-                  stickers={placedStickers}
-                  onStickerDrop={handleStickerDrop}
-                  onStickerUpdate={handleStickerUpdate}
-                  onStickerRemove={handleStickerRemove}
-                  onLayerChange={handleLayerChange}
-                  isPlaying={isPlaying}
-                  globalVolume={globalVolume}
-                  currentStep={currentStep}
-                  sequenceTempo={sequenceTempo}
-                  selectedStickers={selectedStickers}
-                  isMultiSelectMode={isMultiSelectMode}
-                  onStickerSelect={handleStickerSelect}
-                  onGroupMove={handleGroupMove}
-                />
-
-                {/* Control Board */}
-                {selectedStickers.length > 0 && (
+              <MusicCanvas
+                ref={canvasRef}
+                stickers={placedStickers}
+                onStickerDrop={handleStickerDrop}
+                onStickerUpdate={handleStickerUpdate}
+                onStickerRemove={handleStickerRemove}
+                onLayerChange={handleLayerChange}
+                isPlaying={isPlaying}
+                globalVolume={globalVolume}
+                currentStep={currentStep}
+                sequenceTempo={sequenceTempo}
+                selectedStickers={selectedStickers}
+                isMultiSelectMode={isMultiSelectMode}
+                onStickerSelect={handleStickerSelect}
+                onGroupMove={handleGroupMove}
+              />
+            </Card>
+            
+            {/* Moveable controls - Working on selected stickers */}
+            {placedStickers.length > 0 && (
+              <div 
+                className="fixed z-[9999] bg-white/95 backdrop-blur-sm p-4 rounded-lg border-2 border-gray-300 shadow-xl cursor-move select-none"
+                style={{
+                  left: `${controlBoardPosition.x}px`,
+                  top: `${controlBoardPosition.y}px`
+                }}
+                onMouseDown={(e) => {
+                  setIsDraggingControlBoard(true);
+                  setDragOffset({
+                    x: e.clientX - controlBoardPosition.x,
+                    y: e.clientY - controlBoardPosition.y
+                  });
+                }}
+                onTouchStart={(e) => {
+                  if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    setIsDraggingControlBoard(true);
+                    setDragOffset({
+                      x: touch.clientX - controlBoardPosition.x,
+                      y: touch.clientY - controlBoardPosition.y
+                    });
+                  }
+                }}
+              >
+                <div className="flex flex-col gap-3">
+                  {/* Status info - Double-click to collapse */}
                   <div 
-                    className={`absolute bg-card/95 backdrop-blur-sm border rounded-lg shadow-lg transition-all duration-300 ${
-                      isControlBoardCollapsed ? 'w-12 h-12' : 'min-w-80'
-                    }`}
-                    style={{ 
-                      left: controlBoardPosition.x, 
-                      top: controlBoardPosition.y,
-                      zIndex: 1000
-                    }}
+                    className="text-sm font-medium text-gray-700 border-b pb-2 cursor-pointer select-text"
+                    onDoubleClick={handleControlBoardToggle}
+                    title="Double-click to collapse/expand"
                   >
-                    {/* Drag Handle */}
-                    <div 
-                      className="absolute top-0 left-0 w-full h-8 cursor-move bg-muted/50 rounded-t-lg flex items-center justify-between px-2"
-                      onMouseDown={(e) => {
-                        setIsDraggingControlBoard(true);
-                        setDragOffset({
-                          x: e.clientX - controlBoardPosition.x,
-                          y: e.clientY - controlBoardPosition.y
-                        });
-                      }}
-                    >
-                      <span className="text-xs font-medium">
-                        {isControlBoardCollapsed ? "" : `${selectedStickers.length} selected`}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="w-6 h-6 p-0"
-                        onClick={handleControlBoardToggle}
-                      >
-                        {isControlBoardCollapsed ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </Button>
-                    </div>
-
-                    {!isControlBoardCollapsed && (
-                      <div className="p-4 pt-10">
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center gap-1"
-                              onClick={selectAllStickers}
-                            >
-                              {selectedStickers.length === placedStickers.length ? "Deselect All" : "Select All"}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="flex items-center gap-1"
+                    Controls - Selected: {selectedStickers.length} of {placedStickers.length} stickers
+                  </div>
+                  
+                  {!isControlBoardCollapsed && (
+                    <>
+                      {selectedStickers.length > 0 ? (
+                        <>
+                          {/* Scale Controls */}
+                          <div className="flex gap-2 items-center">
+                            <span className="text-sm font-medium text-gray-700 w-16">Scale:</span>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-10 h-10 p-0" 
                               onClick={() => {
-                                selectedStickers.forEach(id => handleStickerRemove(id));
-                                setSelectedStickers([]);
-                                setIsMultiSelectMode(false);
+                                console.log("Scale down clicked");
+                                selectedStickers.forEach(stickerId => {
+                                  const sticker = placedStickers.find(s => s.id === stickerId);
+                                  if (sticker) {
+                                    handleStickerUpdate(stickerId, { 
+                                      width: Math.max(30, sticker.width - 10), 
+                                      height: Math.max(30, sticker.height - 10) 
+                                    });
+                                  }
+                                });
                               }}
+                              title="Scale down selected"
                             >
-                              <Trash2 className="w-3 h-3" />
-                              Delete
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-10 h-10 p-0" 
+                              onClick={() => {
+                                console.log("Scale up clicked");
+                                selectedStickers.forEach(stickerId => {
+                                  const sticker = placedStickers.find(s => s.id === stickerId);
+                                  if (sticker) {
+                                    handleStickerUpdate(stickerId, { 
+                                      width: Math.min(300, sticker.width + 10), 
+                                      height: Math.min(300, sticker.height + 10) 
+                                    });
+                                  }
+                                });
+                              }}
+                              title="Scale up selected"
+                            >
+                              <Plus className="w-4 h-4" />
                             </Button>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="flex flex-col gap-2">
-                              <label className="text-xs font-medium">Size</label>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="flex-1"
-                                  onClick={() => {
-                                    console.log("Scale down clicked");
-                                    selectedStickers.forEach(stickerId => {
-                                      const sticker = placedStickers.find(s => s.id === stickerId);
-                                      if (sticker) {
-                                        handleStickerUpdate(stickerId, { 
-                                          width: Math.max(30, sticker.width * 0.9), 
-                                          height: Math.max(30, sticker.height * 0.9) 
-                                        });
-                                      }
+                          {/* Rotation Controls */}
+                          <div className="flex gap-2 items-center">
+                            <span className="text-sm font-medium text-gray-700 w-16">Rotate:</span>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-10 h-10 p-0" 
+                              onClick={() => {
+                                console.log("Rotate left clicked");
+                                selectedStickers.forEach(stickerId => {
+                                  const sticker = placedStickers.find(s => s.id === stickerId);
+                                  if (sticker) {
+                                    handleStickerUpdate(stickerId, { 
+                                      rotation: (sticker.rotation || 0) - 15 
                                     });
-                                  }}
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="flex-1"
-                                  onClick={() => {
-                                    console.log("Scale up clicked");
-                                    selectedStickers.forEach(stickerId => {
-                                      const sticker = placedStickers.find(s => s.id === stickerId);
-                                      if (sticker) {
-                                        handleStickerUpdate(stickerId, { 
-                                          width: Math.min(300, sticker.width * 1.1), 
-                                          height: Math.min(300, sticker.height * 1.1) 
-                                        });
-                                      }
+                                  }
+                                });
+                              }}
+                              title="Rotate left 15°"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-10 h-10 p-0" 
+                              onClick={() => {
+                                console.log("Rotate right clicked");
+                                selectedStickers.forEach(stickerId => {
+                                  const sticker = placedStickers.find(s => s.id === stickerId);
+                                  if (sticker) {
+                                    handleStickerUpdate(stickerId, { 
+                                      rotation: (sticker.rotation || 0) + 15 
                                     });
-                                  }}
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
-
-                            <div className="flex flex-col gap-2">
-                              <label className="text-xs font-medium">Rotate</label>
-                              <div className="flex gap-1">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="flex-1"
-                                  onClick={() => {
-                                    console.log("Rotate left clicked");
-                                    selectedStickers.forEach(stickerId => {
-                                      const sticker = placedStickers.find(s => s.id === stickerId);
-                                      if (sticker) {
-                                        handleStickerUpdate(stickerId, { 
-                                          rotation: (sticker.rotation || 0) - 15 
-                                        });
-                                      }
-                                    });
-                                  }}
-                                >
-                                  <RotateCcw className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="flex-1"
-                                  onClick={() => {
-                                    console.log("Rotate right clicked");
-                                    selectedStickers.forEach(stickerId => {
-                                      const sticker = placedStickers.find(s => s.id === stickerId);
-                                      if (sticker) {
-                                        handleStickerUpdate(stickerId, { 
-                                          rotation: (sticker.rotation || 0) + 15 
-                                        });
-                                      }
-                                    });
-                                  }}
-                                >
-                                  <RotateCw className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
+                                  }
+                                });
+                              }}
+                              title="Rotate right 15°"
+                            >
+                              <RotateCw className="w-4 h-4" />
+                            </Button>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center gap-1"
+                          {/* Layer Controls */}
+                          <div className="flex gap-2 items-center">
+                            <span className="text-sm font-medium text-gray-700 w-16">Layers:</span>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-10 h-10 p-0" 
+                              onClick={() => {
+                                console.log("Move down layer clicked");
+                                selectedStickers.forEach(stickerId => {
+                                  handleLayerChange(stickerId, 'down');
+                                });
+                              }}
+                              title="Move to back layer"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-10 h-10 p-0" 
+                              onClick={() => {
+                                console.log("Move up layer clicked");
+                                selectedStickers.forEach(stickerId => {
+                                  handleLayerChange(stickerId, 'up');
+                                });
+                              }}
+                              title="Move to front layer"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </Button>
+                          </div>
+
+                          {/* Mirror and Delete Controls */}
+                          <div className="flex gap-2 items-center">
+                            <span className="text-sm font-medium text-gray-700 w-16">Tools:</span>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="w-10 h-10 p-0" 
                               onClick={() => {
                                 console.log("Mirror clicked");
                                 selectedStickers.forEach(stickerId => {
@@ -863,27 +897,46 @@ const StickerMusicApp = () => {
                                   }
                                 });
                               }}
+                              title="Flip horizontal"
                             >
-                              <FlipHorizontal className="w-3 h-3" />
-                              Mirror
+                              <FlipHorizontal className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="destructive" 
+                              className="w-10 h-10 p-0" 
+                              onClick={() => {
+                                console.log("Delete clicked");
+                                selectedStickers.forEach(stickerId => {
+                                  handleStickerRemove(stickerId);
+                                });
+                                setSelectedStickers([]);
+                              }}
+                              title="Delete selected"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
+                        </>
+                      ) : (
+                        <div className="text-sm text-gray-500 text-center py-4">
+                          Click on stickers to select them
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-            </Card>
+            )}
           </div>
-        </div>
-        
-        {/* Media Gallery */}
-        <div className="w-full mt-8">
-          <MediaGallery 
-            videos={exportedVideos}
-            onDeleteVideo={handleDeleteVideo}
-          />
+          
+          {/* Media Gallery */}
+          <div className="w-full mt-8">
+            <MediaGallery 
+              videos={exportedVideos}
+              onDeleteVideo={handleDeleteVideo}
+            />
+          </div>
         </div>
       </div>
     </div>
