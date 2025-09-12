@@ -116,104 +116,102 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     if (!canvasRef.current || isRecording) return;
     
     setIsRecording(true);
-    toast("Creating 8-second video from canvas...", { duration: 2000 });
+    toast("Creating 5-second video from canvas frames...", { duration: 2000 });
     
     try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
+      const frames: string[] = [];
+      const frameCount = 75; // 5 seconds at 15 fps
+      const frameDelay = 1000 / 15; // 15 fps
       
-      // Set canvas dimensions
-      canvas.width = canvasRef.current.offsetWidth;
-      canvas.height = canvasRef.current.offsetHeight;
-
-      const stream = canvas.captureStream(10); // 10 fps for better performance
-      
-      // Check supported mime types
-      const supportedTypes = [
-        'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8', 
-        'video/webm',
-        'video/mp4'
-      ];
-      
-      let mimeType = 'video/webm';
-      for (const type of supportedTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type;
-          break;
-        }
+      // Capture frames
+      for (let i = 0; i < frameCount; i++) {
+        const canvas = await html2canvas(canvasRef.current, {
+          backgroundColor: null,
+          scale: 1,
+          useCORS: true,
+          allowTaint: true,
+        });
+        
+        frames.push(canvas.toDataURL('image/webp', 0.8));
+        await new Promise(resolve => setTimeout(resolve, frameDelay));
       }
 
-      const recorder = new MediaRecorder(stream, { mimeType });
-      const chunks: Blob[] = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunks.push(e.data);
+      // Create video from frames using a simple approach
+      const timestamp = Date.now();
+      const videoBlob = await createVideoFromFrames(frames);
+      const url = URL.createObjectURL(videoBlob);
+      
+      const videoItem: VideoGalleryItem = {
+        id: `video-${timestamp}`,
+        url,
+        timestamp,
+        name: `canvas-video-${timestamp}.webm`
       };
 
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
-        const url = URL.createObjectURL(blob);
-        const timestamp = Date.now();
-        
-        const videoItem: VideoGalleryItem = {
-          id: `video-${timestamp}`,
-          url,
-          timestamp,
-          name: `canvas-video-${timestamp}.webm`
-        };
-
-        setExportedVideos(prev => [...prev, videoItem]);
-        toast("8-second video added to gallery! 🎥", { duration: 2000 });
-        setIsRecording(false);
-      };
-
-      recorder.start();
-
-      // Capture frames for 8 seconds
-      const duration = 8000; // 8 seconds
-      const frameRate = 10; // 10 fps
-      let frameCount = 0;
-      const totalFrames = (duration / 1000) * frameRate;
-
-      const captureFrame = async () => {
-        if (frameCount >= totalFrames) {
-          recorder.stop();
-          return;
-        }
-
-        try {
-          const frameCanvas = await html2canvas(canvasRef.current!, {
-            backgroundColor: null,
-            scale: 0.8,
-            useCORS: true,
-            allowTaint: true,
-            logging: false
-          });
-
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(frameCanvas, 0, 0, canvas.width, canvas.height);
-          
-          frameCount++;
-          setTimeout(captureFrame, 1000 / frameRate);
-        } catch (error) {
-          console.error('Frame capture error:', error);
-          setTimeout(captureFrame, 1000 / frameRate);
-        }
-      };
-
-      setTimeout(() => captureFrame(), 100);
-
+      setExportedVideos(prev => [...prev, videoItem]);
+      toast("Video added to gallery! 🎥", { duration: 2000 });
+      
     } catch (error) {
       console.error('Video export failed:', error);
-      toast("Video export failed - browser may not support video recording", { duration: 3000 });
+      toast("Video export failed", { duration: 2000 });
+    } finally {
       setIsRecording(false);
     }
   };
 
+  const createVideoFromFrames = async (frames: string[]): Promise<Blob> => {
+    // Create a simple WebM video using MediaRecorder with a canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    
+    // Set canvas size from first frame
+    const firstImg = new Image();
+    firstImg.src = frames[0];
+    await new Promise(resolve => firstImg.onload = resolve);
+    
+    canvas.width = firstImg.width;
+    canvas.height = firstImg.height;
+
+    const stream = canvas.captureStream(15); // 15 fps
+    const recorder = new MediaRecorder(stream, {
+      mimeType: 'video/webm'
+    });
+
+    const chunks: Blob[] = [];
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+
+    return new Promise((resolve) => {
+      recorder.onstop = () => {
+        resolve(new Blob(chunks, { type: 'video/webm' }));
+      };
+
+      recorder.start();
+
+      // Draw frames to canvas
+      let frameIndex = 0;
+      const drawFrame = () => {
+        if (frameIndex >= frames.length) {
+          recorder.stop();
+          return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          frameIndex++;
+          setTimeout(drawFrame, 1000 / 15); // 15 fps
+        };
+        img.src = frames[frameIndex];
+      };
+
+      drawFrame();
+    });
+  };
+
   const handleVideoRecord = async () => {
     if (isRecording) {
-      toast("Video recording in progress...", { duration: 1500 });
+      toast("Video recording already in progress...", { duration: 1500 });
       return;
     }
     await exportAsVideo();
