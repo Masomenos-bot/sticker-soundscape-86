@@ -36,16 +36,29 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
+    // Only handle drag events from palette, not from existing stickers
+    const dragType = event.dataTransfer?.types?.includes('application/json');
+    if (!dragType) return;
+    
     event.preventDefault();
     event.currentTarget.classList.add("drop-zone-active");
   }, []);
 
   const handleDragLeave = useCallback((event: React.DragEvent) => {
+    const dragType = event.dataTransfer?.types?.includes('application/json');
+    if (!dragType) return;
+    
     event.preventDefault();
     event.currentTarget.classList.remove("drop-zone-active");
   }, []);
 
   const handleDrop = useCallback((event: React.DragEvent) => {
+    const dragType = event.dataTransfer?.types?.includes('application/json');
+    if (!dragType) {
+      event.currentTarget.classList.remove("drop-zone-active");
+      return;
+    }
+    
     event.preventDefault();
     event.currentTarget.classList.remove("drop-zone-active");
 
