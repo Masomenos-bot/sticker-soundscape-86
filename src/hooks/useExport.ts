@@ -33,12 +33,17 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
       canvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.download = `sticker-canvas-${Date.now()}.png`;
-          link.href = url;
-          link.click();
-          URL.revokeObjectURL(url);
-          toast("Canvas exported! 📸", { duration: 2000 });
+          const timestamp = Date.now();
+          
+          const newImage: VideoGalleryItem = {
+            id: `image-${timestamp}`,
+            url,
+            timestamp,
+            name: `canvas-${timestamp}.png`
+          };
+          
+          setExportedVideos(prev => [newImage, ...prev]);
+          toast("Canvas saved to gallery! 📸", { duration: 2000 });
         }
       }, 'image/png');
     } catch (error) {
