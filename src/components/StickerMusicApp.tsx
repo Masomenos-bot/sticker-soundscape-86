@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { StickerPalette } from "./StickerPalette";
 import { MusicCanvas } from "./MusicCanvas";
-import { VideoGallery } from "./VideoGallery";
+import { MediaGallery } from "./MediaGallery";
 import { Volume2, Pause, Play, ChevronUp, ChevronDown, FlipHorizontal, Trash2, Plus, Minus, RotateCcw, RotateCw, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -935,9 +935,9 @@ const StickerMusicApp = () => {
             )}
           </div>
           
-          {/* Video Gallery */}
+          {/* Media Gallery */}
           <div className="w-full mt-8">
-            <VideoGallery 
+            <MediaGallery 
               videos={exportedVideos}
               onDeleteVideo={handleDeleteVideo}
             />
