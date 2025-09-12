@@ -70,9 +70,8 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
     <div ref={ref} className="relative h-full p-3">
       <div
         ref={canvasRef}
-        className="relative w-full h-full min-h-[400px] bg-muted/20 transition-all duration-300 touch-none"
+        className="relative w-full h-full min-h-[400px] bg-muted/20 transition-all duration-300"
         style={{
-          touchAction: 'none',
           WebkitUserSelect: 'none',
           WebkitTouchCallout: 'none',
         }}
