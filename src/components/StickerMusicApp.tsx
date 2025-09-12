@@ -472,159 +472,100 @@ const StickerMusicApp = () => {
     if (!canvasRef.current || isRecording) return;
     
     try {
-      console.log("Starting canvas video export...");
-      
-      // Check if MediaRecorder is supported
-      if (!window.MediaRecorder) {
-        throw new Error('MediaRecorder not supported in this browser');
-      }
+      console.log("Starting simple GIF export...");
       
       // Ensure playback is running for the recording
       if (!isPlaying) {
         setIsPlaying(true);
-        // Wait a moment for playback to start
         await new Promise(resolve => setTimeout(resolve, 500));
       }
       
       setIsRecording(true);
-      toast("🔴 Recording canvas for 8 seconds...", { duration: 2000 });
+      toast("🔴 Creating 8-second GIF of canvas...", { duration: 2000 });
       
-      // Create a canvas specifically for recording the stickers area
-      const recordingCanvas = document.createElement('canvas');
-      const ctx = recordingCanvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-      
-      // Get the actual canvas dimensions
-      const canvasRect = canvasRef.current.getBoundingClientRect();
-      recordingCanvas.width = Math.floor(canvasRect.width);
-      recordingCanvas.height = Math.floor(canvasRect.height);
-      
-      console.log("Canvas dimensions:", recordingCanvas.width, recordingCanvas.height);
-      
-      // Create stream from our recording canvas
-      const stream = recordingCanvas.captureStream(30); // 30 FPS
-      
-      // Determine the best supported MIME type
-      let mimeType = 'video/webm';
-      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
-        mimeType = 'video/webm;codecs=vp9';
-      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
-        mimeType = 'video/webm;codecs=vp8';
-      } else if (MediaRecorder.isTypeSupported('video/mp4')) {
-        mimeType = 'video/mp4';
-      }
-      
-      console.log("Using MIME type:", mimeType);
-      
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType,
-        videoBitsPerSecond: 2500000 // 2.5 Mbps
+      // Use GIF.js for a more reliable export
+      const gif = new GIF({
+        workers: 2,
+        quality: 10,
+        width: canvasRef.current.offsetWidth,
+        height: canvasRef.current.offsetHeight,
+        workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
       });
+
+      const frameCount = 80; // 80 frames for 8 seconds (10 fps)
+      const frameDelay = 100; // 100ms between frames (10 fps)
+      let capturedFrames = 0;
       
-      recordedChunksRef.current = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        console.log("Data available:", event.data.size);
-        if (event.data.size > 0) {
-          recordedChunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.onstop = () => {
-        console.log("Recording stopped, creating blob...");
-        
-        if (recordedChunksRef.current.length === 0) {
-          setIsRecording(false);
-          toast("❌ No video data recorded", { duration: 2000 });
-          return;
-        }
-        
-        const blob = new Blob(recordedChunksRef.current, {
-          type: mimeType
-        });
-        
-        console.log("Blob created:", blob.size, "bytes");
-        
-        if (blob.size === 0) {
-          setIsRecording(false);
-          toast("❌ Video recording failed - no data", { duration: 2000 });
-          return;
-        }
-        
-        const videoUrl = URL.createObjectURL(blob);
-        const timestamp = Date.now();
-        const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
-        const videoName = `canvas-sequence-${timestamp}.${extension}`;
-        
-        const newVideo: VideoGalleryItem = {
-          id: `video-${timestamp}`,
-          url: videoUrl,
-          timestamp,
-          name: videoName
-        };
-        
-        setExportedVideos(prev => [newVideo, ...prev]);
-        setIsRecording(false);
-        toast("🎬 Canvas video exported to gallery!", { duration: 2000 });
-      };
-      
-      mediaRecorder.onerror = (event) => {
-        console.error('MediaRecorder error:', event);
-        setIsRecording(false);
-        toast("❌ Recording error occurred", { duration: 2000 });
-      };
-      
-      mediaRecorderRef.current = mediaRecorder;
-      
-      // Function to continuously capture only the canvas area
-      const captureCanvasFrame = async () => {
-        if (canvasRef.current && isRecording) {
-          try {
-            // Capture only the canvas area with stickers
-            const htmlCanvas = await html2canvas(canvasRef.current, {
-              backgroundColor: '#f0f0f0', // Light background for better contrast
-              scale: 1,
-              useCORS: true,
-              allowTaint: true,
-              logging: false,
-              width: canvasRect.width,
-              height: canvasRect.height
-            });
-            
-            // Draw the captured canvas frame to our recording canvas
-            ctx.clearRect(0, 0, recordingCanvas.width, recordingCanvas.height);
-            ctx.drawImage(htmlCanvas, 0, 0, recordingCanvas.width, recordingCanvas.height);
-          } catch (captureError) {
-            console.error('Frame capture error:', captureError);
-          }
+      const captureFrame = async () => {
+        if (capturedFrames >= frameCount || !isRecording) {
+          // Finished capturing all frames
+          console.log(`Captured ${capturedFrames} frames, rendering GIF...`);
           
-          // Continue capturing if still recording
-          if (isRecording) {
-            requestAnimationFrame(captureCanvasFrame);
-          }
+          gif.on('finished', function(blob: Blob) {
+            const videoUrl = URL.createObjectURL(blob);
+            const timestamp = Date.now();
+            const videoName = `canvas-animation-${timestamp}.gif`;
+            
+            const newVideo: VideoGalleryItem = {
+              id: `video-${timestamp}`,
+              url: videoUrl,
+              timestamp,
+              name: videoName
+            };
+            
+            setExportedVideos(prev => [newVideo, ...prev]);
+            setIsRecording(false);
+            toast("🎬 Canvas GIF exported to gallery!", { duration: 2000 });
+          });
+
+          gif.on('error', function(error: any) {
+            console.error('GIF creation error:', error);
+            setIsRecording(false);
+            toast("❌ GIF creation failed", { duration: 2000 });
+          });
+
+          gif.render();
+          return;
+        }
+        
+        try {
+          // Capture the canvas area
+          const canvas = await html2canvas(canvasRef.current!, {
+            backgroundColor: '#ffffff',
+            scale: 0.8,
+            useCORS: true,
+            allowTaint: true,
+            logging: false
+          });
+          
+          console.log(`Adding frame ${capturedFrames + 1}/${frameCount}`);
+          gif.addFrame(canvas, { delay: frameDelay });
+          capturedFrames++;
+          
+          // Wait and capture next frame
+          setTimeout(captureFrame, frameDelay);
+          
+        } catch (error) {
+          console.error('Frame capture error:', error);
+          setTimeout(captureFrame, frameDelay); // Continue anyway
         }
       };
       
-      // Start recording
-      console.log("Starting MediaRecorder...");
-      mediaRecorder.start(100); // Collect data every 100ms
+      // Start capturing frames
+      captureFrame();
       
-      // Start the canvas capture loop
-      requestAnimationFrame(captureCanvasFrame);
-      
-      // Stop recording after 8 seconds
+      // Safety timeout to stop recording
       setTimeout(() => {
-        console.log("Stopping recording...");
-        setIsRecording(false); // This will stop the capture loop
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          mediaRecorderRef.current.stop();
+        if (isRecording) {
+          console.log("Force stopping recording...");
+          setIsRecording(false);
         }
-      }, 8000);
+      }, 10000);
       
     } catch (error) {
-      console.error('Video export failed:', error);
+      console.error('Export failed:', error);
       setIsRecording(false);
-      toast(`❌ Canvas video export failed: ${error.message}`, { duration: 3000 });
+      toast(`❌ Export failed: ${error.message}`, { duration: 3000 });
     }
   };
 
@@ -702,7 +643,7 @@ const StickerMusicApp = () => {
                   className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
                     isRecording ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                  title="Export 8-second video"
+                  title="Export 8-second animated GIF"
                 >
                   <Video className={`w-6 h-6 ${isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
                 </button>
