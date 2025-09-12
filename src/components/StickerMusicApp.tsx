@@ -45,7 +45,7 @@ const StickerMusicApp = () => {
   const audio = useAudio();
   const stickers = useStickers();
   const sequencer = useSequencer(stickers.placedStickers, audio.isPlaying);
-  const exportTools = useExport(canvasRef, audio.isPlaying, audio.audioContextRef, audio.audioDestinationRef);
+  const exportTools = useExport(canvasRef, audio.isPlaying);
 
   // Handle sticker drop with audio initialization
   const handleStickerDrop = async (stickerData: StickerData, x: number, y: number) => {
@@ -132,14 +132,8 @@ const StickerMusicApp = () => {
   };
 
   return (
-    <div 
-      className="min-h-screen p-3 sm:p-6 bg-gradient-background"
-      onDragOver={(e) => e.preventDefault()}
-    >
-      <div 
-        className="max-w-7xl mx-auto"
-        onDragOver={(e) => e.preventDefault()}
-      >
+    <div className="min-h-screen p-3 sm:p-6 bg-gradient-background">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-4 sm:mb-8 text-center">
           <img 
@@ -150,87 +144,78 @@ const StickerMusicApp = () => {
         </div>
 
         {/* Main Layout */}
-        <div 
-          className="flex flex-col gap-8 sm:gap-12"
-          onDragOver={(e) => e.preventDefault()}
-        >
+        <div className="flex flex-col gap-8 sm:gap-12">
           {/* Sticker Palette */}
           <div className="w-full">
-            <Card 
-              className="p-3 bg-gradient-card shadow-card border-0 h-[200px] flex-shrink-0 mb-4 sm:mb-6"
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={(e) => e.preventDefault()}
-            >
+            <Card className="p-3 bg-gradient-card shadow-card border-0 h-[200px] flex-shrink-0 mb-4 sm:mb-6">
               <StickerPalette />
             </Card>
           </div>
 
           {/* Music Canvas */}
-          <div 
-            className="w-full flex-1 bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px] relative"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => e.preventDefault()}
-          >
-            {/* Control Buttons */}
-            <div className="absolute top-2 right-2 z-20 flex gap-2">
-              <button
-                onClick={stickers.selectAllStickers}
-                className="w-10 h-10 hover:scale-110 transition-transform duration-200 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
-                title="Select all stickers"
-              >
-                <span className="text-white font-bold text-xs">ALL</span>
-              </button>
-              <button
-                onClick={audio.isPlaying ? audio.handlePause : audio.handlePlay}
-                className="w-10 h-10 hover:scale-110 transition-transform duration-200"
-              >
-                <img
-                  src={audio.isPlaying 
-                    ? "/lovable-uploads/65258414-94a1-467e-9cc8-d282505d1e1e.png" 
-                    : "/lovable-uploads/5ec10ca7-cdd4-4ecc-bcbe-5243239cecc7.png"
-                  }
-                  alt={audio.isPlaying ? "Pause" : "Play"}
-                  className="w-full h-full object-contain"
-                />
-              </button>
-              <button
-                onClick={exportTools.handleExport}
-                className="w-10 h-10 hover:scale-110 transition-transform duration-200"
-              >
-                <img
-                  src="/lovable-uploads/fedcc64b-0b85-4fe3-93dc-05e76aa5ee7c.png"
-                  alt="Share/Export"
-                  className="w-full h-full object-contain"
-                />
-              </button>
-              <button
-                onClick={exportTools.handleVideoExport}
-                disabled={exportTools.isRecording}
-                className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
-                  exportTools.isRecording ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-                title="Export 8-second video"
-              >
-                <Video className={`w-6 h-6 ${exportTools.isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
-              </button>
-            </div>
+          <div className="w-full flex-1">
+            <Card className="bg-gradient-card shadow-card border-4 border-black rounded-none h-[calc(100vh-480px)] min-h-[400px] relative">
+              {/* Control Buttons */}
+              <div className="absolute top-2 right-2 z-20 flex gap-2">
+                <button
+                  onClick={stickers.selectAllStickers}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center"
+                  title="Select all stickers"
+                >
+                  <span className="text-white font-bold text-xs">ALL</span>
+                </button>
+                <button
+                  onClick={audio.isPlaying ? audio.handlePause : audio.handlePlay}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200"
+                >
+                  <img
+                    src={audio.isPlaying 
+                      ? "/lovable-uploads/65258414-94a1-467e-9cc8-d282505d1e1e.png" 
+                      : "/lovable-uploads/5ec10ca7-cdd4-4ecc-bcbe-5243239cecc7.png"
+                    }
+                    alt={audio.isPlaying ? "Pause" : "Play"}
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+                <button
+                  onClick={exportTools.handleExport}
+                  className="w-10 h-10 hover:scale-110 transition-transform duration-200"
+                >
+                  <img
+                    src="/lovable-uploads/fedcc64b-0b85-4fe3-93dc-05e76aa5ee7c.png"
+                    alt="Share/Export"
+                    className="w-full h-full object-contain"
+                  />
+                </button>
+                <button
+                  onClick={() => {}} // Video export to be implemented
+                  disabled={exportTools.isRecording}
+                  className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
+                    exportTools.isRecording ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title="Export video (coming soon)"
+                >
+                  <Video className={`w-6 h-6 ${exportTools.isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
+                </button>
+              </div>
 
-            <MusicCanvas
-              ref={canvasRef}
-              stickers={stickers.placedStickers}
-              onStickerDrop={handleStickerDrop}
-              onStickerUpdate={stickers.handleStickerUpdate}
-              onStickerRemove={stickers.handleStickerRemove}
-              onLayerChange={stickers.handleLayerChange}
-              isPlaying={audio.isPlaying}
-              globalVolume={audio.globalVolume}
-              currentStep={sequencer.currentStep}
-              sequenceTempo={sequencer.sequenceTempo}
-              selectedStickers={stickers.selectedStickers}
-              isMultiSelectMode={stickers.isMultiSelectMode}
-              onStickerSelect={stickers.handleStickerSelect}
-              onGroupMove={stickers.handleGroupMove}
-            />
+              <MusicCanvas
+                ref={canvasRef}
+                stickers={stickers.placedStickers}
+                onStickerDrop={handleStickerDrop}
+                onStickerUpdate={stickers.handleStickerUpdate}
+                onStickerRemove={stickers.handleStickerRemove}
+                onLayerChange={stickers.handleLayerChange}
+                isPlaying={audio.isPlaying}
+                globalVolume={audio.globalVolume}
+                currentStep={sequencer.currentStep}
+                sequenceTempo={sequencer.sequenceTempo}
+                selectedStickers={stickers.selectedStickers}
+                isMultiSelectMode={stickers.isMultiSelectMode}
+                onStickerSelect={stickers.handleStickerSelect}
+                onGroupMove={stickers.handleGroupMove}
+              />
+            </Card>
             
             {/* Control Panel */}
             <ControlPanel
@@ -247,14 +232,16 @@ const StickerMusicApp = () => {
           </div>
 
           {/* Media Gallery */}
-          <div className="w-full">
-            <Card className="p-4 bg-gradient-card shadow-card border-0">
-              <MediaGallery
-                videos={exportTools.exportedVideos}
-                onDeleteVideo={exportTools.handleDeleteVideo}
-              />
-            </Card>
-          </div>
+          {exportTools.exportedVideos.length > 0 && (
+            <div className="w-full">
+              <Card className="p-4 bg-gradient-card shadow-card border-0">
+                <MediaGallery
+                  videos={exportTools.exportedVideos}
+                  onDeleteVideo={exportTools.handleDeleteVideo}
+                />
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>
