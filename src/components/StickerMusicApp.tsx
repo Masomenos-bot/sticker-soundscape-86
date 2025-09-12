@@ -188,12 +188,12 @@ const StickerMusicApp = () => {
                   />
                 </button>
                 <button
-                  onClick={exportTools.handleVideoExport}
+                  onClick={() => {}} // Video export to be implemented
                   disabled={exportTools.isRecording}
                   className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
                     exportTools.isRecording ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                  title="Export 8-second video"
+                  title="Export video (coming soon)"
                 >
                   <Video className={`w-6 h-6 ${exportTools.isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
                 </button>
