@@ -102,20 +102,24 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     }
   };
 
-  const startVideoRecording = async () => {
-    if (!canvasRef.current || isRecording) return;
-
+  const exportAsVideo = async () => {
+    if (!canvasRef.current) return;
+    
+    toast("Creating 10-second video from canvas... This may take a moment!", { duration: 3000 });
+    
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          width: { ideal: canvasRef.current.offsetWidth },
-          height: { ideal: canvasRef.current.offsetHeight }
-        },
-        audio: true
-      });
+      // Create a temporary canvas for video recording
+      const tempCanvas = document.createElement('canvas');
+      const ctx = tempCanvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
 
+      tempCanvas.width = canvasRef.current.offsetWidth;
+      tempCanvas.height = canvasRef.current.offsetHeight;
+
+      // Create MediaRecorder stream from canvas
+      const stream = tempCanvas.captureStream(30); // 30 fps
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9'
+        mimeType: 'video/webm;codecs=vp8'
       });
 
       recordedChunksRef.current = [];
@@ -136,39 +140,60 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
           id: `video-${timestamp}`,
           url,
           timestamp,
-          name: `recording-${timestamp}.webm`
+          name: `canvas-video-${timestamp}.webm`
         };
 
         setExportedVideos(prev => [...prev, videoItem]);
-        toast("Video recorded successfully! 🎥", { duration: 2000 });
-        
-        // Stop all tracks
-        stream.getTracks().forEach(track => track.stop());
+        toast("Canvas video exported! 🎥", { duration: 2000 });
       };
 
       mediaRecorder.start();
       setIsRecording(true);
-      toast("Recording started! Click again to stop.", { duration: 2000 });
+
+      // Capture frames for 10 seconds
+      const duration = 10000; // 10 seconds
+      const frameInterval = 1000 / 30; // 30 fps
+      let frameCount = 0;
+      const maxFrames = duration / frameInterval;
+
+      const captureFrame = async () => {
+        if (frameCount >= maxFrames) {
+          mediaRecorder.stop();
+          setIsRecording(false);
+          return;
+        }
+
+        const canvas = await html2canvas(canvasRef.current!, {
+          backgroundColor: null,
+          scale: 1,
+          useCORS: true,
+          allowTaint: true,
+        });
+
+        // Draw the captured frame to our recording canvas
+        ctx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+        ctx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+
+        frameCount++;
+        setTimeout(captureFrame, frameInterval);
+      };
+
+      captureFrame();
 
     } catch (error) {
-      console.error('Failed to start recording:', error);
-      toast("Failed to start recording. Please allow screen capture.", { duration: 3000 });
-    }
-  };
-
-  const stopVideoRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+      console.error('Video export failed:', error);
+      toast("Video export failed, exporting as PNG instead", { duration: 2000 });
       setIsRecording(false);
+      exportAsPNG();
     }
   };
 
   const handleVideoRecord = async () => {
     if (isRecording) {
-      stopVideoRecording();
-    } else {
-      await startVideoRecording();
+      toast("Video recording already in progress...", { duration: 1500 });
+      return;
     }
+    await exportAsVideo();
   };
 
   const handleDeleteVideo = (videoId: string) => {
