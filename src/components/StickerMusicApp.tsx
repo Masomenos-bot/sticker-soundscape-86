@@ -232,16 +232,14 @@ const StickerMusicApp = () => {
           </div>
 
           {/* Media Gallery */}
-          {exportTools.exportedVideos.length > 0 && (
-            <div className="w-full">
-              <Card className="p-4 bg-gradient-card shadow-card border-0">
-                <MediaGallery
-                  videos={exportTools.exportedVideos}
-                  onDeleteVideo={exportTools.handleDeleteVideo}
-                />
-              </Card>
-            </div>
-          )}
+          <div className="w-full">
+            <Card className="p-4 bg-gradient-card shadow-card border-0">
+              <MediaGallery
+                videos={exportTools.exportedVideos}
+                onDeleteVideo={exportTools.handleDeleteVideo}
+              />
+            </Card>
+          </div>
         </div>
       </div>
     </div>
