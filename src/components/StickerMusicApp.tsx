@@ -266,6 +266,9 @@ const StickerMusicApp = () => {
     if (isPlaying && placedStickers.length > 0) {
       const stepDuration = (60 / sequenceTempo) * 500; // Half beat steps for more resolution
       
+      // Ensure the first step triggers immediately when starting
+      setCurrentStep(0);
+      
       sequencerRef.current = setInterval(() => {
         setCurrentStep(prev => (prev + 1) % placedStickers.length);
       }, stepDuration);
