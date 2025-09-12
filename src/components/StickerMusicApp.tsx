@@ -2,7 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { StickerPalette } from "./StickerPalette";
 import { MusicCanvas } from "./MusicCanvas";
-import { Volume2, Pause, Play, ChevronUp, ChevronDown, FlipHorizontal, Trash2, Plus, Minus, RotateCcw, RotateCw } from "lucide-react";
+import { VideoGallery } from "./VideoGallery";
+import { Volume2, Pause, Play, ChevronUp, ChevronDown, FlipHorizontal, Trash2, Plus, Minus, RotateCcw, RotateCw, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
@@ -31,6 +32,13 @@ export interface StickerData {
   soundUrl?: string;
 }
 
+interface VideoGalleryItem {
+  id: string;
+  url: string;
+  timestamp: number;
+  name: string;
+}
+
 const StickerMusicApp = () => {
   const [placedStickers, setPlacedStickers] = useState<Sticker[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -44,9 +52,13 @@ const StickerMusicApp = () => {
   const [isDraggingControlBoard, setIsDraggingControlBoard] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [isControlBoardCollapsed, setIsControlBoardCollapsed] = useState(false);
+  const [exportedVideos, setExportedVideos] = useState<VideoGalleryItem[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
   const audioContextRef = useRef<AudioContext | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const sequencerRef = useRef<NodeJS.Timeout | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   // Handle global mouse and touch events for control board dragging
   useEffect(() => {
@@ -456,6 +468,104 @@ const StickerMusicApp = () => {
     }
   };
 
+  const handleVideoExport = async () => {
+    if (!canvasRef.current || isRecording) return;
+    
+    try {
+      // Create a canvas element to capture the content
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Could not get canvas context');
+      
+      const rect = canvasRef.current.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      
+      // Setup MediaRecorder to record the canvas
+      const stream = canvas.captureStream(30); // 30 FPS
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'video/webm;codecs=vp9'
+      });
+      
+      recordedChunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, {
+          type: 'video/webm'
+        });
+        
+        const videoUrl = URL.createObjectURL(blob);
+        const timestamp = Date.now();
+        const videoName = `sticker-sequence-${timestamp}.webm`;
+        
+        const newVideo: VideoGalleryItem = {
+          id: `video-${timestamp}`,
+          url: videoUrl,
+          timestamp,
+          name: videoName
+        };
+        
+        setExportedVideos(prev => [newVideo, ...prev]);
+        setIsRecording(false);
+        toast("🎬 Video exported to gallery!", { duration: 2000 });
+      };
+      
+      mediaRecorderRef.current = mediaRecorder;
+      
+      // Start recording
+      setIsRecording(true);
+      mediaRecorder.start();
+      toast("🔴 Recording video... (10 seconds)", { duration: 2000 });
+      
+      // Ensure playback is running
+      if (!isPlaying) {
+        setIsPlaying(true);
+      }
+      
+      // Function to capture frames
+      const captureFrame = async () => {
+        if (canvasRef.current) {
+          const htmlCanvas = await html2canvas(canvasRef.current, {
+            backgroundColor: null,
+            scale: 1,
+            useCORS: true,
+            allowTaint: true,
+          });
+          
+          // Draw the captured frame to our recording canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(htmlCanvas, 0, 0, canvas.width, canvas.height);
+        }
+      };
+      
+      // Capture frames at 30fps for 10 seconds
+      const frameInterval = setInterval(captureFrame, 1000 / 30);
+      
+      // Stop recording after 10 seconds
+      setTimeout(() => {
+        clearInterval(frameInterval);
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+        }
+      }, 10000);
+      
+    } catch (error) {
+      console.error('Video export failed:', error);
+      setIsRecording(false);
+      toast("Video export failed. Browser may not support video recording.", { duration: 3000 });
+    }
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+    setExportedVideos(prev => prev.filter(video => video.id !== videoId));
+  };
+
   const handleControlBoardToggle = () => {
     const willBeCollapsed = !isControlBoardCollapsed;
     setIsControlBoardCollapsed(willBeCollapsed);
@@ -519,6 +629,16 @@ const StickerMusicApp = () => {
                     alt="Share/Export"
                     className="w-full h-full object-contain"
                   />
+                </button>
+                <button
+                  onClick={handleVideoExport}
+                  disabled={isRecording}
+                  className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
+                    isRecording ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title="Export 10-second video"
+                >
+                  <Video className={`w-6 h-6 ${isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
                 </button>
               </div>
               <MusicCanvas
@@ -747,6 +867,14 @@ const StickerMusicApp = () => {
                 </div>
               </div>
             )}
+          </div>
+          
+          {/* Video Gallery */}
+          <div className="w-full mt-8">
+            <VideoGallery 
+              videos={exportedVideos}
+              onDeleteVideo={handleDeleteVideo}
+            />
           </div>
         </div>
       </div>
