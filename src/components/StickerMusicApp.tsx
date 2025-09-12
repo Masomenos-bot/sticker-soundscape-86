@@ -45,7 +45,7 @@ const StickerMusicApp = () => {
   const audio = useAudio();
   const stickers = useStickers();
   const sequencer = useSequencer(stickers.placedStickers, audio.isPlaying);
-  const exportTools = useExport(canvasRef, audio.isPlaying);
+  const exportTools = useExport(canvasRef, audio.isPlaying, audio.audioContextRef, audio.audioDestinationRef);
 
   // Handle sticker drop with audio initialization
   const handleStickerDrop = async (stickerData: StickerData, x: number, y: number) => {
@@ -188,12 +188,12 @@ const StickerMusicApp = () => {
                   />
                 </button>
                 <button
-                  onClick={() => {}} // Video export to be implemented
+                  onClick={exportTools.handleVideoExport}
                   disabled={exportTools.isRecording}
                   className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
                     exportTools.isRecording ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                  title="Export video (coming soon)"
+                  title="Export 8-second video"
                 >
                   <Video className={`w-6 h-6 ${exportTools.isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
                 </button>
@@ -232,16 +232,14 @@ const StickerMusicApp = () => {
           </div>
 
           {/* Media Gallery */}
-          {exportTools.exportedVideos.length > 0 && (
-            <div className="w-full">
-              <Card className="p-4 bg-gradient-card shadow-card border-0">
-                <MediaGallery
-                  videos={exportTools.exportedVideos}
-                  onDeleteVideo={exportTools.handleDeleteVideo}
-                />
-              </Card>
-            </div>
-          )}
+          <div className="w-full">
+            <Card className="p-4 bg-gradient-card shadow-card border-0">
+              <MediaGallery
+                videos={exportTools.exportedVideos}
+                onDeleteVideo={exportTools.handleDeleteVideo}
+              />
+            </Card>
+          </div>
         </div>
       </div>
     </div>
