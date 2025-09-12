@@ -11,12 +11,7 @@ interface VideoGalleryItem {
   name: string;
 }
 
-export const useExport = (
-  canvasRef: React.RefObject<HTMLDivElement>, 
-  isPlaying: boolean, 
-  audioContextRef?: React.RefObject<AudioContext>,
-  audioDestinationRef?: React.RefObject<MediaStreamAudioDestinationNode>
-) => {
+export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying: boolean) => {
   const [exportedVideos, setExportedVideos] = useState<VideoGalleryItem[]>([]);
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -142,34 +137,8 @@ export const useExport = (
       // Get canvas stream for video
       const canvasStream = recordCanvas.captureStream(30); // 30 FPS
 
-      // Create audio context for sound capture
-      let audioStream: MediaStream | null = null;
-      try {
-        if (audioDestinationRef?.current) {
-          // Use the pre-configured audio destination
-          audioStream = audioDestinationRef.current.stream;
-        } else if (audioContextRef?.current) {
-          // Create MediaStreamDestination to capture audio
-          const dest = audioContextRef.current.createMediaStreamDestination();
-          audioStream = dest.stream;
-        } else {
-          console.log('No audio context available for recording');
-        }
-      } catch (audioError) {
-        console.log('Audio capture failed, recording video only:', audioError);
-      }
-
-      // Combine video and audio streams
-      const combinedStream = new MediaStream();
-      canvasStream.getVideoTracks().forEach(track => combinedStream.addTrack(track));
-      if (audioStream) {
-        audioStream.getAudioTracks().forEach(track => combinedStream.addTrack(track));
-      }
-
-      // Check for supported video formats with audio
+      // Check for supported video formats
       const supportedTypes = [
-        'video/webm; codecs=vp9,opus',
-        'video/webm; codecs=vp8,opus', 
         'video/webm; codecs=vp9',
         'video/webm; codecs=vp8',
         'video/webm',
@@ -188,11 +157,7 @@ export const useExport = (
         throw new Error('No supported video format found');
       }
 
-      const mediaRecorder = new MediaRecorder(combinedStream, { 
-        mimeType,
-        audioBitsPerSecond: 128000,
-        videoBitsPerSecond: 2500000
-      });
+      const mediaRecorder = new MediaRecorder(canvasStream, { mimeType });
       recordedChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
@@ -202,11 +167,7 @@ export const useExport = (
       };
 
       mediaRecorder.onstop = async () => {
-        // Clean up streams
         canvasStream.getTracks().forEach(track => track.stop());
-        if (audioStream) {
-          audioStream.getTracks().forEach(track => track.stop());
-        }
         
         if (recordedChunksRef.current.length > 0) {
           const blob = new Blob(recordedChunksRef.current, { type: mimeType });
@@ -221,7 +182,7 @@ export const useExport = (
           };
           
           setExportedVideos(prev => [newVideo, ...prev]);
-          toast("🎬 8-second video with audio saved to gallery!", { duration: 2000 });
+          toast("🎬 8-second video saved to gallery!", { duration: 2000 });
         } else {
           toast("❌ Recording failed", { duration: 2000 });
         }
