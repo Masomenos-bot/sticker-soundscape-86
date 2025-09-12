@@ -116,40 +116,30 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     if (!canvasRef.current || isRecording) return;
     
     setIsRecording(true);
-    toast("Creating high-quality 8-second video...", { duration: 2000 });
+    toast("Creating playable 8-second video...", { duration: 2000 });
     
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       
-      // Set higher resolution canvas dimensions
-      const scaleFactor = 2; // Double the resolution
-      canvas.width = canvasRef.current.offsetWidth * scaleFactor;
-      canvas.height = canvasRef.current.offsetHeight * scaleFactor;
+      // Use standard dimensions without scaling to avoid issues
+      canvas.width = canvasRef.current.offsetWidth;
+      canvas.height = canvasRef.current.offsetHeight;
 
-      const stream = canvas.captureStream(24); // 24 fps for smoother video
+      const stream = canvas.captureStream(15); // 15 fps for good balance
       
-      // Check supported mime types with quality settings
-      const supportedTypes = [
-        'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8,opus', 
-        'video/webm',
-        'video/mp4;codecs=h264'
-      ];
-      
-      let mimeType = 'video/webm';
-      for (const type of supportedTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type;
-          break;
-        }
+      // Use the most basic supported format
+      let recorder;
+      try {
+        // Try the most basic webm first
+        recorder = new MediaRecorder(stream);
+      } catch (error) {
+        console.error('Basic MediaRecorder failed:', error);
+        setIsRecording(false);
+        toast("Video recording not supported in this browser", { duration: 3000 });
+        return;
       }
 
-      // Use higher bitrate for better quality
-      const recorder = new MediaRecorder(stream, { 
-        mimeType,
-        videoBitsPerSecond: 2500000 // 2.5 Mbps for high quality
-      });
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
@@ -157,7 +147,7 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
+        const blob = new Blob(chunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         const timestamp = Date.now();
         
@@ -165,19 +155,19 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
           id: `video-${timestamp}`,
           url,
           timestamp,
-          name: `hq-canvas-video-${timestamp}.webm`
+          name: `playable-video-${timestamp}.webm`
         };
 
         setExportedVideos(prev => [...prev, videoItem]);
-        toast("High-quality video added to gallery! 🎥", { duration: 2000 });
+        toast("Playable video added to gallery! 🎥", { duration: 2000 });
         setIsRecording(false);
       };
 
       recorder.start();
 
-      // Capture frames for 8 seconds at higher quality
+      // Capture frames for 8 seconds
       const duration = 8000; // 8 seconds
-      const frameRate = 24; // 24 fps for smoother motion
+      const frameRate = 15; // 15 fps
       let frameCount = 0;
       const totalFrames = (duration / 1000) * frameRate;
 
@@ -190,101 +180,34 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
         try {
           const frameCanvas = await html2canvas(canvasRef.current!, {
             backgroundColor: null,
-            scale: 2, // High resolution capture
+            scale: 1, // Standard scale to avoid issues
             useCORS: true,
             allowTaint: true,
-            logging: false,
-            width: canvasRef.current!.offsetWidth,
-            height: canvasRef.current!.offsetHeight,
-            windowWidth: canvasRef.current!.offsetWidth,
-            windowHeight: canvasRef.current!.offsetHeight
+            logging: false
           });
 
-          // Clear and draw with high quality
+          // Clear and draw frame
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(frameCanvas, 0, 0, canvas.width, canvas.height);
           
           frameCount++;
           setTimeout(captureFrame, 1000 / frameRate);
         } catch (error) {
           console.error('Frame capture error:', error);
+          frameCount++;
           setTimeout(captureFrame, 1000 / frameRate);
         }
       };
 
-      // Start capturing after a short delay
-      setTimeout(() => captureFrame(), 100);
+      // Start capturing
+      setTimeout(() => captureFrame(), 200);
 
     } catch (error) {
       console.error('Video export failed:', error);
-      toast("Video export failed - trying fallback quality", { duration: 2000 });
-      // Fallback to lower quality if high quality fails
-      await exportAsVideoFallback();
-    }
-  };
-
-  const exportAsVideoFallback = async () => {
-    try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d')!;
-      
-      canvas.width = canvasRef.current!.offsetWidth;
-      canvas.height = canvasRef.current!.offsetHeight;
-
-      const stream = canvas.captureStream(15);
-      const recorder = new MediaRecorder(stream);
-      const chunks: Blob[] = [];
-
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        const timestamp = Date.now();
-        
-        const videoItem: VideoGalleryItem = {
-          id: `video-${timestamp}`,
-          url,
-          timestamp,
-          name: `canvas-video-${timestamp}.webm`
-        };
-
-        setExportedVideos(prev => [...prev, videoItem]);
-        toast("Video added to gallery! 🎥", { duration: 2000 });
-        setIsRecording(false);
-      };
-
-      recorder.start();
-      
-      let frameCount = 0;
-      const totalFrames = 120; // 8 seconds at 15fps
-      
-      const captureFrame = async () => {
-        if (frameCount >= totalFrames) {
-          recorder.stop();
-          return;
-        }
-
-        const frameCanvas = await html2canvas(canvasRef.current!, {
-          backgroundColor: null,
-          scale: 1.5,
-          useCORS: true,
-          allowTaint: true,
-          logging: false
-        });
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(frameCanvas, 0, 0);
-        frameCount++;
-        setTimeout(captureFrame, 1000 / 15);
-      };
-
-      captureFrame();
-    } catch (error) {
-      console.error('Fallback video export failed:', error);
-      toast("Video export failed", { duration: 2000 });
+      toast("Video export failed - using fallback method", { duration: 2000 });
       setIsRecording(false);
+      // Just export as GIF if video fails completely
+      exportAsGIF();
     }
   };
 
