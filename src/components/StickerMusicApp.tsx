@@ -472,37 +472,138 @@ const StickerMusicApp = () => {
     if (!canvasRef.current || isRecording) return;
     
     try {
-      // Create a canvas element to capture the content
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
+      console.log("Starting video export...");
       
-      const rect = canvasRef.current.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      // Check if MediaRecorder is supported
+      if (!window.MediaRecorder) {
+        throw new Error('MediaRecorder not supported in this browser');
+      }
       
-      // Setup MediaRecorder to record the canvas
-      const stream = canvas.captureStream(30); // 30 FPS
+      // Ensure playback is running for the recording
+      if (!isPlaying) {
+        setIsPlaying(true);
+        // Wait a moment for playback to start
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
+      setIsRecording(true);
+      toast("🔴 Recording 8-second video...", { duration: 2000 });
+      
+      // Use screen capture API for more reliable recording
+      let stream: MediaStream;
+      
+      try {
+        // Try to use getDisplayMedia for screen capture
+        if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              frameRate: { ideal: 30 }
+            },
+            audio: false
+          });
+        } else {
+          throw new Error('Screen capture not supported');
+        }
+      } catch (screenError) {
+        console.log("Screen capture failed, trying canvas approach:", screenError);
+        
+        // Fallback: Create a canvas and stream from it
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Could not get canvas context');
+        
+        const rect = canvasRef.current.getBoundingClientRect();
+        canvas.width = Math.min(1280, rect.width);
+        canvas.height = Math.min(720, rect.height);
+        
+        // Create stream from canvas
+        stream = canvas.captureStream(30);
+        
+        // Function to continuously capture the canvas content
+        const captureLoop = async () => {
+          if (canvasRef.current && isRecording) {
+            try {
+              const htmlCanvas = await html2canvas(canvasRef.current, {
+                backgroundColor: '#ffffff',
+                scale: 0.5,
+                useCORS: true,
+                allowTaint: true,
+                logging: false
+              });
+              
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(htmlCanvas, 0, 0, canvas.width, canvas.height);
+            } catch (captureError) {
+              console.error('Frame capture error:', captureError);
+            }
+            
+            // Continue capturing if still recording
+            if (isRecording) {
+              requestAnimationFrame(captureLoop);
+            }
+          }
+        };
+        
+        // Start the capture loop
+        requestAnimationFrame(captureLoop);
+      }
+      
+      // Determine the best supported MIME type
+      let mimeType = 'video/webm';
+      if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+        mimeType = 'video/webm;codecs=vp9';
+      } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+        mimeType = 'video/webm;codecs=vp8';
+      } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+        mimeType = 'video/mp4';
+      }
+      
+      console.log("Using MIME type:", mimeType);
+      
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp9'
+        mimeType: mimeType,
+        videoBitsPerSecond: 2500000 // 2.5 Mbps
       });
       
       recordedChunksRef.current = [];
       
       mediaRecorder.ondataavailable = (event) => {
+        console.log("Data available:", event.data.size);
         if (event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
         }
       };
       
       mediaRecorder.onstop = () => {
+        console.log("Recording stopped, creating blob...");
+        
+        // Stop all tracks in the stream
+        stream.getTracks().forEach(track => track.stop());
+        
+        if (recordedChunksRef.current.length === 0) {
+          setIsRecording(false);
+          toast("❌ No video data recorded", { duration: 2000 });
+          return;
+        }
+        
         const blob = new Blob(recordedChunksRef.current, {
-          type: 'video/webm'
+          type: mimeType
         });
+        
+        console.log("Blob created:", blob.size, "bytes");
+        
+        if (blob.size === 0) {
+          setIsRecording(false);
+          toast("❌ Video recording failed - no data", { duration: 2000 });
+          return;
+        }
         
         const videoUrl = URL.createObjectURL(blob);
         const timestamp = Date.now();
-        const videoName = `sticker-sequence-${timestamp}.webm`;
+        const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const videoName = `sticker-sequence-${timestamp}.${extension}`;
         
         const newVideo: VideoGalleryItem = {
           id: `video-${timestamp}`,
@@ -516,49 +617,30 @@ const StickerMusicApp = () => {
         toast("🎬 Video exported to gallery!", { duration: 2000 });
       };
       
+      mediaRecorder.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+        setIsRecording(false);
+        toast("❌ Recording error occurred", { duration: 2000 });
+      };
+      
       mediaRecorderRef.current = mediaRecorder;
       
       // Start recording
-      setIsRecording(true);
-      mediaRecorder.start();
-      toast("🔴 Recording video... (10 seconds)", { duration: 2000 });
+      console.log("Starting MediaRecorder...");
+      mediaRecorder.start(100); // Collect data every 100ms
       
-      // Ensure playback is running
-      if (!isPlaying) {
-        setIsPlaying(true);
-      }
-      
-      // Function to capture frames
-      const captureFrame = async () => {
-        if (canvasRef.current) {
-          const htmlCanvas = await html2canvas(canvasRef.current, {
-            backgroundColor: null,
-            scale: 1,
-            useCORS: true,
-            allowTaint: true,
-          });
-          
-          // Draw the captured frame to our recording canvas
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(htmlCanvas, 0, 0, canvas.width, canvas.height);
-        }
-      };
-      
-      // Capture frames at 30fps for 10 seconds
-      const frameInterval = setInterval(captureFrame, 1000 / 30);
-      
-      // Stop recording after 10 seconds
+      // Stop recording after 8 seconds
       setTimeout(() => {
-        clearInterval(frameInterval);
+        console.log("Stopping recording...");
         if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
           mediaRecorderRef.current.stop();
         }
-      }, 10000);
+      }, 8000);
       
     } catch (error) {
       console.error('Video export failed:', error);
       setIsRecording(false);
-      toast("Video export failed. Browser may not support video recording.", { duration: 3000 });
+      toast(`❌ Video export failed: ${error.message}`, { duration: 3000 });
     }
   };
 
@@ -636,7 +718,7 @@ const StickerMusicApp = () => {
                   className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
                     isRecording ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
-                  title="Export 10-second video"
+                  title="Export 8-second video"
                 >
                   <Video className={`w-6 h-6 ${isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
                 </button>
