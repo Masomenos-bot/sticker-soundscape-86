@@ -12,11 +12,11 @@ interface MusicCanvasProps {
   globalVolume: number;
   currentStep: number;
   sequenceTempo: number;
+  activeStickers: Set<number>;
   selectedStickers: string[];
   isMultiSelectMode: boolean;
   onStickerSelect: (id: string, isSelected: boolean) => void;
   onGroupMove: (deltaX: number, deltaY: number) => void;
-  currentPattern?: string;
 }
 
 export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
@@ -29,11 +29,11 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   globalVolume,
   currentStep,
   sequenceTempo,
+  activeStickers,
   selectedStickers,
   isMultiSelectMode,
   onStickerSelect,
   onGroupMove,
-  currentPattern,
 }, ref) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -108,7 +108,7 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
 
         {stickers
           .sort((a, b) => a.zIndex - b.zIndex)
-          .map((sticker) => (
+          .map((sticker, index) => (
           <ResizableSticker
             key={sticker.id}
             sticker={sticker}
@@ -118,7 +118,7 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
             isPlaying={isPlaying}
             globalVolume={globalVolume}
             canvasRef={canvasRef}
-            isCurrentStep={sticker.stepIndex === currentStep}
+            isCurrentStep={activeStickers.has(index)}
             sequenceTempo={sequenceTempo}
             isSelected={selectedStickers.includes(sticker.id)}
             isMultiSelectMode={isMultiSelectMode}

@@ -209,7 +209,7 @@ const StickerMusicApp = () => {
                 globalVolume={audio.globalVolume}
                 currentStep={sequencer.currentStep}
                 sequenceTempo={sequencer.sequenceTempo}
-                currentPattern={sequencer.currentPattern}
+                activeStickers={sequencer.activeStickers}
                 selectedStickers={stickers.selectedStickers}
                 isMultiSelectMode={stickers.isMultiSelectMode}
                 onStickerSelect={stickers.handleStickerSelect}

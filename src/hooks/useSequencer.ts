@@ -1,170 +1,194 @@
 import { useState, useRef, useEffect } from "react";
 import { Sticker } from "@/components/StickerMusicApp";
 
-// Musical pattern types for harmonious variation
-const MUSICAL_PATTERNS = {
-  LINEAR: 'linear',
-  PENDULUM: 'pendulum', 
-  SPIRAL: 'spiral',
-  HARMONIC: 'harmonic',
-  RANDOM_WALK: 'random_walk'
+// Polyrhythmic patterns with different time signatures
+const POLYRHYTHMIC_PATTERNS = {
+  QUARTER_NOTES: { division: 1, name: '4/4' },      // Every beat
+  EIGHTH_NOTES: { division: 0.5, name: '8/4' },     // Twice per beat
+  TRIPLETS: { division: 0.333, name: '3/4' },       // Three per beat
+  SIXTEENTH_NOTES: { division: 0.25, name: '16/4' }, // Four per beat
+  DOTTED_QUARTER: { division: 1.5, name: '3/2' },   // Every 1.5 beats
+  HALF_NOTES: { division: 2, name: '2/4' },         // Every 2 beats
+  WHOLE_NOTES: { division: 4, name: '1/4' },        // Every 4 beats
 } as const;
 
-type MusicalPattern = typeof MUSICAL_PATTERNS[keyof typeof MUSICAL_PATTERNS];
+// Chord progressions and harmonic relationships
+const CHORD_PROGRESSIONS = {
+  I_V_vi_IV: [0, 7, 9, 5],      // C-G-Am-F (pop progression)
+  ii_V_I: [2, 7, 0],            // Dm-G-C (jazz progression)
+  vi_IV_I_V: [9, 5, 0, 7],      // Am-F-C-G (alternative progression)
+  I_vi_ii_V: [0, 9, 2, 7],      // C-Am-Dm-G (circle progression)
+} as const;
 
-// Create harmonic relationships based on spatial positioning
-const createHarmonicSequence = (stickers: Sticker[]) => {
-  if (stickers.length <= 1) return stickers.map((_, i) => i);
-  
-  // Sort by spatial relationships (closer stickers play together)
-  const sorted = [...stickers].sort((a, b) => {
-    const distanceA = Math.sqrt(a.x * a.x + a.y * a.y);
-    const distanceB = Math.sqrt(b.x * b.x + b.y * b.y);
-    return distanceA - distanceB;
-  });
-  
-  // Create harmonic groups (play multiple stickers per step)
-  const sequence: number[][] = [];
-  for (let i = 0; i < sorted.length; i += 2) {
-    const group = [stickers.indexOf(sorted[i])];
-    if (i + 1 < sorted.length) {
-      group.push(stickers.indexOf(sorted[i + 1]));
+type PolyrhythmicPattern = typeof POLYRHYTHMIC_PATTERNS[keyof typeof POLYRHYTHMIC_PATTERNS];
+type ChordProgression = typeof CHORD_PROGRESSIONS[keyof typeof CHORD_PROGRESSIONS];
+
+// Assign polyrhythmic patterns based on sticker position and properties
+const assignPolyrhythmicPatterns = (stickers: Sticker[]) => {
+  return stickers.map((sticker, index) => {
+    // Assign patterns based on spatial position
+    const x = sticker.x / 800; // Normalize to 0-1
+    const y = sticker.y / 600; // Normalize to 0-1
+    
+    // Different zones get different rhythmic patterns
+    if (x < 0.33) {
+      return y < 0.5 ? POLYRHYTHMIC_PATTERNS.QUARTER_NOTES : POLYRHYTHMIC_PATTERNS.HALF_NOTES;
+    } else if (x < 0.66) {
+      return y < 0.33 ? POLYRHYTHMIC_PATTERNS.EIGHTH_NOTES : 
+             y < 0.66 ? POLYRHYTHMIC_PATTERNS.TRIPLETS : POLYRHYTHMIC_PATTERNS.DOTTED_QUARTER;
+    } else {
+      return y < 0.5 ? POLYRHYTHMIC_PATTERNS.SIXTEENTH_NOTES : POLYRHYTHMIC_PATTERNS.WHOLE_NOTES;
     }
-    sequence.push(group);
-  }
-  
-  return sequence.flat();
+  });
 };
 
-// Generate musical variations with swing timing
-const getSwingTiming = (step: number, totalSteps: number, baseDuration: number) => {
-  const swingRatio = 0.15; // 15% swing
-  const isOffbeat = step % 2 === 1;
-  return baseDuration * (isOffbeat ? 1 + swingRatio : 1 - swingRatio);
+// Create chord progressions based on sticker positions
+const createChordProgression = (stickers: Sticker[]) => {
+  if (stickers.length < 3) return [];
+  
+  // Group stickers into chords based on proximity
+  const chordGroups: number[][] = [];
+  const processed = new Set<number>();
+  
+  stickers.forEach((sticker, index) => {
+    if (processed.has(index)) return;
+    
+    const currentGroup = [index];
+    processed.add(index);
+    
+    // Find nearby stickers to form a chord
+    stickers.forEach((otherSticker, otherIndex) => {
+      if (processed.has(otherIndex) || index === otherIndex) return;
+      
+      const distance = Math.sqrt(
+        Math.pow(otherSticker.x - sticker.x, 2) + 
+        Math.pow(otherSticker.y - sticker.y, 2)
+      );
+      
+      // If within 200px, consider part of the same chord
+      if (distance < 200 && currentGroup.length < 4) {
+        currentGroup.push(otherIndex);
+        processed.add(otherIndex);
+      }
+    });
+    
+    if (currentGroup.length >= 2) {
+      chordGroups.push(currentGroup);
+    }
+  });
+  
+  return chordGroups;
+};
+
+// Calculate polyrhythmic timing for each sticker
+const calculatePolyrhythmicTiming = (
+  stickerIndex: number, 
+  pattern: PolyrhythmicPattern, 
+  baseTempo: number,
+  currentTime: number
+): boolean => {
+  const beatDuration = (60 / baseTempo) * 1000; // Beat duration in ms
+  const patternDuration = beatDuration * pattern.division;
+  
+  // Check if this sticker should play at the current time
+  const timeInPattern = currentTime % patternDuration;
+  return timeInPattern < 50; // 50ms window for triggering
 };
 
 export const useSequencer = (placedStickers: Sticker[], isPlaying: boolean) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [sequenceTempo, setSequenceTempo] = useState(120);
-  const [currentPattern, setCurrentPattern] = useState<MusicalPattern>(MUSICAL_PATTERNS.HARMONIC);
-  const [patternDirection, setPatternDirection] = useState(1);
-  const [harmonicSequence, setHarmonicSequence] = useState<number[]>([]);
+  const [activeStickers, setActiveStickers] = useState<Set<number>>(new Set());
+  const [polyrhythmicPatterns, setPolyrhythmicPatterns] = useState<PolyrhythmicPattern[]>([]);
+  const [chordGroups, setChordGroups] = useState<number[][]>([]);
+  const [currentChordIndex, setCurrentChordIndex] = useState(0);
   
-  const sequencerRef = useRef<NodeJS.Timeout | null>(null);
-  const stepTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const masterClockRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
 
-  // Update harmonic sequence when stickers change
+  // Update polyrhythmic patterns and chord groups when stickers change
   useEffect(() => {
     if (placedStickers.length > 0) {
-      const newSequence = createHarmonicSequence(placedStickers);
-      setHarmonicSequence(newSequence);
+      const patterns = assignPolyrhythmicPatterns(placedStickers);
+      const chords = createChordProgression(placedStickers);
+      
+      setPolyrhythmicPatterns(patterns);
+      setChordGroups(chords);
       setCurrentStep(0);
+      setCurrentChordIndex(0);
     }
   }, [placedStickers.length, JSON.stringify(placedStickers.map(s => ({ x: s.x, y: s.y, id: s.id })))]);
 
-  // Advanced pattern-based sequencing
-  const getNextStep = (current: number, total: number, pattern: MusicalPattern) => {
-    switch (pattern) {
-      case MUSICAL_PATTERNS.PENDULUM:
-        if (current === total - 1) setPatternDirection(-1);
-        if (current === 0) setPatternDirection(1);
-        return Math.max(0, Math.min(total - 1, current + patternDirection));
-        
-      case MUSICAL_PATTERNS.SPIRAL:
-        // Fibonacci-like progression for organic feel
-        const fibSeq = [0, 1, 1, 2, 3, 5, 8, 13];
-        const nextFib = fibSeq[current % fibSeq.length] || 1;
-        return (current + nextFib) % total;
-        
-      case MUSICAL_PATTERNS.HARMONIC:
-        // Use spatial harmonic sequence
-        const currentHarmonicIndex = harmonicSequence.indexOf(current);
-        const nextHarmonicIndex = (currentHarmonicIndex + 1) % harmonicSequence.length;
-        return harmonicSequence[nextHarmonicIndex] || 0;
-        
-      case MUSICAL_PATTERNS.RANDOM_WALK:
-        // Weighted random walk towards nearby stickers
-        const currentSticker = placedStickers[current];
-        if (!currentSticker) return (current + 1) % total;
-        
-        const nearbyStickers = placedStickers
-          .map((sticker, index) => ({
-            index,
-            distance: Math.sqrt(
-              Math.pow(sticker.x - currentSticker.x, 2) + 
-              Math.pow(sticker.y - currentSticker.y, 2)
-            )
-          }))
-          .filter(item => item.index !== current)
-          .sort((a, b) => a.distance - b.distance)
-          .slice(0, 3); // Top 3 nearest
-          
-        if (nearbyStickers.length === 0) return (current + 1) % total;
-        
-        // 70% chance to pick nearest, 30% for others
-        const randomChoice = Math.random();
-        if (randomChoice < 0.7) return nearbyStickers[0].index;
-        if (randomChoice < 0.9 && nearbyStickers[1]) return nearbyStickers[1].index;
-        return nearbyStickers[nearbyStickers.length - 1].index;
-        
-      case MUSICAL_PATTERNS.LINEAR:
-      default:
-        return (current + 1) % total;
-    }
-  };
-
+  // Polyrhythmic master clock
   useEffect(() => {
-    if (isPlaying && placedStickers.length > 0) {
-      const baseDuration = (60 / sequenceTempo) * 1000; // Convert to milliseconds
+    if (isPlaying && placedStickers.length > 0 && polyrhythmicPatterns.length > 0) {
+      startTimeRef.current = Date.now();
       
-      const scheduleNext = () => {
-        const swingDuration = getSwingTiming(currentStep, placedStickers.length, baseDuration);
+      const tick = () => {
+        const currentTime = Date.now() - startTimeRef.current;
+        const newActiveStickers = new Set<number>();
         
-        stepTimeoutRef.current = setTimeout(() => {
-          setCurrentStep(prev => {
-            const next = getNextStep(prev, placedStickers.length, currentPattern);
-            return next;
+        // Check each sticker's polyrhythmic pattern
+        placedStickers.forEach((sticker, index) => {
+          const pattern = polyrhythmicPatterns[index];
+          if (pattern && calculatePolyrhythmicTiming(index, pattern, sequenceTempo, currentTime)) {
+            newActiveStickers.add(index);
+          }
+        });
+        
+        // Handle chord progressions
+        if (chordGroups.length > 0) {
+          const chordChangeDuration = (60 / sequenceTempo) * 4000; // Change chord every 4 beats
+          const currentChord = Math.floor(currentTime / chordChangeDuration) % chordGroups.length;
+          
+          if (currentChord !== currentChordIndex) {
+            setCurrentChordIndex(currentChord);
+          }
+          
+          // Add current chord notes to active stickers
+          chordGroups[currentChord]?.forEach(stickerIndex => {
+            const pattern = polyrhythmicPatterns[stickerIndex];
+            if (pattern && calculatePolyrhythmicTiming(stickerIndex, pattern, sequenceTempo, currentTime)) {
+              newActiveStickers.add(stickerIndex);
+            }
           });
-          scheduleNext(); // Schedule the next step
-        }, swingDuration);
+        }
+        
+        setActiveStickers(newActiveStickers);
+        
+        // Set current step to first active sticker for visual feedback
+        if (newActiveStickers.size > 0) {
+          setCurrentStep(Array.from(newActiveStickers)[0]);
+        }
       };
       
-      scheduleNext();
+      // 60 FPS master clock for precise timing
+      masterClockRef.current = setInterval(tick, 16);
       
       return () => {
-        if (stepTimeoutRef.current) {
-          clearTimeout(stepTimeoutRef.current);
+        if (masterClockRef.current) {
+          clearInterval(masterClockRef.current);
         }
       };
     } else {
-      if (stepTimeoutRef.current) {
-        clearTimeout(stepTimeoutRef.current);
-        stepTimeoutRef.current = null;
+      if (masterClockRef.current) {
+        clearInterval(masterClockRef.current);
+        masterClockRef.current = null;
       }
+      setActiveStickers(new Set());
     }
-  }, [isPlaying, placedStickers.length, sequenceTempo, currentPattern, currentStep, patternDirection, harmonicSequence]);
+  }, [isPlaying, placedStickers.length, sequenceTempo, polyrhythmicPatterns, chordGroups, currentChordIndex]);
 
-  // Auto-change pattern for variation
-  useEffect(() => {
-    if (isPlaying && placedStickers.length > 2) {
-      const patternChangeInterval = setInterval(() => {
-        const patterns = Object.values(MUSICAL_PATTERNS);
-        const currentIndex = patterns.indexOf(currentPattern);
-        const nextPattern = patterns[(currentIndex + 1) % patterns.length];
-        setCurrentPattern(nextPattern);
-      }, 16000); // Change pattern every 16 seconds
-      
-      return () => clearInterval(patternChangeInterval);
-    }
-  }, [isPlaying, currentPattern, placedStickers.length]);
 
   return {
     currentStep,
     sequenceTempo,
     setSequenceTempo,
     setCurrentStep,
-    currentPattern,
-    setCurrentPattern,
-    musicalPatterns: MUSICAL_PATTERNS
+    activeStickers,
+    polyrhythmicPatterns,
+    chordGroups,
+    currentChordIndex,
+    polyrhythmic: POLYRHYTHMIC_PATTERNS
   };
 };
