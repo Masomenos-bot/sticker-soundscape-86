@@ -261,16 +261,6 @@ export const ResizableSticker = ({
     event.preventDefault();
     event.stopPropagation();
     
-    // Simple click to select/deselect
-    if (event.ctrlKey || event.metaKey) {
-      // Multi-select with Ctrl/Cmd
-      onSelect(sticker.id, !isSelected);
-      return;
-    } else {
-      // Simple click - select this sticker only
-      onSelect(sticker.id, true);
-    }
-    
     const rect = stickerRef.current?.getBoundingClientRect();
     if (!rect) return;
     
@@ -279,6 +269,17 @@ export const ResizableSticker = ({
     
     const isOnResizeHandle = x > rect.width - 20 && y > rect.height - 20;
     const isOnRotateHandle = x > rect.width - 20 && y < 20;
+    
+    // Handle selection ONLY for multi-select with Ctrl/Cmd, otherwise start drag
+    if (event.ctrlKey || event.metaKey) {
+      onSelect(sticker.id, !isSelected);
+      return;
+    } 
+    
+    // Select this sticker if not already selected (for drag operations)
+    if (!isSelected) {
+      onSelect(sticker.id, true);
+    }
     
     if (isOnRotateHandle) {
       setIsRotating(true);
@@ -431,10 +432,10 @@ export const ResizableSticker = ({
   return (
       <div
         ref={stickerRef}
-        className={`absolute select-none cursor-move group transition-all duration-150 ease-out ${
+        className={`absolute select-none cursor-grab active:cursor-grabbing group transition-all duration-150 ease-out ${
           isCurrentStep ? 'z-50' : ''
-        } ${isSelected ? 'opacity-75' : ''}`}
-      style={{
+        } ${isSelected ? 'ring-2 ring-primary/50' : ''} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        style={{
         left: `${sticker.x}px`,
         top: `${sticker.y}px`,
         width: `${sticker.width}px`,
