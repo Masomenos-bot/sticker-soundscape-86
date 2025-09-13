@@ -134,20 +134,6 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
           </div>
         )}
 
-        {/* Pattern Indicator */}
-        {stickers.length > 0 && currentPattern && (
-          <div className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm rounded-lg p-3 border border-border/50">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium capitalize">
-                {currentPattern.replace('_', ' ')} Pattern
-              </span>
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
-              {sequenceTempo} BPM • Step {currentStep + 1}/{stickers.length}
-            </div>
-          </div>
-        )}
 
         {/* Harmonic Connection Lines */}
         {isPlaying && harmonicConnections.length > 0 && (
