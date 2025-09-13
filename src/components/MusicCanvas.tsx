@@ -36,36 +36,6 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   currentPattern,
 }, ref) => {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [harmonicConnections, setHarmonicConnections] = useState<Array<{from: number, to: number}>>([]);
-
-  // Calculate harmonic connections for visual feedback
-  useEffect(() => {
-    if (stickers.length > 1 && isPlaying) {
-      const connections: Array<{from: number, to: number}> = [];
-      
-      stickers.forEach((sticker, index) => {
-        const nearbyStickers = stickers
-          .map((otherSticker, otherIndex) => ({
-            index: otherIndex,
-            distance: Math.sqrt(
-              Math.pow(otherSticker.x - sticker.x, 2) + 
-              Math.pow(otherSticker.y - sticker.y, 2)
-            )
-          }))
-          .filter(item => item.index !== index)
-          .sort((a, b) => a.distance - b.distance)
-          .slice(0, 1); // Only connect to nearest neighbor
-          
-        nearbyStickers.forEach(nearby => {
-          connections.push({ from: index, to: nearby.index });
-        });
-      });
-      
-      setHarmonicConnections(connections);
-    } else {
-      setHarmonicConnections([]);
-    }
-  }, [stickers, isPlaying, currentStep]);
 
   const handleDragOver = useCallback((event: React.DragEvent) => {
     // Only handle drag events from palette, not from existing stickers
@@ -135,38 +105,6 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
         )}
 
 
-        {/* Harmonic Connection Lines */}
-        {isPlaying && harmonicConnections.length > 0 && (
-          <svg className="absolute inset-0 pointer-events-none z-5" style={{ width: '100%', height: '100%' }}>
-            {harmonicConnections.map((connection, index) => {
-              const fromSticker = stickers[connection.from];
-              const toSticker = stickers[connection.to];
-              if (!fromSticker || !toSticker) return null;
-              
-              const fromX = fromSticker.x + fromSticker.width / 2;
-              const fromY = fromSticker.y + fromSticker.height / 2;
-              const toX = toSticker.x + toSticker.width / 2;
-              const toY = toSticker.y + toSticker.height / 2;
-              
-              const isActive = connection.from === currentStep || connection.to === currentStep;
-              
-              return (
-                <line
-                  key={`${connection.from}-${connection.to}-${index}`}
-                  x1={fromX}
-                  y1={fromY}
-                  x2={toX}
-                  y2={toY}
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={isActive ? "2" : "1"}
-                  strokeOpacity={isActive ? "0.6" : "0.2"}
-                  strokeDasharray="4 4"
-                  className={isActive ? "animate-pulse" : ""}
-                />
-              );
-            })}
-          </svg>
-        )}
 
         {stickers
           .sort((a, b) => a.zIndex - b.zIndex)
