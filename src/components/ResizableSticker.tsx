@@ -53,82 +53,77 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Unique settings for each note in contemplative instruments
+  // Short, crisp contemplative instruments for character building
   const gentleInstruments = useMemo(() => [
     {
-      name: 'crystalline_bells',
-      scale: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // A Minor
+      name: 'soft_bells',
+      scale: [261.63, 293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33], // C Major
       waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.6, 0.3],
-      harmonicGains: [1.0, 0.4, 0.2],
-      // Each note crafted with distinct personality - crystalline clarity
-      attacks: [0.001, 0.003, 0.002, 0.001, 0.004, 0.002, 0.001, 0.003], // Crystal sharp attacks
-      decays: [0.15, 0.08, 0.12, 0.20, 0.06, 0.18, 0.25, 0.10], // Varied shimmer decay
-      sustains: [0.3, 0.1, 0.2, 0.4, 0.05, 0.35, 0.5, 0.15], // Selective sustain hold
-      releases: [0.8, 0.4, 0.6, 1.2, 0.3, 0.9, 1.5, 0.5], // Long ethereal releases
-      filterFreqs: [4200, 3800, 4500, 5200, 3600, 4800, 5800, 3400], // Bright sparkle
-      resonances: [0.15, 0.35, 0.08, 0.25, 0.5, 0.12, 0.4, 0.6], // Selective resonance
-      pattern: [0, 2, 4, 7, 2, 5, 1, 6]
+      harmonics: [1],
+      harmonicGains: [1.0],
+      attack: 0.01,
+      decay: 0.05,
+      sustain: 0.2,
+      release: 0.3,
+      filterFreq: 2000,
+      resonance: 0.5,
+      pattern: [0, 2, 4, 2, 0, 4, 2, 0]
     },
     {
-      name: 'velvet_pad',
-      scale: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // A Minor
+      name: 'warm_pad',
+      scale: [196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 369.99, 415.30], // G Major
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.3],
+      harmonicGains: [1.0, 0.4],
+      attack: 0.02,
+      decay: 0.08,
+      sustain: 0.1,
+      release: 0.4,
+      filterFreq: 1200,
+      resonance: 0.3,
+      pattern: [0, 0, 2, 2, 4, 4, 2, 0]
+    },
+    {
+      name: 'gentle_chime',
+      scale: [293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33, 659.25], // D Major
       waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 0.8, 0.4, 0.2],
-      harmonicGains: [1.0, 0.6, 0.3, 0.15],
-      // Warm, enveloping textures with individual character
-      attacks: [0.08, 0.12, 0.05, 0.15, 0.10, 0.06, 0.18, 0.04], // Gentle blooms
-      decays: [0.3, 0.2, 0.4, 0.15, 0.35, 0.45, 0.1, 0.5], // Rich texture decay
-      sustains: [0.6, 0.4, 0.8, 0.3, 0.7, 0.9, 0.2, 0.85], // Deep sustain holds
-      releases: [1.5, 0.8, 2.0, 0.6, 1.8, 2.5, 0.4, 2.2], // Luxurious fades
-      filterFreqs: [800, 1200, 600, 1500, 700, 1000, 1800, 500], // Warm spectrum
-      resonances: [0.2, 0.4, 0.1, 0.6, 0.3, 0.15, 0.8, 0.05], // Soft emphasis
-      pattern: [0, 1, 3, 2, 5, 4, 6, 3]
+      harmonics: [1],
+      harmonicGains: [1.0],
+      attack: 0.01,
+      decay: 0.06,
+      sustain: 0.1,
+      release: 0.25,
+      filterFreq: 3000,
+      resonance: 0.2,
+      pattern: [0, 4, 2, 6, 4, 0, 2, 4]
     },
     {
-      name: 'moonlight_chime',
-      scale: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // A Minor
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.4, 0.8],
-      harmonicGains: [1.0, 0.3, 0.5],
-      // Delicate nocturnal tones with ethereal character
-      attacks: [0.02, 0.005, 0.015, 0.03, 0.008, 0.025, 0.001, 0.04], // Gentle emergence
-      decays: [0.4, 0.2, 0.6, 0.3, 0.8, 0.15, 0.9, 0.25], // Flowing decay curves
-      sustains: [0.25, 0.4, 0.1, 0.6, 0.05, 0.8, 0.15, 0.5], // Selective sustain magic
-      releases: [1.0, 0.6, 1.4, 0.8, 2.0, 0.4, 2.5, 1.2], // Mystical fades
-      filterFreqs: [2400, 3200, 1800, 4000, 1600, 3600, 2000, 4800], // Luminous frequencies
-      resonances: [0.3, 0.1, 0.5, 0.2, 0.7, 0.15, 0.9, 0.4], // Selective glow
-      pattern: [0, 4, 1, 6, 2, 7, 3, 5]
-    },
-    {
-      name: 'earth_drone',
-      scale: [110.00, 123.47, 130.81, 146.83, 164.81, 174.61, 196.00, 220.00], // A Minor Low
+      name: 'soft_drone',
+      scale: [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66], // Low range
       waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1, 0.7, 0.5, 0.3],
-      harmonicGains: [1.0, 0.5, 0.3, 0.2],
-      // Deep, grounding tones with organic character
-      attacks: [0.15, 0.08, 0.25, 0.05, 0.20, 0.12, 0.30, 0.03], // Organic emergence
-      decays: [0.5, 0.8, 0.3, 1.0, 0.4, 0.9, 0.2, 1.2], // Earth-like settling
-      sustains: [0.8, 0.6, 0.9, 0.4, 0.85, 0.7, 0.95, 0.3], // Solid foundation
-      releases: [2.5, 1.8, 3.0, 1.2, 2.8, 2.0, 3.5, 1.0], // Deep fading
-      filterFreqs: [300, 450, 250, 600, 220, 500, 180, 700], // Subterranean spectrum
-      resonances: [0.1, 0.25, 0.05, 0.4, 0.15, 0.3, 0.02, 0.5], // Earthy resonance
-      pattern: [0, 0, 2, 0, 4, 0, 1, 0]
+      harmonics: [1],
+      harmonicGains: [1.0],
+      attack: 0.05,
+      decay: 0.1,
+      sustain: 0.15,
+      release: 0.5,
+      filterFreq: 400,
+      resonance: 0.1,
+      pattern: [0, 0, 0, 2, 0, 0, 4, 0]
     },
     {
-      name: 'cosmic_texture',
-      scale: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // A Minor
-      waveType: 'square' as OscillatorType,
-      harmonics: [1, 0.3, 0.6, 0.1],
-      harmonicGains: [1.0, 0.25, 0.4, 0.1],
-      // Otherworldly textures with celestial character
-      attacks: [0.06, 0.12, 0.03, 0.18, 0.09, 0.15, 0.02, 0.25], // Cosmic birth
-      decays: [0.7, 0.4, 1.0, 0.2, 0.8, 0.6, 1.5, 0.3], // Stellar evolution
-      sustains: [0.3, 0.7, 0.1, 0.9, 0.4, 0.8, 0.05, 0.95], // Galactic hold
-      releases: [1.8, 1.2, 2.5, 0.8, 2.0, 1.5, 3.0, 1.0], // Infinite space fade
-      filterFreqs: [1400, 2200, 1000, 2800, 1200, 2400, 800, 3200], // Cosmic spectrum
-      resonances: [0.6, 0.3, 0.8, 0.2, 0.7, 0.4, 0.9, 0.1], // Dimensional resonance
-      pattern: [0, 3, 6, 1, 4, 7, 2, 5]
+      name: 'ambient_texture',
+      scale: [220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88], // A Minor
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.2],
+      harmonicGains: [1.0, 0.3],
+      attack: 0.03,
+      decay: 0.1,
+      sustain: 0.08,
+      release: 0.35,
+      filterFreq: 1800,
+      resonance: 0.4,
+      pattern: [0, 3, 0, 5, 0, 2, 0, 4]
     }
   ], []);
 
@@ -196,56 +191,7 @@ export const ResizableSticker = ({
     }
   }, [globalVolume, sticker.volume]);
 
-  // Professional audio mixing setup
-  const masterBusRef = useRef<GainNode | null>(null);
-  const reverbRef = useRef<ConvolverNode | null>(null);
-  const compressorRef = useRef<DynamicsCompressorNode | null>(null);
-
-  // Initialize professional audio chain
-  useEffect(() => {
-    if (audioContextRef.current && !masterBusRef.current) {
-      // Master bus for balanced control
-      masterBusRef.current = audioContextRef.current.createGain();
-      masterBusRef.current.gain.setValueAtTime(0.7, audioContextRef.current.currentTime);
-      
-      // Moderate compressor for balanced dynamics
-      compressorRef.current = audioContextRef.current.createDynamicsCompressor();
-      compressorRef.current.threshold.setValueAtTime(-27, audioContextRef.current.currentTime);
-      compressorRef.current.knee.setValueAtTime(35, audioContextRef.current.currentTime);
-      compressorRef.current.ratio.setValueAtTime(2.5, audioContextRef.current.currentTime);
-      compressorRef.current.attack.setValueAtTime(0.004, audioContextRef.current.currentTime);
-      compressorRef.current.release.setValueAtTime(0.32, audioContextRef.current.currentTime);
-      
-      // Create impulse response for reverb
-      const createImpulseResponse = (duration: number, decay: number) => {
-        const length = audioContextRef.current!.sampleRate * duration;
-        const impulse = audioContextRef.current!.createBuffer(2, length, audioContextRef.current!.sampleRate);
-        
-        for (let channel = 0; channel < 2; channel++) {
-          const channelData = impulse.getChannelData(channel);
-          for (let i = 0; i < length; i++) {
-            const n = length - i;
-            channelData[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay);
-          }
-        }
-        return impulse;
-      };
-      
-      // Reverb for spatial depth
-      reverbRef.current = audioContextRef.current.createConvolver();
-      reverbRef.current.buffer = createImpulseResponse(2, 2);
-      
-      // Connect the master audio chain
-      masterBusRef.current.connect(compressorRef.current);
-      compressorRef.current.connect(reverbRef.current);
-      reverbRef.current.connect(audioContextRef.current.destination);
-      
-      // Also direct connection for dry signal
-      compressorRef.current.connect(audioContextRef.current.destination);
-    }
-  }, []);
-
-  // Optimized step sound with professional mixing
+  // Optimized step sound with MP3 support
   const playStepSound = useCallback(async () => {
     if (!isCurrentStep || !isPlaying) return;
 
@@ -258,8 +204,8 @@ export const ResizableSticker = ({
         return;
       }
 
-      // Professional mixing for synthetic audio
-      if (!audioContextRef.current || !masterBusRef.current) return;
+      // Fallback to synthetic audio if no MP3 or audio context available
+      if (!audioContextRef.current) return;
         
       const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % gentleInstruments.length;
       const instrument = gentleInstruments[instrumentIndex];
@@ -267,93 +213,40 @@ export const ResizableSticker = ({
       const noteIndex = instrument.pattern[stickerProps.stepIndex % instrument.pattern.length];
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
-      // Balanced volume staging - between soft and previous levels
-      const baseVolume = Math.min((stickerProps.width + stickerProps.height) / 180 * globalVolume * stickerProps.volume * 0.028, 0.05);
+      const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.05, 0.08);
       const now = audioContextRef.current.currentTime;
       
-      // Create instrument bus for this sound
-      const instrumentBus = audioContextRef.current.createGain();
-      const panNode = audioContextRef.current.createStereoPanner();
-      const eqLow = audioContextRef.current.createBiquadFilter();
-      const eqMid = audioContextRef.current.createBiquadFilter();
-      const eqHigh = audioContextRef.current.createBiquadFilter();
-      
-      // Stereo positioning based on sticker position
-      const canvasWidth = 800; // Approximate canvas width
-      const panPosition = Math.max(-1, Math.min(1, (sticker.x - canvasWidth/2) / (canvasWidth/2) * 0.7));
-      panNode.pan.setValueAtTime(panPosition, now);
-      
-      // EQ setup for frequency separation
-      eqLow.type = 'lowshelf';
-      eqLow.frequency.setValueAtTime(250, now);
-      eqLow.gain.setValueAtTime(instrumentIndex === 3 ? 3 : -2, now); // Boost earth_drone, cut others
-      
-      eqMid.type = 'peaking';
-      eqMid.frequency.setValueAtTime(1000, now);
-      eqMid.Q.setValueAtTime(0.7, now);
-      eqMid.gain.setValueAtTime([0, 2, 1, -1, 0][instrumentIndex] || 0, now);
-      
-      eqHigh.type = 'highshelf';
-      eqHigh.frequency.setValueAtTime(4000, now);
-      eqHigh.gain.setValueAtTime(instrumentIndex === 0 ? 4 : 0, now); // Boost crystalline_bells
-      
-      // Connect EQ chain
-      instrumentBus.connect(eqLow);
-      eqLow.connect(eqMid);
-      eqMid.connect(eqHigh);
-      eqHigh.connect(panNode);
-      panNode.connect(masterBusRef.current);
-      
-      // Generate harmonics with professional mixing
+      // Simplified audio generation
       for (let i = 0; i < instrument.harmonics.length; i++) {
         const osc = audioContextRef.current.createOscillator();
-        const oscGain = audioContextRef.current.createGain();
-        const oscFilter = audioContextRef.current.createBiquadFilter();
+        const gain = audioContextRef.current.createGain();
+        const filter = audioContextRef.current.createBiquadFilter();
         
         osc.type = instrument.waveType;
         osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], now);
         
-        // Individual note settings with professional timing
-        const attack = instrument.attacks[noteIndex];
-        const decay = instrument.decays[noteIndex];
-        const sustain = instrument.sustains[noteIndex];
-        const release = instrument.releases[noteIndex];
-        const filterFreq = instrument.filterFreqs[noteIndex];
-        const resonance = Math.min(instrument.resonances[noteIndex], 15); // Limit resonance
+        const harmonicGain = instrument.harmonicGains[i] * volume;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(harmonicGain, now + instrument.attack);
+        gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * instrument.sustain, 0.001), now + instrument.attack + instrument.decay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + instrument.release);
         
-        const harmonicVolume = instrument.harmonicGains[i] * baseVolume;
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(instrument.filterFreq, now);
+        filter.Q.setValueAtTime(instrument.resonance, now);
         
-        // Professional envelope shaping
-        oscGain.gain.setValueAtTime(0, now);
-        oscGain.gain.setTargetAtTime(harmonicVolume, now, attack / 4);
-        oscGain.gain.setTargetAtTime(Math.max(harmonicVolume * sustain, 0.001), now + attack, decay / 4);
-        oscGain.gain.setTargetAtTime(0.001, now + attack + decay, release / 4);
-        
-        // Professional filtering
-        oscFilter.type = 'lowpass';
-        oscFilter.frequency.setValueAtTime(filterFreq, now);
-        oscFilter.Q.setValueAtTime(resonance, now);
-        
-        // Anti-aliasing filter
-        const antiAlias = audioContextRef.current.createBiquadFilter();
-        antiAlias.type = 'lowpass';
-        antiAlias.frequency.setValueAtTime(Math.min(filterFreq * 1.5, 8000), now);
-        antiAlias.Q.setValueAtTime(0.7, now);
-        
-        // Connect professional signal chain
-        osc.connect(oscFilter);
-        oscFilter.connect(antiAlias);
-        antiAlias.connect(oscGain);
-        oscGain.connect(instrumentBus);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(audioContextRef.current.destination);
         
         osc.start(now);
-        osc.stop(now + attack + decay + release + 0.1);
+        osc.stop(now + instrument.release);
       }
       
     } catch (error) {
-      console.error("Audio mixing error:", error);
+      console.error("Audio error:", error);
     }
-  }, [isCurrentStep, isPlaying, globalVolume, sticker.soundUrl, sticker.x, playMp3Sound]);
+  }, [isCurrentStep, isPlaying, globalVolume, gentleInstruments, sticker.soundUrl, playMp3Sound]);
 
   // Stable audio trigger effect
   useEffect(() => {
@@ -377,10 +270,15 @@ export const ResizableSticker = ({
     const isOnResizeHandle = x > rect.width - 20 && y > rect.height - 20;
     const isOnRotateHandle = x > rect.width - 20 && y < 20;
     
-    // Handle multi-select with Ctrl/Cmd - toggle selection but continue with drag logic
+    // Handle selection ONLY for multi-select with Ctrl/Cmd, otherwise start drag
     if (event.ctrlKey || event.metaKey) {
       onSelect(sticker.id, !isSelected);
-      // Don't return - allow dragging to continue
+      return;
+    } 
+    
+    // Select this sticker if not already selected (for drag operations)
+    if (!isSelected) {
+      onSelect(sticker.id, true);
     }
     
     if (isOnRotateHandle) {
@@ -391,10 +289,6 @@ export const ResizableSticker = ({
     } else if (isOnResizeHandle) {
       setIsResizing(true);
     } else {
-      // Auto-select this sticker if not already selected for drag operations
-      if (!isSelected) {
-        onSelect(sticker.id, true);
-      }
       setIsDragging(true);
       setDragStart({ x: event.clientX - sticker.x, y: event.clientY - sticker.y });
     }
