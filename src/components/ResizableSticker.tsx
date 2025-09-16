@@ -57,7 +57,7 @@ export const ResizableSticker = ({
   const gentleInstruments = useMemo(() => [
     {
       name: 'crystalline_bells',
-      scale: [261.63, 293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33], // C Major
+      scale: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // A Minor
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.6, 0.3],
       harmonicGains: [1.0, 0.4, 0.2],
@@ -72,7 +72,7 @@ export const ResizableSticker = ({
     },
     {
       name: 'velvet_pad',
-      scale: [196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 369.99, 415.30], // G Major
+      scale: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // A Minor
       waveType: 'triangle' as OscillatorType,
       harmonics: [1, 0.8, 0.4, 0.2],
       harmonicGains: [1.0, 0.6, 0.3, 0.15],
@@ -87,7 +87,7 @@ export const ResizableSticker = ({
     },
     {
       name: 'moonlight_chime',
-      scale: [293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33, 659.25], // D Major
+      scale: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // A Minor
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.4, 0.8],
       harmonicGains: [1.0, 0.3, 0.5],
@@ -102,7 +102,7 @@ export const ResizableSticker = ({
     },
     {
       name: 'earth_drone',
-      scale: [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66], // Low range
+      scale: [110.00, 123.47, 130.81, 146.83, 164.81, 174.61, 196.00, 220.00], // A Minor Low
       waveType: 'sawtooth' as OscillatorType,
       harmonics: [1, 0.7, 0.5, 0.3],
       harmonicGains: [1.0, 0.5, 0.3, 0.2],
@@ -117,7 +117,7 @@ export const ResizableSticker = ({
     },
     {
       name: 'cosmic_texture',
-      scale: [220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88], // A Minor
+      scale: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00, 440.00], // A Minor
       waveType: 'square' as OscillatorType,
       harmonics: [1, 0.3, 0.6, 0.1],
       harmonicGains: [1.0, 0.25, 0.4, 0.1],
@@ -196,7 +196,7 @@ export const ResizableSticker = ({
     }
   }, [globalVolume, sticker.volume]);
 
-  // Optimized step sound with MP3 support
+  // Optimized step sound with MP3 support - fixed jitter
   const playStepSound = useCallback(async () => {
     if (!isCurrentStep || !isPlaying) return;
 
@@ -221,7 +221,7 @@ export const ResizableSticker = ({
       const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.05, 0.08);
       const now = audioContextRef.current.currentTime;
       
-      // Simplified audio generation with individual note settings
+      // Simplified audio generation with individual note settings - anti-jitter timing
       for (let i = 0; i < instrument.harmonics.length; i++) {
         const osc = audioContextRef.current.createOscillator();
         const gain = audioContextRef.current.createGain();
@@ -230,7 +230,7 @@ export const ResizableSticker = ({
         osc.type = instrument.waveType;
         osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], now);
         
-        // Use individual note settings
+        // Use individual note settings with stable timing
         const attack = instrument.attacks[noteIndex];
         const decay = instrument.decays[noteIndex];
         const sustain = instrument.sustains[noteIndex];
@@ -239,10 +239,12 @@ export const ResizableSticker = ({
         const resonance = instrument.resonances[noteIndex];
         
         const harmonicGain = instrument.harmonicGains[i] * volume;
+        
+        // Stable envelope to prevent audio jitter
         gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(harmonicGain, now + attack);
-        gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * sustain, 0.001), now + attack + decay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + attack + decay + release);
+        gain.gain.setTargetAtTime(harmonicGain, now, attack / 3);
+        gain.gain.setTargetAtTime(Math.max(harmonicGain * sustain, 0.001), now + attack, decay / 3);
+        gain.gain.setTargetAtTime(0.001, now + attack + decay, release / 3);
         
         filter.type = 'lowpass';
         filter.frequency.setValueAtTime(filterFreq, now);
@@ -253,13 +255,13 @@ export const ResizableSticker = ({
         gain.connect(audioContextRef.current.destination);
         
         osc.start(now);
-        osc.stop(now + attack + decay + release);
+        osc.stop(now + attack + decay + release + 0.1); // Small buffer to prevent clicks
       }
       
     } catch (error) {
       console.error("Audio error:", error);
     }
-  }, [isCurrentStep, isPlaying, globalVolume, gentleInstruments, sticker.soundUrl, playMp3Sound]);
+  }, [isCurrentStep, isPlaying, globalVolume, sticker.soundUrl, playMp3Sound]);
 
   // Stable audio trigger effect
   useEffect(() => {
