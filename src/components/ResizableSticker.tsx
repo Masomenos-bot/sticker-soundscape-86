@@ -53,7 +53,7 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Gentle contemplative instruments for character building
+  // Short, crisp contemplative instruments for character building
   const gentleInstruments = useMemo(() => [
     {
       name: 'soft_bells',
@@ -61,10 +61,10 @@ export const ResizableSticker = ({
       waveType: 'sine' as OscillatorType,
       harmonics: [1],
       harmonicGains: [1.0],
-      attack: 0.2,
-      decay: 0.1,
-      sustain: 0.6,
-      release: 2.0,
+      attack: 0.01,
+      decay: 0.05,
+      sustain: 0.2,
+      release: 0.3,
       filterFreq: 2000,
       resonance: 0.5,
       pattern: [0, 2, 4, 2, 0, 4, 2, 0]
@@ -75,10 +75,10 @@ export const ResizableSticker = ({
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.3],
       harmonicGains: [1.0, 0.4],
-      attack: 0.5,
-      decay: 0.2,
-      sustain: 0.8,
-      release: 3.0,
+      attack: 0.02,
+      decay: 0.08,
+      sustain: 0.1,
+      release: 0.4,
       filterFreq: 1200,
       resonance: 0.3,
       pattern: [0, 0, 2, 2, 4, 4, 2, 0]
@@ -89,10 +89,10 @@ export const ResizableSticker = ({
       waveType: 'triangle' as OscillatorType,
       harmonics: [1],
       harmonicGains: [1.0],
-      attack: 0.1,
-      decay: 0.3,
-      sustain: 0.4,
-      release: 1.5,
+      attack: 0.01,
+      decay: 0.06,
+      sustain: 0.1,
+      release: 0.25,
       filterFreq: 3000,
       resonance: 0.2,
       pattern: [0, 4, 2, 6, 4, 0, 2, 4]
@@ -103,10 +103,10 @@ export const ResizableSticker = ({
       waveType: 'sawtooth' as OscillatorType,
       harmonics: [1],
       harmonicGains: [1.0],
-      attack: 1.0,
-      decay: 0.5,
-      sustain: 0.9,
-      release: 4.0,
+      attack: 0.05,
+      decay: 0.1,
+      sustain: 0.15,
+      release: 0.5,
       filterFreq: 400,
       resonance: 0.1,
       pattern: [0, 0, 0, 2, 0, 0, 4, 0]
@@ -117,10 +117,10 @@ export const ResizableSticker = ({
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.2],
       harmonicGains: [1.0, 0.3],
-      attack: 0.8,
-      decay: 0.4,
-      sustain: 0.7,
-      release: 2.5,
+      attack: 0.03,
+      decay: 0.1,
+      sustain: 0.08,
+      release: 0.35,
       filterFreq: 1800,
       resonance: 0.4,
       pattern: [0, 3, 0, 5, 0, 2, 0, 4]
