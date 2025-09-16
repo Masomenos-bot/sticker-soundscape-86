@@ -57,16 +57,10 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
     try {
       let stickerDataString = event.dataTransfer.getData("application/json");
       
-      // Fallback to text/plain if JSON not available
       if (!stickerDataString) {
-        const fallbackId = event.dataTransfer.getData("text/plain");
-        if (!fallbackId) {
-          console.warn("No drag data found");
-          return;
-        }
+        console.warn("No JSON drag data found");
+        return;
       }
-      
-      if (!stickerDataString) return;
       
       const stickerData: StickerData = JSON.parse(stickerDataString);
 
