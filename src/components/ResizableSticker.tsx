@@ -196,7 +196,56 @@ export const ResizableSticker = ({
     }
   }, [globalVolume, sticker.volume]);
 
-  // Optimized step sound with MP3 support - fixed jitter
+  // Professional audio mixing setup
+  const masterBusRef = useRef<GainNode | null>(null);
+  const reverbRef = useRef<ConvolverNode | null>(null);
+  const compressorRef = useRef<DynamicsCompressorNode | null>(null);
+
+  // Initialize professional audio chain
+  useEffect(() => {
+    if (audioContextRef.current && !masterBusRef.current) {
+      // Master bus for overall control
+      masterBusRef.current = audioContextRef.current.createGain();
+      masterBusRef.current.gain.setValueAtTime(0.8, audioContextRef.current.currentTime);
+      
+      // Compressor for dynamic control
+      compressorRef.current = audioContextRef.current.createDynamicsCompressor();
+      compressorRef.current.threshold.setValueAtTime(-24, audioContextRef.current.currentTime);
+      compressorRef.current.knee.setValueAtTime(30, audioContextRef.current.currentTime);
+      compressorRef.current.ratio.setValueAtTime(3, audioContextRef.current.currentTime);
+      compressorRef.current.attack.setValueAtTime(0.003, audioContextRef.current.currentTime);
+      compressorRef.current.release.setValueAtTime(0.25, audioContextRef.current.currentTime);
+      
+      // Create impulse response for reverb
+      const createImpulseResponse = (duration: number, decay: number) => {
+        const length = audioContextRef.current!.sampleRate * duration;
+        const impulse = audioContextRef.current!.createBuffer(2, length, audioContextRef.current!.sampleRate);
+        
+        for (let channel = 0; channel < 2; channel++) {
+          const channelData = impulse.getChannelData(channel);
+          for (let i = 0; i < length; i++) {
+            const n = length - i;
+            channelData[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay);
+          }
+        }
+        return impulse;
+      };
+      
+      // Reverb for spatial depth
+      reverbRef.current = audioContextRef.current.createConvolver();
+      reverbRef.current.buffer = createImpulseResponse(2, 2);
+      
+      // Connect the master audio chain
+      masterBusRef.current.connect(compressorRef.current);
+      compressorRef.current.connect(reverbRef.current);
+      reverbRef.current.connect(audioContextRef.current.destination);
+      
+      // Also direct connection for dry signal
+      compressorRef.current.connect(audioContextRef.current.destination);
+    }
+  }, []);
+
+  // Optimized step sound with professional mixing
   const playStepSound = useCallback(async () => {
     if (!isCurrentStep || !isPlaying) return;
 
@@ -209,8 +258,8 @@ export const ResizableSticker = ({
         return;
       }
 
-      // Fallback to synthetic audio if no MP3 or audio context available
-      if (!audioContextRef.current) return;
+      // Professional mixing for synthetic audio
+      if (!audioContextRef.current || !masterBusRef.current) return;
         
       const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % gentleInstruments.length;
       const instrument = gentleInstruments[instrumentIndex];
@@ -218,50 +267,93 @@ export const ResizableSticker = ({
       const noteIndex = instrument.pattern[stickerProps.stepIndex % instrument.pattern.length];
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
-      const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.05, 0.08);
+      // Professional volume staging
+      const baseVolume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.03, 0.06);
       const now = audioContextRef.current.currentTime;
       
-      // Simplified audio generation with individual note settings - anti-jitter timing
+      // Create instrument bus for this sound
+      const instrumentBus = audioContextRef.current.createGain();
+      const panNode = audioContextRef.current.createStereoPanner();
+      const eqLow = audioContextRef.current.createBiquadFilter();
+      const eqMid = audioContextRef.current.createBiquadFilter();
+      const eqHigh = audioContextRef.current.createBiquadFilter();
+      
+      // Stereo positioning based on sticker position
+      const canvasWidth = 800; // Approximate canvas width
+      const panPosition = Math.max(-1, Math.min(1, (sticker.x - canvasWidth/2) / (canvasWidth/2) * 0.7));
+      panNode.pan.setValueAtTime(panPosition, now);
+      
+      // EQ setup for frequency separation
+      eqLow.type = 'lowshelf';
+      eqLow.frequency.setValueAtTime(250, now);
+      eqLow.gain.setValueAtTime(instrumentIndex === 3 ? 3 : -2, now); // Boost earth_drone, cut others
+      
+      eqMid.type = 'peaking';
+      eqMid.frequency.setValueAtTime(1000, now);
+      eqMid.Q.setValueAtTime(0.7, now);
+      eqMid.gain.setValueAtTime([0, 2, 1, -1, 0][instrumentIndex] || 0, now);
+      
+      eqHigh.type = 'highshelf';
+      eqHigh.frequency.setValueAtTime(4000, now);
+      eqHigh.gain.setValueAtTime(instrumentIndex === 0 ? 4 : 0, now); // Boost crystalline_bells
+      
+      // Connect EQ chain
+      instrumentBus.connect(eqLow);
+      eqLow.connect(eqMid);
+      eqMid.connect(eqHigh);
+      eqHigh.connect(panNode);
+      panNode.connect(masterBusRef.current);
+      
+      // Generate harmonics with professional mixing
       for (let i = 0; i < instrument.harmonics.length; i++) {
         const osc = audioContextRef.current.createOscillator();
-        const gain = audioContextRef.current.createGain();
-        const filter = audioContextRef.current.createBiquadFilter();
+        const oscGain = audioContextRef.current.createGain();
+        const oscFilter = audioContextRef.current.createBiquadFilter();
         
         osc.type = instrument.waveType;
         osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], now);
         
-        // Use individual note settings with stable timing
+        // Individual note settings with professional timing
         const attack = instrument.attacks[noteIndex];
         const decay = instrument.decays[noteIndex];
         const sustain = instrument.sustains[noteIndex];
         const release = instrument.releases[noteIndex];
         const filterFreq = instrument.filterFreqs[noteIndex];
-        const resonance = instrument.resonances[noteIndex];
+        const resonance = Math.min(instrument.resonances[noteIndex], 15); // Limit resonance
         
-        const harmonicGain = instrument.harmonicGains[i] * volume;
+        const harmonicVolume = instrument.harmonicGains[i] * baseVolume;
         
-        // Stable envelope to prevent audio jitter
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.setTargetAtTime(harmonicGain, now, attack / 3);
-        gain.gain.setTargetAtTime(Math.max(harmonicGain * sustain, 0.001), now + attack, decay / 3);
-        gain.gain.setTargetAtTime(0.001, now + attack + decay, release / 3);
+        // Professional envelope shaping
+        oscGain.gain.setValueAtTime(0, now);
+        oscGain.gain.setTargetAtTime(harmonicVolume, now, attack / 4);
+        oscGain.gain.setTargetAtTime(Math.max(harmonicVolume * sustain, 0.001), now + attack, decay / 4);
+        oscGain.gain.setTargetAtTime(0.001, now + attack + decay, release / 4);
         
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(filterFreq, now);
-        filter.Q.setValueAtTime(resonance, now);
+        // Professional filtering
+        oscFilter.type = 'lowpass';
+        oscFilter.frequency.setValueAtTime(filterFreq, now);
+        oscFilter.Q.setValueAtTime(resonance, now);
         
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(audioContextRef.current.destination);
+        // Anti-aliasing filter
+        const antiAlias = audioContextRef.current.createBiquadFilter();
+        antiAlias.type = 'lowpass';
+        antiAlias.frequency.setValueAtTime(Math.min(filterFreq * 1.5, 8000), now);
+        antiAlias.Q.setValueAtTime(0.7, now);
+        
+        // Connect professional signal chain
+        osc.connect(oscFilter);
+        oscFilter.connect(antiAlias);
+        antiAlias.connect(oscGain);
+        oscGain.connect(instrumentBus);
         
         osc.start(now);
-        osc.stop(now + attack + decay + release + 0.1); // Small buffer to prevent clicks
+        osc.stop(now + attack + decay + release + 0.1);
       }
       
     } catch (error) {
-      console.error("Audio error:", error);
+      console.error("Audio mixing error:", error);
     }
-  }, [isCurrentStep, isPlaying, globalVolume, sticker.soundUrl, playMp3Sound]);
+  }, [isCurrentStep, isPlaying, globalVolume, sticker.soundUrl, sticker.x, playMp3Sound]);
 
   // Stable audio trigger effect
   useEffect(() => {
