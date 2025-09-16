@@ -53,77 +53,77 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Optimized Ethiopian instruments
-  const ethioInstruments = useMemo(() => [
+  // Gentle contemplative instruments for character building
+  const gentleInstruments = useMemo(() => [
     {
-      name: 'vibraphone',
-      scale: [277.18, 311.13, 349.23, 415.30, 466.16, 523.25, 622.25, 698.46], 
+      name: 'soft_bells',
+      scale: [261.63, 293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33], // C Major
       waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.6, 0.2],
-      harmonicGains: [1.0, 0.5, 0.2],
-      attack: 0.01,
-      decay: 0.04,
-      sustain: 0.2,
-      release: 0.6,
-      filterFreq: 3200,
-      resonance: 1.5,
-      pattern: [0, 2, 4, 1, 5, 3, 6, 2]
+      harmonics: [1],
+      harmonicGains: [1.0],
+      attack: 0.2,
+      decay: 0.1,
+      sustain: 0.6,
+      release: 2.0,
+      filterFreq: 2000,
+      resonance: 0.5,
+      pattern: [0, 2, 4, 2, 0, 4, 2, 0]
     },
     {
-      name: 'krar',
-      scale: [207.65, 233.08, 261.63, 311.13, 349.23, 415.30, 523.25, 622.25],
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 0.5, 0.2],
-      harmonicGains: [1.0, 0.4, 0.15],
-      attack: 0.01,
-      decay: 0.02,
-      sustain: 0.15,
-      release: 0.8,
-      filterFreq: 4000,
-      resonance: 3.0,
-      pattern: [0, 4, 2, 6, 1, 5, 3, 0]
-    },
-    {
-      name: 'flute',
-      scale: [277.18, 311.13, 349.23, 415.30, 466.16, 554.37, 622.25, 739.99],
+      name: 'warm_pad',
+      scale: [196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 369.99, 415.30], // G Major
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.3],
       harmonicGains: [1.0, 0.4],
+      attack: 0.5,
+      decay: 0.2,
+      sustain: 0.8,
+      release: 3.0,
+      filterFreq: 1200,
+      resonance: 0.3,
+      pattern: [0, 0, 2, 2, 4, 4, 2, 0]
+    },
+    {
+      name: 'gentle_chime',
+      scale: [293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33, 659.25], // D Major
+      waveType: 'triangle' as OscillatorType,
+      harmonics: [1],
+      harmonicGains: [1.0],
       attack: 0.1,
-      decay: 0.03,
-      sustain: 0.7,
-      release: 0.4,
-      filterFreq: 4200,
-      resonance: 1.0,
-      pattern: [0, 3, 1, 5, 2, 6, 4, 0]
+      decay: 0.3,
+      sustain: 0.4,
+      release: 1.5,
+      filterFreq: 3000,
+      resonance: 0.2,
+      pattern: [0, 4, 2, 6, 4, 0, 2, 4]
     },
     {
-      name: 'conga_low',
-      scale: [174.61, 196.00, 220.00, 246.94, 277.18, 311.13, 349.23, 392.00],
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 1.8],
+      name: 'soft_drone',
+      scale: [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66], // Low range
+      waveType: 'sawtooth' as OscillatorType,
+      harmonics: [1],
+      harmonicGains: [1.0],
+      attack: 1.0,
+      decay: 0.5,
+      sustain: 0.9,
+      release: 4.0,
+      filterFreq: 400,
+      resonance: 0.1,
+      pattern: [0, 0, 0, 2, 0, 0, 4, 0]
+    },
+    {
+      name: 'ambient_texture',
+      scale: [220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88], // A Minor
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.2],
       harmonicGains: [1.0, 0.3],
-      attack: 0.001,
-      decay: 0.01,
-      sustain: 0.05,
-      release: 0.15,
-      filterFreq: 1000,
-      resonance: 8.0,
-      pattern: [0, 0, 2, 0, 3, 0, 1, 2]
-    },
-    {
-      name: 'conga_high',
-      scale: [261.63, 293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33],
-      waveType: 'triangle' as OscillatorType,
-      harmonics: [1, 2.0],
-      harmonicGains: [1.0, 0.25],
-      attack: 0.001,
-      decay: 0.008,
-      sustain: 0.04,
-      release: 0.12,
-      filterFreq: 1600,
-      resonance: 10.0,
-      pattern: [0, 2, 0, 4, 1, 0, 3, 2]
+      attack: 0.8,
+      decay: 0.4,
+      sustain: 0.7,
+      release: 2.5,
+      filterFreq: 1800,
+      resonance: 0.4,
+      pattern: [0, 3, 0, 5, 0, 2, 0, 4]
     }
   ], []);
 
@@ -207,13 +207,13 @@ export const ResizableSticker = ({
       // Fallback to synthetic audio if no MP3 or audio context available
       if (!audioContextRef.current) return;
         
-      const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % ethioInstruments.length;
-      const instrument = ethioInstruments[instrumentIndex];
+      const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % gentleInstruments.length;
+      const instrument = gentleInstruments[instrumentIndex];
       
       const noteIndex = instrument.pattern[stickerProps.stepIndex % instrument.pattern.length];
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
-      const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.1, 0.15);
+      const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.05, 0.08);
       const now = audioContextRef.current.currentTime;
       
       // Simplified audio generation
@@ -246,7 +246,7 @@ export const ResizableSticker = ({
     } catch (error) {
       console.error("Audio error:", error);
     }
-  }, [isCurrentStep, isPlaying, globalVolume, ethioInstruments, sticker.soundUrl, playMp3Sound]);
+  }, [isCurrentStep, isPlaying, globalVolume, gentleInstruments, sticker.soundUrl, playMp3Sound]);
 
   // Stable audio trigger effect
   useEffect(() => {

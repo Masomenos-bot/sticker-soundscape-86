@@ -30,13 +30,34 @@ export const stickerImageIds = [
   "65d3d82a-acad-4f83-84ca-f2611a3e4677", // green star
 ];
 
-// Sound mapping for specific stickers
+// Gentle sound mapping - using synthetic sounds for contemplative experience
 const soundMapping: { [key: number]: string } = {
-  0: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/hue'.mp3",
-  1: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/play.mp3",
-  2: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/pause.mp3",
-  3: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/next'.mp3",
-  4: "/SOUND FOR BUTTON SOUND-play-pause-share-mirroir-trash-previous-next MP3/previous'.mp3",
+  // Most stickers will use gentle synthetic sounds based on their zone
+  // Head/Face zone (top third) - crystalline sounds
+  0: "gentle-bell-1",   // pink curved shape
+  1: "gentle-bell-2",   // orange/pink curved shape  
+  2: "soft-chime-1",    // yellow star shape
+  3: "soft-chime-2",    // yellow bone shape
+  4: "gentle-bell-3",   // colorful capsule shape
+  
+  // Body zone (middle third) - warm pads
+  5: "warm-pad-1",      // yellow triangle shape
+  6: "warm-pad-2",      // brown oval shape
+  7: "warm-pad-3",      // blue triangle shape
+  8: "soft-drone-1",    // brown teardrop shape
+  9: "soft-drone-2",    // colorful circle shape
+  
+  // Accessory zone (bottom third and periphery) - ambient textures
+  10: "ambient-1",      // red flame
+  11: "ambient-2",      // yellow hat
+  12: "ambient-3",      // pink teardrop
+  13: "gentle-bell-4",  // single eye
+  14: "gentle-bell-5",  // two eyes
+  15: "soft-chime-3",   // orange eye
+  16: "warm-pad-4",     // red mouth
+  17: "ambient-4",      // blue bow tie
+  18: "gentle-bell-6",  // red heart
+  19: "soft-chime-4",   // green star
 };
 
 // Generate full image path from image ID
