@@ -56,75 +56,79 @@ export const ResizableSticker = ({
   // Unique settings for each note in contemplative instruments
   const gentleInstruments = useMemo(() => [
     {
-      name: 'soft_bells',
+      name: 'crystalline_bells',
       scale: [261.63, 293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33], // C Major
       waveType: 'sine' as OscillatorType,
-      harmonics: [1],
-      harmonicGains: [1.0],
-      // Individual settings for each note
-      attacks: [0.01, 0.02, 0.01, 0.03, 0.015, 0.02, 0.01, 0.025],
-      decays: [0.05, 0.08, 0.04, 0.1, 0.06, 0.07, 0.03, 0.09],
-      sustains: [0.2, 0.15, 0.25, 0.1, 0.3, 0.18, 0.35, 0.12],
-      releases: [0.3, 0.4, 0.25, 0.5, 0.35, 0.45, 0.2, 0.6],
-      filterFreqs: [2000, 2200, 1800, 2400, 1900, 2100, 2300, 1700],
-      resonances: [0.5, 0.3, 0.7, 0.4, 0.6, 0.2, 0.8, 0.5],
-      pattern: [0, 2, 4, 2, 0, 4, 2, 0]
+      harmonics: [1, 0.6, 0.3],
+      harmonicGains: [1.0, 0.4, 0.2],
+      // Each note crafted with distinct personality - crystalline clarity
+      attacks: [0.001, 0.003, 0.002, 0.001, 0.004, 0.002, 0.001, 0.003], // Crystal sharp attacks
+      decays: [0.15, 0.08, 0.12, 0.20, 0.06, 0.18, 0.25, 0.10], // Varied shimmer decay
+      sustains: [0.3, 0.1, 0.2, 0.4, 0.05, 0.35, 0.5, 0.15], // Selective sustain hold
+      releases: [0.8, 0.4, 0.6, 1.2, 0.3, 0.9, 1.5, 0.5], // Long ethereal releases
+      filterFreqs: [4200, 3800, 4500, 5200, 3600, 4800, 5800, 3400], // Bright sparkle
+      resonances: [0.15, 0.35, 0.08, 0.25, 0.5, 0.12, 0.4, 0.6], // Selective resonance
+      pattern: [0, 2, 4, 7, 2, 5, 1, 6]
     },
     {
-      name: 'warm_pad',
+      name: 'velvet_pad',
       scale: [196.00, 220.00, 246.94, 261.63, 293.66, 329.63, 369.99, 415.30], // G Major
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.3],
-      harmonicGains: [1.0, 0.4],
-      attacks: [0.02, 0.04, 0.01, 0.05, 0.03, 0.02, 0.06, 0.01],
-      decays: [0.08, 0.12, 0.06, 0.15, 0.1, 0.09, 0.18, 0.05],
-      sustains: [0.1, 0.15, 0.08, 0.2, 0.12, 0.18, 0.05, 0.25],
-      releases: [0.4, 0.6, 0.3, 0.8, 0.5, 0.7, 0.9, 0.35],
-      filterFreqs: [1200, 1000, 1400, 800, 1300, 1100, 900, 1500],
-      resonances: [0.3, 0.5, 0.2, 0.6, 0.4, 0.3, 0.7, 0.1],
-      pattern: [0, 0, 2, 2, 4, 4, 2, 0]
-    },
-    {
-      name: 'gentle_chime',
-      scale: [293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33, 659.25], // D Major
       waveType: 'triangle' as OscillatorType,
-      harmonics: [1],
-      harmonicGains: [1.0],
-      attacks: [0.01, 0.015, 0.008, 0.02, 0.012, 0.018, 0.006, 0.025],
-      decays: [0.06, 0.09, 0.04, 0.12, 0.07, 0.1, 0.03, 0.15],
-      sustains: [0.1, 0.08, 0.15, 0.05, 0.2, 0.12, 0.25, 0.06],
-      releases: [0.25, 0.35, 0.2, 0.45, 0.3, 0.4, 0.15, 0.5],
-      filterFreqs: [3000, 3200, 2800, 3400, 2900, 3100, 3300, 2700],
-      resonances: [0.2, 0.4, 0.1, 0.5, 0.3, 0.2, 0.6, 0.15],
-      pattern: [0, 4, 2, 6, 4, 0, 2, 4]
+      harmonics: [1, 0.8, 0.4, 0.2],
+      harmonicGains: [1.0, 0.6, 0.3, 0.15],
+      // Warm, enveloping textures with individual character
+      attacks: [0.08, 0.12, 0.05, 0.15, 0.10, 0.06, 0.18, 0.04], // Gentle blooms
+      decays: [0.3, 0.2, 0.4, 0.15, 0.35, 0.45, 0.1, 0.5], // Rich texture decay
+      sustains: [0.6, 0.4, 0.8, 0.3, 0.7, 0.9, 0.2, 0.85], // Deep sustain holds
+      releases: [1.5, 0.8, 2.0, 0.6, 1.8, 2.5, 0.4, 2.2], // Luxurious fades
+      filterFreqs: [800, 1200, 600, 1500, 700, 1000, 1800, 500], // Warm spectrum
+      resonances: [0.2, 0.4, 0.1, 0.6, 0.3, 0.15, 0.8, 0.05], // Soft emphasis
+      pattern: [0, 1, 3, 2, 5, 4, 6, 3]
     },
     {
-      name: 'soft_drone',
+      name: 'moonlight_chime',
+      scale: [293.66, 329.63, 369.99, 415.30, 466.16, 523.25, 587.33, 659.25], // D Major
+      waveType: 'sine' as OscillatorType,
+      harmonics: [1, 0.4, 0.8],
+      harmonicGains: [1.0, 0.3, 0.5],
+      // Delicate nocturnal tones with ethereal character
+      attacks: [0.02, 0.005, 0.015, 0.03, 0.008, 0.025, 0.001, 0.04], // Gentle emergence
+      decays: [0.4, 0.2, 0.6, 0.3, 0.8, 0.15, 0.9, 0.25], // Flowing decay curves
+      sustains: [0.25, 0.4, 0.1, 0.6, 0.05, 0.8, 0.15, 0.5], // Selective sustain magic
+      releases: [1.0, 0.6, 1.4, 0.8, 2.0, 0.4, 2.5, 1.2], // Mystical fades
+      filterFreqs: [2400, 3200, 1800, 4000, 1600, 3600, 2000, 4800], // Luminous frequencies
+      resonances: [0.3, 0.1, 0.5, 0.2, 0.7, 0.15, 0.9, 0.4], // Selective glow
+      pattern: [0, 4, 1, 6, 2, 7, 3, 5]
+    },
+    {
+      name: 'earth_drone',
       scale: [146.83, 164.81, 174.61, 196.00, 220.00, 246.94, 261.63, 293.66], // Low range
       waveType: 'sawtooth' as OscillatorType,
-      harmonics: [1],
-      harmonicGains: [1.0],
-      attacks: [0.05, 0.08, 0.03, 0.1, 0.06, 0.07, 0.04, 0.09],
-      decays: [0.1, 0.15, 0.08, 0.18, 0.12, 0.14, 0.06, 0.2],
-      sustains: [0.15, 0.1, 0.2, 0.08, 0.25, 0.12, 0.3, 0.05],
-      releases: [0.5, 0.7, 0.4, 0.8, 0.6, 0.75, 0.3, 0.9],
-      filterFreqs: [400, 350, 450, 300, 420, 380, 480, 320],
-      resonances: [0.1, 0.2, 0.05, 0.25, 0.15, 0.1, 0.3, 0.08],
-      pattern: [0, 0, 0, 2, 0, 0, 4, 0]
+      harmonics: [1, 0.7, 0.5, 0.3],
+      harmonicGains: [1.0, 0.5, 0.3, 0.2],
+      // Deep, grounding tones with organic character
+      attacks: [0.15, 0.08, 0.25, 0.05, 0.20, 0.12, 0.30, 0.03], // Organic emergence
+      decays: [0.5, 0.8, 0.3, 1.0, 0.4, 0.9, 0.2, 1.2], // Earth-like settling
+      sustains: [0.8, 0.6, 0.9, 0.4, 0.85, 0.7, 0.95, 0.3], // Solid foundation
+      releases: [2.5, 1.8, 3.0, 1.2, 2.8, 2.0, 3.5, 1.0], // Deep fading
+      filterFreqs: [300, 450, 250, 600, 220, 500, 180, 700], // Subterranean spectrum
+      resonances: [0.1, 0.25, 0.05, 0.4, 0.15, 0.3, 0.02, 0.5], // Earthy resonance
+      pattern: [0, 0, 2, 0, 4, 0, 1, 0]
     },
     {
-      name: 'ambient_texture',
+      name: 'cosmic_texture',
       scale: [220.00, 246.94, 277.18, 311.13, 349.23, 392.00, 440.00, 493.88], // A Minor
-      waveType: 'sine' as OscillatorType,
-      harmonics: [1, 0.2],
-      harmonicGains: [1.0, 0.3],
-      attacks: [0.03, 0.05, 0.02, 0.07, 0.04, 0.06, 0.01, 0.08],
-      decays: [0.1, 0.14, 0.08, 0.16, 0.12, 0.15, 0.06, 0.18],
-      sustains: [0.08, 0.12, 0.06, 0.15, 0.1, 0.14, 0.04, 0.18],
-      releases: [0.35, 0.5, 0.25, 0.6, 0.4, 0.55, 0.2, 0.7],
-      filterFreqs: [1800, 1600, 2000, 1400, 1900, 1700, 2100, 1300],
-      resonances: [0.4, 0.6, 0.3, 0.7, 0.5, 0.4, 0.8, 0.2],
-      pattern: [0, 3, 0, 5, 0, 2, 0, 4]
+      waveType: 'square' as OscillatorType,
+      harmonics: [1, 0.3, 0.6, 0.1],
+      harmonicGains: [1.0, 0.25, 0.4, 0.1],
+      // Otherworldly textures with celestial character
+      attacks: [0.06, 0.12, 0.03, 0.18, 0.09, 0.15, 0.02, 0.25], // Cosmic birth
+      decays: [0.7, 0.4, 1.0, 0.2, 0.8, 0.6, 1.5, 0.3], // Stellar evolution
+      sustains: [0.3, 0.7, 0.1, 0.9, 0.4, 0.8, 0.05, 0.95], // Galactic hold
+      releases: [1.8, 1.2, 2.5, 0.8, 2.0, 1.5, 3.0, 1.0], // Infinite space fade
+      filterFreqs: [1400, 2200, 1000, 2800, 1200, 2400, 800, 3200], // Cosmic spectrum
+      resonances: [0.6, 0.3, 0.8, 0.2, 0.7, 0.4, 0.9, 0.1], // Dimensional resonance
+      pattern: [0, 3, 6, 1, 4, 7, 2, 5]
     }
   ], []);
 
