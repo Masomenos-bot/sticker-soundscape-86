@@ -55,12 +55,22 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
     event.currentTarget.classList.remove("drop-zone-active");
 
     try {
-      const stickerDataString = event.dataTransfer.getData("application/json");
+      let stickerDataString = event.dataTransfer.getData("application/json");
+      
+      // Fallback to text/plain if JSON not available
+      if (!stickerDataString) {
+        const fallbackId = event.dataTransfer.getData("text/plain");
+        if (!fallbackId) {
+          console.warn("No drag data found");
+          return;
+        }
+      }
+      
       if (!stickerDataString) return;
       
       const stickerData: StickerData = JSON.parse(stickerDataString);
 
-      if (canvasRef.current) {
+      if (canvasRef.current && stickerData) {
         const rect = canvasRef.current.getBoundingClientRect();
         const x = event.clientX - rect.left - 40; // Center the sticker
         const y = event.clientY - rect.top - 40;

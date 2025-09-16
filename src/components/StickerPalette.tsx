@@ -34,8 +34,14 @@ export const StickerPalette = () => {
   }));
 
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>, sticker: StickerData) => {
-    event.dataTransfer.setData("application/json", JSON.stringify(sticker));
-    event.currentTarget.classList.add("dragging");
+    try {
+      event.dataTransfer.effectAllowed = 'copy';
+      event.dataTransfer.setData("application/json", JSON.stringify(sticker));
+      event.dataTransfer.setData("text/plain", sticker.id); // Fallback
+      event.currentTarget.classList.add("dragging");
+    } catch (error) {
+      console.error("Error starting drag:", error);
+    }
   };
 
   const handleDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
