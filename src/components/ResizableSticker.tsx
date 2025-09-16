@@ -53,7 +53,7 @@ export const ResizableSticker = ({
     return animations[Math.abs(hash) % animations.length];
   }, [sticker.id]);
 
-  // Short, crisp contemplative instruments for character building
+  // Unique settings for each note in contemplative instruments
   const gentleInstruments = useMemo(() => [
     {
       name: 'soft_bells',
@@ -61,12 +61,13 @@ export const ResizableSticker = ({
       waveType: 'sine' as OscillatorType,
       harmonics: [1],
       harmonicGains: [1.0],
-      attack: 0.01,
-      decay: 0.05,
-      sustain: 0.2,
-      release: 0.3,
-      filterFreq: 2000,
-      resonance: 0.5,
+      // Individual settings for each note
+      attacks: [0.01, 0.02, 0.01, 0.03, 0.015, 0.02, 0.01, 0.025],
+      decays: [0.05, 0.08, 0.04, 0.1, 0.06, 0.07, 0.03, 0.09],
+      sustains: [0.2, 0.15, 0.25, 0.1, 0.3, 0.18, 0.35, 0.12],
+      releases: [0.3, 0.4, 0.25, 0.5, 0.35, 0.45, 0.2, 0.6],
+      filterFreqs: [2000, 2200, 1800, 2400, 1900, 2100, 2300, 1700],
+      resonances: [0.5, 0.3, 0.7, 0.4, 0.6, 0.2, 0.8, 0.5],
       pattern: [0, 2, 4, 2, 0, 4, 2, 0]
     },
     {
@@ -75,12 +76,12 @@ export const ResizableSticker = ({
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.3],
       harmonicGains: [1.0, 0.4],
-      attack: 0.02,
-      decay: 0.08,
-      sustain: 0.1,
-      release: 0.4,
-      filterFreq: 1200,
-      resonance: 0.3,
+      attacks: [0.02, 0.04, 0.01, 0.05, 0.03, 0.02, 0.06, 0.01],
+      decays: [0.08, 0.12, 0.06, 0.15, 0.1, 0.09, 0.18, 0.05],
+      sustains: [0.1, 0.15, 0.08, 0.2, 0.12, 0.18, 0.05, 0.25],
+      releases: [0.4, 0.6, 0.3, 0.8, 0.5, 0.7, 0.9, 0.35],
+      filterFreqs: [1200, 1000, 1400, 800, 1300, 1100, 900, 1500],
+      resonances: [0.3, 0.5, 0.2, 0.6, 0.4, 0.3, 0.7, 0.1],
       pattern: [0, 0, 2, 2, 4, 4, 2, 0]
     },
     {
@@ -89,12 +90,12 @@ export const ResizableSticker = ({
       waveType: 'triangle' as OscillatorType,
       harmonics: [1],
       harmonicGains: [1.0],
-      attack: 0.01,
-      decay: 0.06,
-      sustain: 0.1,
-      release: 0.25,
-      filterFreq: 3000,
-      resonance: 0.2,
+      attacks: [0.01, 0.015, 0.008, 0.02, 0.012, 0.018, 0.006, 0.025],
+      decays: [0.06, 0.09, 0.04, 0.12, 0.07, 0.1, 0.03, 0.15],
+      sustains: [0.1, 0.08, 0.15, 0.05, 0.2, 0.12, 0.25, 0.06],
+      releases: [0.25, 0.35, 0.2, 0.45, 0.3, 0.4, 0.15, 0.5],
+      filterFreqs: [3000, 3200, 2800, 3400, 2900, 3100, 3300, 2700],
+      resonances: [0.2, 0.4, 0.1, 0.5, 0.3, 0.2, 0.6, 0.15],
       pattern: [0, 4, 2, 6, 4, 0, 2, 4]
     },
     {
@@ -103,12 +104,12 @@ export const ResizableSticker = ({
       waveType: 'sawtooth' as OscillatorType,
       harmonics: [1],
       harmonicGains: [1.0],
-      attack: 0.05,
-      decay: 0.1,
-      sustain: 0.15,
-      release: 0.5,
-      filterFreq: 400,
-      resonance: 0.1,
+      attacks: [0.05, 0.08, 0.03, 0.1, 0.06, 0.07, 0.04, 0.09],
+      decays: [0.1, 0.15, 0.08, 0.18, 0.12, 0.14, 0.06, 0.2],
+      sustains: [0.15, 0.1, 0.2, 0.08, 0.25, 0.12, 0.3, 0.05],
+      releases: [0.5, 0.7, 0.4, 0.8, 0.6, 0.75, 0.3, 0.9],
+      filterFreqs: [400, 350, 450, 300, 420, 380, 480, 320],
+      resonances: [0.1, 0.2, 0.05, 0.25, 0.15, 0.1, 0.3, 0.08],
       pattern: [0, 0, 0, 2, 0, 0, 4, 0]
     },
     {
@@ -117,12 +118,12 @@ export const ResizableSticker = ({
       waveType: 'sine' as OscillatorType,
       harmonics: [1, 0.2],
       harmonicGains: [1.0, 0.3],
-      attack: 0.03,
-      decay: 0.1,
-      sustain: 0.08,
-      release: 0.35,
-      filterFreq: 1800,
-      resonance: 0.4,
+      attacks: [0.03, 0.05, 0.02, 0.07, 0.04, 0.06, 0.01, 0.08],
+      decays: [0.1, 0.14, 0.08, 0.16, 0.12, 0.15, 0.06, 0.18],
+      sustains: [0.08, 0.12, 0.06, 0.15, 0.1, 0.14, 0.04, 0.18],
+      releases: [0.35, 0.5, 0.25, 0.6, 0.4, 0.55, 0.2, 0.7],
+      filterFreqs: [1800, 1600, 2000, 1400, 1900, 1700, 2100, 1300],
+      resonances: [0.4, 0.6, 0.3, 0.7, 0.5, 0.4, 0.8, 0.2],
       pattern: [0, 3, 0, 5, 0, 2, 0, 4]
     }
   ], []);
@@ -216,7 +217,7 @@ export const ResizableSticker = ({
       const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.05, 0.08);
       const now = audioContextRef.current.currentTime;
       
-      // Simplified audio generation
+      // Simplified audio generation with individual note settings
       for (let i = 0; i < instrument.harmonics.length; i++) {
         const osc = audioContextRef.current.createOscillator();
         const gain = audioContextRef.current.createGain();
@@ -225,22 +226,30 @@ export const ResizableSticker = ({
         osc.type = instrument.waveType;
         osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], now);
         
+        // Use individual note settings
+        const attack = instrument.attacks[noteIndex];
+        const decay = instrument.decays[noteIndex];
+        const sustain = instrument.sustains[noteIndex];
+        const release = instrument.releases[noteIndex];
+        const filterFreq = instrument.filterFreqs[noteIndex];
+        const resonance = instrument.resonances[noteIndex];
+        
         const harmonicGain = instrument.harmonicGains[i] * volume;
         gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(harmonicGain, now + instrument.attack);
-        gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * instrument.sustain, 0.001), now + instrument.attack + instrument.decay);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + instrument.release);
+        gain.gain.linearRampToValueAtTime(harmonicGain, now + attack);
+        gain.gain.exponentialRampToValueAtTime(Math.max(harmonicGain * sustain, 0.001), now + attack + decay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + attack + decay + release);
         
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(instrument.filterFreq, now);
-        filter.Q.setValueAtTime(instrument.resonance, now);
+        filter.frequency.setValueAtTime(filterFreq, now);
+        filter.Q.setValueAtTime(resonance, now);
         
         osc.connect(filter);
         filter.connect(gain);
         gain.connect(audioContextRef.current.destination);
         
         osc.start(now);
-        osc.stop(now + instrument.release);
+        osc.stop(now + attack + decay + release);
       }
       
     } catch (error) {
