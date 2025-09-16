@@ -4,7 +4,7 @@ import { toast } from "sonner";
 export const useAudio = () => {
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [globalVolume, setGlobalVolume] = useState(0.7);
+  const [globalVolume, setGlobalVolume] = useState(0.4); // Start quieter for contemplative experience
   const audioContextRef = useRef<AudioContext | null>(null);
 
   // Initialize audio context
@@ -51,7 +51,7 @@ export const useAudio = () => {
         setAudioInitialized(true);
         setIsPlaying(true);
         
-        toast("🎵 Audio ready! Place stickers to create music!", { duration: 2000 });
+        toast("🎵 Créez votre personnage musical! Plus de stickers = musique plus riche ✨", { duration: 3000 });
       } catch (error) {
         console.error("Failed to initialize audio:", error);
         toast("❌ Audio initialization failed. Check browser settings.", { duration: 3000 });
