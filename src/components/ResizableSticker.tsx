@@ -204,17 +204,17 @@ export const ResizableSticker = ({
   // Initialize professional audio chain
   useEffect(() => {
     if (audioContextRef.current && !masterBusRef.current) {
-      // Master bus for overall control
+      // Master bus for overall control - keeping mix soft
       masterBusRef.current = audioContextRef.current.createGain();
-      masterBusRef.current.gain.setValueAtTime(0.8, audioContextRef.current.currentTime);
+      masterBusRef.current.gain.setValueAtTime(0.6, audioContextRef.current.currentTime);
       
-      // Compressor for dynamic control
+      // Gentle compressor for smooth dynamics
       compressorRef.current = audioContextRef.current.createDynamicsCompressor();
-      compressorRef.current.threshold.setValueAtTime(-24, audioContextRef.current.currentTime);
-      compressorRef.current.knee.setValueAtTime(30, audioContextRef.current.currentTime);
-      compressorRef.current.ratio.setValueAtTime(3, audioContextRef.current.currentTime);
-      compressorRef.current.attack.setValueAtTime(0.003, audioContextRef.current.currentTime);
-      compressorRef.current.release.setValueAtTime(0.25, audioContextRef.current.currentTime);
+      compressorRef.current.threshold.setValueAtTime(-30, audioContextRef.current.currentTime);
+      compressorRef.current.knee.setValueAtTime(40, audioContextRef.current.currentTime);
+      compressorRef.current.ratio.setValueAtTime(2, audioContextRef.current.currentTime);
+      compressorRef.current.attack.setValueAtTime(0.005, audioContextRef.current.currentTime);
+      compressorRef.current.release.setValueAtTime(0.4, audioContextRef.current.currentTime);
       
       // Create impulse response for reverb
       const createImpulseResponse = (duration: number, decay: number) => {
@@ -267,8 +267,8 @@ export const ResizableSticker = ({
       const noteIndex = instrument.pattern[stickerProps.stepIndex % instrument.pattern.length];
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
-      // Professional volume staging
-      const baseVolume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.03, 0.06);
+      // Gentle volume staging - keeping sounds soft and contemplative
+      const baseVolume = Math.min((stickerProps.width + stickerProps.height) / 200 * globalVolume * stickerProps.volume * 0.025, 0.04);
       const now = audioContextRef.current.currentTime;
       
       // Create instrument bus for this sound
