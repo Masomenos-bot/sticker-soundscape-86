@@ -36,7 +36,11 @@ export const useExport = (
   const audioDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null);
 
   const exportAsPNG = async () => {
-    if (!canvasRef.current) return;
+    console.log('🖼️ PNG Export started');
+    if (!canvasRef.current) {
+      console.log('❌ PNG Export failed: No canvas ref');
+      return;
+    }
     
     try {
       toast("Capturing HD canvas...", { duration: 1000 });
@@ -123,9 +127,12 @@ export const useExport = (
   };
 
   const handleExport = async () => {
+    console.log('📤 Handle Export clicked, isPlaying:', isPlaying);
     if (isPlaying) {
+      console.log('🎬 Exporting as GIF');
       await exportAsGIF();
     } else {
+      console.log('🖼️ Exporting as PNG');
       await exportAsPNG();
     }
   };
@@ -152,7 +159,11 @@ export const useExport = (
   };
 
   const exportAsVideo = async (options: RecordingOptions = recordingOptions) => {
-    if (!canvasRef.current || isRecording) return;
+    console.log('🎥 Video Export started with options:', options);
+    if (!canvasRef.current || isRecording) {
+      console.log('❌ Video Export failed: No canvas ref or already recording');
+      return;
+    }
     
     setIsRecording(true);
     setRecordingProgress(0);
@@ -311,12 +322,15 @@ export const useExport = (
   };
 
   const handleVideoRecord = async (customOptions?: Partial<RecordingOptions>) => {
+    console.log('🎬 Handle Video Record clicked, customOptions:', customOptions);
     if (isRecording) {
+      console.log('⏸️ Already recording, progress:', recordingProgress);
       toast(`Recording in progress... ${Math.round(recordingProgress)}%`, { duration: 1500 });
       return;
     }
     
     const finalOptions = { ...recordingOptions, ...customOptions };
+    console.log('🎬 Starting video with final options:', finalOptions);
     await exportAsVideo(finalOptions);
   };
 
