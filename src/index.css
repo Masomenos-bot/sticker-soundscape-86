@@ -149,4 +149,32 @@
       hsla(var(--accent), 0.1));
     border: 2px dashed hsl(var(--primary));
   }
+
+  /* HD Canvas Container */
+  .hd-canvas-container {
+    background: var(--gradient-card);
+    border-radius: calc(var(--radius) * 0.75);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  /* Recording progress indicators */
+  .recording-active::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, hsl(var(--destructive)), transparent, hsl(var(--destructive)));
+    border-radius: inherit;
+    animation: recording-pulse 2s ease-in-out infinite;
+    z-index: -1;
+  }
+
+  @keyframes recording-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
 }

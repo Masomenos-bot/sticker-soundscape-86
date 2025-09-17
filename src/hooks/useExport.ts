@@ -11,23 +11,42 @@ interface VideoGalleryItem {
   name: string;
 }
 
-export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying: boolean) => {
+interface RecordingOptions {
+  duration: number;
+  quality: 'HD' | '4K';
+  fps: number;
+}
+
+export const useExport = (
+  canvasRef: React.RefObject<HTMLDivElement>, 
+  isPlaying: boolean,
+  audioContextRef?: React.RefObject<AudioContext | null>
+) => {
   const [exportedVideos, setExportedVideos] = useState<VideoGalleryItem[]>([]);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingProgress, setRecordingProgress] = useState(0);
+  const [recordingOptions, setRecordingOptions] = useState<RecordingOptions>({
+    duration: 10,
+    quality: 'HD',
+    fps: 30
+  });
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const audioDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null);
 
   const exportAsPNG = async () => {
     if (!canvasRef.current) return;
     
     try {
-      toast("Capturing canvas...", { duration: 1000 });
+      toast("Capturing HD canvas...", { duration: 1000 });
       
       const canvas = await html2canvas(canvasRef.current, {
         backgroundColor: null,
         scale: 2,
         useCORS: true,
         allowTaint: true,
+        width: 1920,
+        height: 1080,
       });
       
       canvas.toBlob((blob) => {
@@ -39,11 +58,11 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
             id: `image-${timestamp}`,
             url,
             timestamp,
-            name: `sticker-canvas-${timestamp}.png`
+            name: `hd-sticker-canvas-${timestamp}.png`
           };
 
           setExportedVideos(prev => [...prev, imageItem]);
-          toast("Image added to gallery! 📸", { duration: 2000 });
+          toast("HD Image added to gallery! 📸", { duration: 2000 });
         }
       }, 'image/png');
     } catch (error) {
@@ -112,39 +131,76 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
     }
   };
 
-  const exportAsVideo = async () => {
+  const setupAudioRecording = () => {
+    if (!audioContextRef?.current) return null;
+    
+    try {
+      // Create audio destination node for recording
+      const audioDestination = audioContextRef.current.createMediaStreamDestination();
+      audioDestinationRef.current = audioDestination;
+      return audioDestination.stream;
+    } catch (error) {
+      console.error('Audio recording setup failed:', error);
+      return null;
+    }
+  };
+
+  const exportAsVideo = async (options: RecordingOptions = recordingOptions) => {
     if (!canvasRef.current || isRecording) return;
     
     setIsRecording(true);
-    toast("Creating 8-second video from canvas...", { duration: 2000 });
+    setRecordingProgress(0);
+    
+    const qualityText = options.quality === '4K' ? '4K' : 'HD';
+    toast(`Creating ${options.duration}s ${qualityText} video with audio...`, { duration: 2000 });
     
     try {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       
-      // Set canvas dimensions
-      canvas.width = canvasRef.current.offsetWidth;
-      canvas.height = canvasRef.current.offsetHeight;
+      // Set HD dimensions
+      const width = options.quality === '4K' ? 3840 : 1920;
+      const height = options.quality === '4K' ? 2160 : 1080;
+      canvas.width = width;
+      canvas.height = height;
 
-      const stream = canvas.captureStream(10); // 10 fps for better performance
+      const videoStream = canvas.captureStream(options.fps);
       
-      // Check supported mime types
+      // Setup audio recording
+      const audioStream = setupAudioRecording();
+      
+      // Combine video and audio streams
+      let combinedStream = videoStream;
+      if (audioStream) {
+        const audioTracks = audioStream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          combinedStream = new MediaStream([
+            ...videoStream.getVideoTracks(),
+            ...audioTracks
+          ]);
+        }
+      }
+      
+      // Enhanced codec selection with bitrate
       const supportedTypes = [
-        'video/webm;codecs=vp9',
-        'video/webm;codecs=vp8', 
-        'video/webm',
-        'video/mp4'
+        { type: 'video/webm;codecs=vp9', bitrate: 5000000 }, // 5 Mbps for HD
+        { type: 'video/webm;codecs=vp8', bitrate: 3000000 }, // 3 Mbps fallback
+        { type: 'video/webm', bitrate: 2000000 },             // 2 Mbps fallback
+        { type: 'video/mp4', bitrate: 4000000 }               // 4 Mbps H.264
       ];
       
-      let mimeType = 'video/webm';
-      for (const type of supportedTypes) {
-        if (MediaRecorder.isTypeSupported(type)) {
-          mimeType = type;
+      let selectedType = supportedTypes[0];
+      for (const typeConfig of supportedTypes) {
+        if (MediaRecorder.isTypeSupported(typeConfig.type)) {
+          selectedType = typeConfig;
           break;
         }
       }
 
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const recorder = new MediaRecorder(combinedStream, { 
+        mimeType: selectedType.type,
+        videoBitsPerSecond: selectedType.bitrate
+      });
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
@@ -152,7 +208,7 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
+        const blob = new Blob(chunks, { type: selectedType.type });
         const url = URL.createObjectURL(blob);
         const timestamp = Date.now();
         
@@ -160,21 +216,23 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
           id: `video-${timestamp}`,
           url,
           timestamp,
-          name: `canvas-video-${timestamp}.webm`
+          name: `${qualityText}-canvas-video-${timestamp}.webm`
         };
 
         setExportedVideos(prev => [...prev, videoItem]);
-        toast("8-second video added to gallery! 🎥", { duration: 2000 });
+        toast(`${qualityText} video with audio added to gallery! 🎥🔊`, { duration: 3000 });
         setIsRecording(false);
+        setRecordingProgress(0);
       };
 
       recorder.start();
 
-      // Capture frames for 8 seconds
-      const duration = 8000; // 8 seconds
-      const frameRate = 10; // 10 fps
+      // Enhanced frame capture with progress tracking
+      const duration = options.duration * 1000;
+      const frameRate = options.fps;
       let frameCount = 0;
       const totalFrames = (duration / 1000) * frameRate;
+      const progressInterval = Math.max(1, Math.floor(totalFrames / 100)); // Update progress every 1%
 
       const captureFrame = async () => {
         if (frameCount >= totalFrames) {
@@ -185,16 +243,25 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
         try {
           const frameCanvas = await html2canvas(canvasRef.current!, {
             backgroundColor: null,
-            scale: 0.8,
+            scale: 2, // Higher quality
             useCORS: true,
             allowTaint: true,
-            logging: false
+            logging: false,
+            width: 1920,
+            height: 1080
           });
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(frameCanvas, 0, 0, canvas.width, canvas.height);
           
           frameCount++;
+          
+          // Update progress
+          if (frameCount % progressInterval === 0) {
+            const progress = Math.min(100, (frameCount / totalFrames) * 100);
+            setRecordingProgress(progress);
+          }
+          
           setTimeout(captureFrame, 1000 / frameRate);
         } catch (error) {
           console.error('Frame capture error:', error);
@@ -208,15 +275,18 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
       console.error('Video export failed:', error);
       toast("Video export failed - browser may not support video recording", { duration: 3000 });
       setIsRecording(false);
+      setRecordingProgress(0);
     }
   };
 
-  const handleVideoRecord = async () => {
+  const handleVideoRecord = async (customOptions?: Partial<RecordingOptions>) => {
     if (isRecording) {
-      toast("Video recording in progress...", { duration: 1500 });
+      toast(`Recording in progress... ${Math.round(recordingProgress)}%`, { duration: 1500 });
       return;
     }
-    await exportAsVideo();
+    
+    const finalOptions = { ...recordingOptions, ...customOptions };
+    await exportAsVideo(finalOptions);
   };
 
   const handleDeleteVideo = (videoId: string) => {
@@ -230,6 +300,9 @@ export const useExport = (canvasRef: React.RefObject<HTMLDivElement>, isPlaying:
   return {
     exportedVideos,
     isRecording,
+    recordingProgress,
+    recordingOptions,
+    setRecordingOptions,
     handleExport,
     handleVideoRecord,
     handleDeleteVideo,

@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { StickerPalette } from "./StickerPalette";
 import { MusicCanvas } from "./MusicCanvas";
 import { MediaGallery } from "./MediaGallery";
+import { RecordingControls } from "./RecordingControls";
 import { Video } from "lucide-react";
 import { useAudio } from "@/hooks/useAudio";
 import { useStickers } from "@/hooks/useStickers";
@@ -45,7 +46,7 @@ const StickerMusicApp = () => {
   const audio = useAudio();
   const stickers = useStickers();
   const sequencer = useSequencer(stickers.placedStickers, audio.isPlaying);
-  const exportTools = useExport(canvasRef, audio.isPlaying);
+  const exportTools = useExport(canvasRef, audio.isPlaying, audio.audioContextRef);
 
   // Handle sticker drop with audio initialization
   const handleStickerDrop = async (stickerData: StickerData, x: number, y: number) => {
@@ -188,11 +189,11 @@ const StickerMusicApp = () => {
                   />
                 </button>
                 <button
-                  onClick={exportTools.handleVideoRecord}
+                  onClick={() => exportTools.handleVideoRecord()}
                   className={`w-10 h-10 hover:scale-110 transition-transform duration-200 ${
                     exportTools.isRecording ? 'bg-red-500/20' : ''
                   }`}
-                  title={exportTools.isRecording ? "Stop recording" : "Start video recording"}
+                  title={exportTools.isRecording ? `Recording... ${Math.round(exportTools.recordingProgress)}%` : "Start HD video recording"}
                 >
                   <Video className={`w-6 h-6 ${exportTools.isRecording ? 'text-red-500 animate-pulse' : 'text-foreground'}`} />
                 </button>
@@ -206,6 +207,7 @@ const StickerMusicApp = () => {
                 onStickerRemove={stickers.handleStickerRemove}
                 onLayerChange={stickers.handleLayerChange}
                 isPlaying={audio.isPlaying}
+                isRecording={exportTools.isRecording}
                 globalVolume={audio.globalVolume}
                 currentStep={sequencer.currentStep}
                 sequenceTempo={sequencer.sequenceTempo}
@@ -231,8 +233,18 @@ const StickerMusicApp = () => {
             />
           </div>
 
-          {/* Media Gallery */}
-          <div className="w-full">
+          {/* Media Gallery and Recording Controls */}
+          <div className="w-full space-y-4">
+            {/* Recording Controls */}
+            <RecordingControls
+              isRecording={exportTools.isRecording}
+              recordingProgress={exportTools.recordingProgress}
+              recordingOptions={exportTools.recordingOptions}
+              onOptionsChange={exportTools.setRecordingOptions}
+              onStartRecording={exportTools.handleVideoRecord}
+            />
+            
+            {/* Media Gallery */}
             <MediaGallery
               videos={exportTools.exportedVideos}
               onDeleteVideo={exportTools.handleDeleteVideo}

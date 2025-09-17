@@ -10,6 +10,7 @@ interface MusicCanvasProps {
   onStickerRemove: (id: string) => void;
   onLayerChange: (id: string, direction: 'up' | 'down') => void;
   isPlaying: boolean;
+  isRecording?: boolean;
   globalVolume: number;
   currentStep: number;
   sequenceTempo: number;
@@ -27,6 +28,7 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   onStickerRemove,
   onLayerChange,
   isPlaying,
+  isRecording = false,
   globalVolume,
   currentStep,
   sequenceTempo,
@@ -100,8 +102,13 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
     <div ref={ref} className="relative h-full p-3">
       <div
         ref={canvasRef}
-        className="relative w-full h-full min-h-[400px] bg-muted/20 transition-all duration-300"
+        className={`hd-canvas-container relative w-full bg-muted/20 transition-all duration-300 ${
+          isRecording ? 'recording-active' : ''
+        }`}
         style={{
+          aspectRatio: '16/9',
+          minHeight: '400px',
+          maxHeight: '80vh',
           WebkitUserSelect: 'none',
           WebkitTouchCallout: 'none',
         }}

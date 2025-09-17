@@ -6,12 +6,19 @@ export const useAudio = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [globalVolume, setGlobalVolume] = useState(0.4); // Start quieter for contemplative experience
   const audioContextRef = useRef<AudioContext | null>(null);
+  const masterGainRef = useRef<GainNode | null>(null);
 
-  // Initialize audio context
+  // Initialize audio context with master gain for recording
   useEffect(() => {
     const initAudio = async () => {
       try {
         audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        // Create master gain node for all audio
+        if (audioContextRef.current) {
+          masterGainRef.current = audioContextRef.current.createGain();
+          masterGainRef.current.connect(audioContextRef.current.destination);
+        }
       } catch (error) {
         console.error("Audio context not supported:", error);
       }
@@ -90,6 +97,7 @@ export const useAudio = () => {
     globalVolume,
     setGlobalVolume,
     audioContextRef,
+    masterGainRef,
     initializeAudio,
     togglePlayback,
     handlePlay,
