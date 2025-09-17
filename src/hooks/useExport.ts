@@ -46,8 +46,6 @@ export const useExport = (
         scale: 2,
         useCORS: true,
         allowTaint: true,
-        width: 1920,
-        height: 1080,
       });
       
       canvas.toBlob((blob) => {
@@ -133,14 +131,19 @@ export const useExport = (
   };
 
   const setupAudioRecording = (audioContext?: AudioContext | null, getRecordingDestination?: () => MediaStreamAudioDestinationNode | null) => {
-    if (!audioContext || !getRecordingDestination) return null;
+    if (!audioContext || !getRecordingDestination) {
+      console.log('Audio recording: Missing audio context or recording destination');
+      return null;
+    }
     
     try {
       const audioDestination = getRecordingDestination();
       if (audioDestination) {
         audioDestinationRef.current = audioDestination;
+        console.log('Audio recording: Stream setup successful', audioDestination.stream.getAudioTracks().length, 'audio tracks');
         return audioDestination.stream;
       }
+      console.log('Audio recording: No audio destination available');
       return null;
     } catch (error) {
       console.error('Audio recording setup failed:', error);
@@ -176,12 +179,16 @@ export const useExport = (
       let combinedStream = videoStream;
       if (audioStream) {
         const audioTracks = audioStream.getAudioTracks();
+        console.log('Video recording: Found', audioTracks.length, 'audio tracks');
         if (audioTracks.length > 0) {
           combinedStream = new MediaStream([
             ...videoStream.getVideoTracks(),
             ...audioTracks
           ]);
+          console.log('Video recording: Combined stream has', combinedStream.getTracks().length, 'total tracks');
         }
+      } else {
+        console.log('Video recording: No audio stream available');
       }
       
       // Enhanced codec selection with bitrate
@@ -250,8 +257,6 @@ export const useExport = (
             useCORS: true,
             allowTaint: true,
             logging: false,
-            width: 1920,
-            height: 1080
           });
 
           // Clear the recording canvas
