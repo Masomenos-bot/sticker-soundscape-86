@@ -45,6 +45,16 @@ export const ResizableSticker = ({
   const [initialTouches, setInitialTouches] = useState<{ distance: number; angle: number; center: { x: number; y: number } } | null>(null);
   const [initialSticker, setInitialSticker] = useState<{ width: number; height: number; rotation: number; x: number; y: number } | null>(null);
   const [showTrashOverlay, setShowTrashOverlay] = useState(false);
+  
+  // Refs to track interaction intentions without triggering re-renders
+  const dragIntentionRef = useRef<{ 
+    isIntending: boolean; 
+    startX: number; 
+    startY: number; 
+    threshold: number;
+    selectionPending: boolean;
+    ctrlKey: boolean;
+  }>({ isIntending: false, startX: 0, startY: 0, threshold: 5, selectionPending: false, ctrlKey: false });
 
   // Animation selection
   const stickerAnimation = useMemo(() => {
@@ -287,20 +297,44 @@ export const ResizableSticker = ({
     } else if (isOnResizeHandle) {
       setIsResizing(true);
     } else {
-      // Handle selection for multi-select with Ctrl/Cmd
-      if (event.ctrlKey || event.metaKey) {
-        onSelect(sticker.id, !isSelected);
-      } else if (!isSelected) {
-        // Select this sticker if not already selected (for drag operations)
-        onSelect(sticker.id, true);
-      }
+      // Track drag intention without immediate state updates
+      dragIntentionRef.current = {
+        isIntending: true,
+        startX: event.clientX,
+        startY: event.clientY,
+        threshold: 5,
+        selectionPending: true,
+        ctrlKey: event.ctrlKey || event.metaKey
+      };
       
-      setIsDragging(true);
       setDragStart({ x: event.clientX - sticker.x, y: event.clientY - sticker.y });
     }
-  }, [sticker.x, sticker.y, sticker.rotation, sticker.id, isSelected, onSelect]);
+  }, [sticker.x, sticker.y, sticker.rotation]);
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
+    // Handle drag intention with threshold
+    if (dragIntentionRef.current.isIntending) {
+      const deltaX = Math.abs(event.clientX - dragIntentionRef.current.startX);
+      const deltaY = Math.abs(event.clientY - dragIntentionRef.current.startY);
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      
+      if (distance > dragIntentionRef.current.threshold) {
+        // Commit to drag - handle selection first, then start dragging
+        if (dragIntentionRef.current.selectionPending) {
+          if (dragIntentionRef.current.ctrlKey) {
+            onSelect(sticker.id, !isSelected);
+          } else if (!isSelected) {
+            onSelect(sticker.id, true);
+          }
+        }
+        
+        // Start actual dragging
+        setIsDragging(true);
+        dragIntentionRef.current.isIntending = false;
+        dragIntentionRef.current.selectionPending = false;
+      }
+    }
+    
     if (isDragging) {
       const newX = event.clientX - dragStart.x;
       const newY = event.clientY - dragStart.y;
@@ -341,9 +375,28 @@ export const ResizableSticker = ({
         onUpdate(sticker.id, { rotation: finalRotation });
       }
     }
-  }, [isDragging, isResizing, isRotating, dragStart, rotateStart, sticker, onUpdate, canvasRef, isSelected, isMultiSelectMode, onGroupMove]);
+  }, [isDragging, isResizing, isRotating, dragStart, rotateStart, sticker, onUpdate, canvasRef, isSelected, isMultiSelectMode, onGroupMove, onSelect]);
 
   const handleMouseUp = useCallback(() => {
+    // Handle click selection if drag intention never became actual drag
+    if (dragIntentionRef.current.isIntending && dragIntentionRef.current.selectionPending) {
+      if (dragIntentionRef.current.ctrlKey) {
+        onSelect(sticker.id, !isSelected);
+      } else if (!isSelected) {
+        onSelect(sticker.id, true);
+      }
+    }
+    
+    // Clean up drag intention
+    dragIntentionRef.current = {
+      isIntending: false,
+      startX: 0,
+      startY: 0,
+      threshold: 5,
+      selectionPending: false,
+      ctrlKey: false
+    };
+    
     if (isDragging && showTrashOverlay) {
       onRemove(sticker.id);
     }
@@ -351,10 +404,10 @@ export const ResizableSticker = ({
     setIsResizing(false);
     setIsRotating(false);
     setShowTrashOverlay(false);
-  }, [isDragging, showTrashOverlay, onRemove, sticker.id]);
+  }, [isDragging, showTrashOverlay, onRemove, sticker.id, onSelect, isSelected]);
 
   useEffect(() => {
-    if (isDragging || isResizing || isRotating) {
+    if (isDragging || isResizing || isRotating || dragIntentionRef.current.isIntending) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       return () => {
