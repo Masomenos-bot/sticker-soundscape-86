@@ -175,23 +175,45 @@ export const useExport = (
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       
-      // Match actual canvas dimensions to prevent stretching
+      // Get actual canvas dimensions and apply quality scaling
       const actualCanvas = canvasRef.current;
-      const width = actualCanvas.offsetWidth;
-      const height = actualCanvas.offsetHeight;
-      canvas.width = width;
-      canvas.height = height;
+      const baseWidth = actualCanvas.offsetWidth;
+      const baseHeight = actualCanvas.offsetHeight;
       
-      console.log('🎥 Recording canvas setup:', { width, height, quality: options.quality });
+      // Apply quality scaling
+      const qualityScale = options.quality === '4K' ? 2 : 1;
+      canvas.width = baseWidth * qualityScale;
+      canvas.height = baseHeight * qualityScale;
+      
+      console.log('🎥 Recording canvas setup:', { 
+        baseWidth, 
+        baseHeight, 
+        finalWidth: canvas.width, 
+        finalHeight: canvas.height,
+        qualityScale,
+        quality: options.quality 
+      });
 
       const videoStream = canvas.captureStream(options.fps);
       
       // Setup audio recording with enhanced debugging
       const audioStream = setupAudioRecording(audioContextRef?.current, getRecordingDestination);
       
-      // Test audio stream with simple tone
+      // Comprehensive audio debugging - test with actual audio context from stickers
       if (audioStream && audioContextRef?.current) {
-        console.log('🔊 Testing audio stream with test tone...');
+        console.log('🔊 Audio Debug Info:');
+        console.log('  - Audio Context State:', audioContextRef.current.state);
+        console.log('  - Audio Context Sample Rate:', audioContextRef.current.sampleRate);
+        console.log('  - Recording Stream Tracks:', audioStream.getTracks().length);
+        console.log('  - Audio Tracks:', audioStream.getAudioTracks().map(track => ({
+          id: track.id,
+          kind: track.kind,
+          enabled: track.enabled,
+          readyState: track.readyState
+        })));
+        
+        // Test tone using SAME audio context as stickers
+        console.log('🔊 Testing audio with same context as stickers...');
         const testOsc = audioContextRef.current.createOscillator();
         const testGain = audioContextRef.current.createGain();
         const recordingDest = getRecordingDestination?.();
@@ -200,11 +222,19 @@ export const useExport = (
           testOsc.connect(testGain);
           testGain.connect(recordingDest);
           testOsc.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
-          testGain.gain.setValueAtTime(0.05, audioContextRef.current.currentTime);
+          testGain.gain.setValueAtTime(0.1, audioContextRef.current.currentTime);
           testOsc.start(audioContextRef.current.currentTime);
-          testOsc.stop(audioContextRef.current.currentTime + 0.1);
-          console.log('✅ Test tone sent to recording destination');
+          testOsc.stop(audioContextRef.current.currentTime + 0.5);
+          console.log('✅ Test tone sent to recording destination (same context as stickers)');
+        } else {
+          console.log('❌ No recording destination available');
         }
+      } else {
+        console.log('⚠️ Audio context or stream not available:', {
+          hasAudioContext: !!audioContextRef?.current,
+          hasAudioStream: !!audioStream,
+          hasGetRecordingDestination: !!getRecordingDestination
+        });
       }
       
       // Combine video and audio streams
@@ -304,9 +334,10 @@ export const useExport = (
         }
 
         try {
+          // Capture frame at base resolution to match canvas exactly
           const frameCanvas = await html2canvas(canvasRef.current!, {
             backgroundColor: null,
-            scale: 2, // Higher quality
+            scale: 1, // Match actual canvas size exactly
             useCORS: true,
             allowTaint: true,
             logging: false,
@@ -315,28 +346,16 @@ export const useExport = (
           // Clear the recording canvas
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           
-          // Calculate aspect ratios to preserve proportions
-          const sourceAspect = frameCanvas.width / frameCanvas.height;
-          const targetAspect = canvas.width / canvas.height;
+          // Scale the context to match quality setting
+          ctx.save();
+          ctx.scale(qualityScale, qualityScale);
           
-          let drawWidth, drawHeight, drawX, drawY;
+          // Draw the frame at base size - scaling happens via context
+          ctx.drawImage(frameCanvas, 0, 0);
           
-          if (sourceAspect > targetAspect) {
-            // Source is wider - fit to width, letterbox top/bottom
-            drawWidth = canvas.width;
-            drawHeight = canvas.width / sourceAspect;
-            drawX = 0;
-            drawY = (canvas.height - drawHeight) / 2;
-          } else {
-            // Source is taller - fit to height, pillarbox left/right
-            drawWidth = canvas.height * sourceAspect;
-            drawHeight = canvas.height;
-            drawX = (canvas.width - drawWidth) / 2;
-            drawY = 0;
-          }
+          ctx.restore();
           
-          // Draw with proper aspect ratio preservation
-          ctx.drawImage(frameCanvas, drawX, drawY, drawWidth, drawHeight);
+          console.log(`📸 Frame ${frameCount}: captured ${frameCanvas.width}x${frameCanvas.height}, drawn at ${qualityScale}x scale`);
           
           frameCount++;
           

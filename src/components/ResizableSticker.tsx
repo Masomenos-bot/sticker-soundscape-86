@@ -186,10 +186,12 @@ export const ResizableSticker = ({
         try {
           const mediaElementSource = audioContext.createMediaElementSource(audioClone);
           mediaElementSource.connect(masterGain);
-          console.log('🎵 MP3 routed through Web Audio API for recording');
+          console.log('🎵 MP3 routed to master gain for recording - Context State:', audioContext.state);
         } catch (error) {
-          console.log('🎵 MP3 using direct playback (source already exists)');
+          console.log('🎵 MP3 using direct playback (MediaElementSource already exists for this element)');
         }
+      } else {
+        console.log('⚠️ MP3 playback: No audio context or master gain available');
       }
       
       await audioClone.play();
@@ -254,7 +256,7 @@ export const ResizableSticker = ({
         filter.connect(gain);
         gain.connect(masterGain);
         
-        console.log('🎼 Synthetic sound routed to master gain for recording');
+        console.log('🎼 Synthetic sound routed to master gain for recording - Context:', audioContext.state, 'Gain Connected:', !!masterGain);
         
         osc.start(now);
         osc.stop(now + attack + decay + release);
