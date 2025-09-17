@@ -166,7 +166,7 @@ export const ResizableSticker = ({
   // Audio cache for MP3 files
   const audioCache = new Map<string, HTMLAudioElement>();
 
-  // Function to play MP3 files
+  // Function to play MP3 files with Web Audio API routing
   const playMp3Sound = useCallback(async (soundUrl: string) => {
     try {
       let audio = audioCache.get(soundUrl);
@@ -181,11 +181,22 @@ export const ResizableSticker = ({
       const audioClone = audio.cloneNode() as HTMLAudioElement;
       audioClone.volume = Math.min(globalVolume * sticker.volume * 0.8, 1.0);
       
+      // Route MP3 audio through Web Audio API for recording
+      if (audioContext && masterGain) {
+        try {
+          const mediaElementSource = audioContext.createMediaElementSource(audioClone);
+          mediaElementSource.connect(masterGain);
+          console.log('🎵 MP3 routed through Web Audio API for recording');
+        } catch (error) {
+          console.log('🎵 MP3 using direct playback (source already exists)');
+        }
+      }
+      
       await audioClone.play();
     } catch (error) {
       console.error("MP3 playback error:", error);
     }
-  }, [globalVolume, sticker.volume]);
+  }, [globalVolume, sticker.volume, audioContext, masterGain]);
 
   // Optimized step sound with MP3 support
   const playStepSound = useCallback(async () => {
@@ -242,6 +253,8 @@ export const ResizableSticker = ({
         osc.connect(filter);
         filter.connect(gain);
         gain.connect(masterGain);
+        
+        console.log('🎼 Synthetic sound routed to master gain for recording');
         
         osc.start(now);
         osc.stop(now + attack + decay + release);

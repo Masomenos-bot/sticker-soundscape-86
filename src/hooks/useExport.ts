@@ -175,53 +175,95 @@ export const useExport = (
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d')!;
       
-      // Set HD dimensions
-      const width = options.quality === '4K' ? 3840 : 1920;
-      const height = options.quality === '4K' ? 2160 : 1080;
+      // Match actual canvas dimensions to prevent stretching
+      const actualCanvas = canvasRef.current;
+      const width = actualCanvas.offsetWidth;
+      const height = actualCanvas.offsetHeight;
       canvas.width = width;
       canvas.height = height;
+      
+      console.log('🎥 Recording canvas setup:', { width, height, quality: options.quality });
 
       const videoStream = canvas.captureStream(options.fps);
       
-      // Setup audio recording
+      // Setup audio recording with enhanced debugging
       const audioStream = setupAudioRecording(audioContextRef?.current, getRecordingDestination);
+      
+      // Test audio stream with simple tone
+      if (audioStream && audioContextRef?.current) {
+        console.log('🔊 Testing audio stream with test tone...');
+        const testOsc = audioContextRef.current.createOscillator();
+        const testGain = audioContextRef.current.createGain();
+        const recordingDest = getRecordingDestination?.();
+        
+        if (recordingDest) {
+          testOsc.connect(testGain);
+          testGain.connect(recordingDest);
+          testOsc.frequency.setValueAtTime(440, audioContextRef.current.currentTime);
+          testGain.gain.setValueAtTime(0.05, audioContextRef.current.currentTime);
+          testOsc.start(audioContextRef.current.currentTime);
+          testOsc.stop(audioContextRef.current.currentTime + 0.1);
+          console.log('✅ Test tone sent to recording destination');
+        }
+      }
       
       // Combine video and audio streams
       let combinedStream = videoStream;
       if (audioStream) {
         const audioTracks = audioStream.getAudioTracks();
-        console.log('Video recording: Found', audioTracks.length, 'audio tracks');
+        console.log('🎵 Video recording: Found', audioTracks.length, 'audio tracks');
         if (audioTracks.length > 0) {
           combinedStream = new MediaStream([
             ...videoStream.getVideoTracks(),
             ...audioTracks
           ]);
-          console.log('Video recording: Combined stream has', combinedStream.getTracks().length, 'total tracks');
+          console.log('🎬 Video recording: Combined stream created with', combinedStream.getTracks().length, 'total tracks');
+          console.log('📊 Stream details:', {
+            videoTracks: combinedStream.getVideoTracks().length,
+            audioTracks: combinedStream.getAudioTracks().length,
+            totalTracks: combinedStream.getTracks().length
+          });
         }
       } else {
-        console.log('Video recording: No audio stream available');
+        console.log('⚠️ Video recording: No audio stream available - video will be silent');
       }
       
-      // Enhanced codec selection with bitrate
+      // Enhanced codec selection with better fallbacks
       const supportedTypes = [
-        { type: 'video/webm;codecs=vp9', bitrate: 5000000 }, // 5 Mbps for HD
-        { type: 'video/webm;codecs=vp8', bitrate: 3000000 }, // 3 Mbps fallback
-        { type: 'video/webm', bitrate: 2000000 },             // 2 Mbps fallback
-        { type: 'video/mp4', bitrate: 4000000 }               // 4 Mbps H.264
+        { type: 'video/webm;codecs=vp9,opus', bitrate: 5000000, name: 'VP9+Opus' },
+        { type: 'video/webm;codecs=vp8,opus', bitrate: 3000000, name: 'VP8+Opus' },
+        { type: 'video/webm;codecs=vp9', bitrate: 4000000, name: 'VP9' },
+        { type: 'video/webm;codecs=vp8', bitrate: 3000000, name: 'VP8' },
+        { type: 'video/webm', bitrate: 2000000, name: 'WebM' },
+        { type: 'video/mp4;codecs=h264,aac', bitrate: 4000000, name: 'H.264+AAC' },
+        { type: 'video/mp4', bitrate: 4000000, name: 'MP4' }
       ];
       
       let selectedType = supportedTypes[0];
       for (const typeConfig of supportedTypes) {
         if (MediaRecorder.isTypeSupported(typeConfig.type)) {
           selectedType = typeConfig;
+          console.log('🎬 Selected codec:', selectedType.name, 'with bitrate:', selectedType.bitrate);
           break;
         }
       }
+      
+      if (!MediaRecorder.isTypeSupported(selectedType.type)) {
+        console.warn('⚠️ No supported codec found, using default');
+        selectedType = { type: '', bitrate: 2000000, name: 'Default' };
+      }
 
-      const recorder = new MediaRecorder(combinedStream, { 
-        mimeType: selectedType.type,
+      // Create MediaRecorder with error handling
+      let recorderOptions: MediaRecorderOptions = {
         videoBitsPerSecond: selectedType.bitrate
-      });
+      };
+      
+      if (selectedType.type) {
+        recorderOptions.mimeType = selectedType.type;
+      }
+      
+      const recorder = new MediaRecorder(combinedStream, recorderOptions);
+      console.log('🎬 MediaRecorder created with options:', recorderOptions);
       const chunks: Blob[] = [];
 
       recorder.ondataavailable = (e) => {
