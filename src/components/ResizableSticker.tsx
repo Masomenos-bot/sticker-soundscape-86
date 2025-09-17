@@ -279,11 +279,10 @@ export const ResizableSticker = ({
     const isOnResizeHandle = x > rect.width - 20 && y > rect.height - 20;
     const isOnRotateHandle = x > rect.width - 20 && y < 20;
     
-    // Handle selection ONLY for multi-select with Ctrl/Cmd, otherwise start drag
+    // Handle selection for multi-select with Ctrl/Cmd, then continue with drag
     if (event.ctrlKey || event.metaKey) {
       onSelect(sticker.id, !isSelected);
-      return;
-    } 
+    }
     
     // Select this sticker if not already selected (for drag operations)
     if (!isSelected) {
