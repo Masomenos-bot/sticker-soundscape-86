@@ -46,7 +46,7 @@ const StickerMusicApp = () => {
   const audio = useAudio();
   const stickers = useStickers();
   const sequencer = useSequencer(stickers.placedStickers, audio.isPlaying);
-  const exportTools = useExport(canvasRef, audio.isPlaying, audio.audioContextRef);
+  const exportTools = useExport(canvasRef, audio.isPlaying, audio.audioContextRef, audio.getRecordingDestination);
 
   // Handle sticker drop with audio initialization
   const handleStickerDrop = async (stickerData: StickerData, x: number, y: number) => {
@@ -216,6 +216,8 @@ const StickerMusicApp = () => {
                 isMultiSelectMode={stickers.isMultiSelectMode}
                 onStickerSelect={stickers.handleStickerSelect}
                 onGroupMove={stickers.handleGroupMove}
+                audioContext={audio.audioContextRef.current}
+                masterGain={audio.masterGainRef.current}
               />
             </Card>
             

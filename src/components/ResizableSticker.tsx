@@ -17,6 +17,8 @@ interface ResizableStickerProps {
   isMultiSelectMode: boolean;
   onSelect: (id: string, isSelected: boolean) => void;
   onGroupMove: (deltaX: number, deltaY: number) => void;
+  audioContext?: AudioContext | null;
+  masterGain?: GainNode | null;
 }
 
 export const ResizableSticker = ({
@@ -33,9 +35,10 @@ export const ResizableSticker = ({
   isMultiSelectMode,
   onSelect,
   onGroupMove,
+  audioContext,
+  masterGain,
 }: ResizableStickerProps) => {
   const stickerRef = useRef<HTMLDivElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -138,25 +141,7 @@ export const ResizableSticker = ({
     }
   ], []);
 
-  // Initialize audio
-  useEffect(() => {
-    const initAudio = async () => {
-      try {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-        if (audioContextRef.current.state === 'suspended') {
-          await audioContextRef.current.resume();
-        }
-      } catch (error) {
-        console.error("Audio init failed:", error);
-      }
-    };
-    initAudio();
-    return () => {
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
-    };
-  }, []);
+  // Use shared audio context from props
 
   // Reference to prevent audio jitter during sticker modifications
   const stickerPropsRef = useRef({
@@ -216,7 +201,7 @@ export const ResizableSticker = ({
       }
 
       // Fallback to synthetic audio if no MP3 or audio context available
-      if (!audioContextRef.current) return;
+      if (!audioContext || !masterGain) return;
         
       const instrumentIndex = stickerProps.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % gentleInstruments.length;
       const instrument = gentleInstruments[instrumentIndex];
@@ -225,13 +210,13 @@ export const ResizableSticker = ({
       const noteFreq = instrument.scale[noteIndex % instrument.scale.length];
       
       const volume = Math.min((stickerProps.width + stickerProps.height) / 160 * globalVolume * stickerProps.volume * 0.05, 0.08);
-      const now = audioContextRef.current.currentTime;
+      const now = audioContext.currentTime;
       
       // Simplified audio generation with individual note settings
       for (let i = 0; i < instrument.harmonics.length; i++) {
-        const osc = audioContextRef.current.createOscillator();
-        const gain = audioContextRef.current.createGain();
-        const filter = audioContextRef.current.createBiquadFilter();
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const filter = audioContext.createBiquadFilter();
         
         osc.type = instrument.waveType;
         osc.frequency.setValueAtTime(noteFreq * instrument.harmonics[i], now);
@@ -256,7 +241,7 @@ export const ResizableSticker = ({
         
         osc.connect(filter);
         filter.connect(gain);
-        gain.connect(audioContextRef.current.destination);
+        gain.connect(masterGain);
         
         osc.start(now);
         osc.stop(now + attack + decay + release);

@@ -19,6 +19,8 @@ interface MusicCanvasProps {
   isMultiSelectMode: boolean;
   onStickerSelect: (id: string, isSelected: boolean) => void;
   onGroupMove: (deltaX: number, deltaY: number) => void;
+  audioContext?: AudioContext | null;
+  masterGain?: GainNode | null;
 }
 
 export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
@@ -37,6 +39,8 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
   isMultiSelectMode,
   onStickerSelect,
   onGroupMove,
+  audioContext,
+  masterGain,
 }, ref) => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -146,6 +150,8 @@ export const MusicCanvas = forwardRef<HTMLDivElement, MusicCanvasProps>(({
             isMultiSelectMode={isMultiSelectMode}
             onSelect={onStickerSelect}
             onGroupMove={onGroupMove}
+            audioContext={audioContext}
+            masterGain={masterGain}
           />
         ))}
       </div>

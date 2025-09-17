@@ -20,7 +20,8 @@ interface RecordingOptions {
 export const useExport = (
   canvasRef: React.RefObject<HTMLDivElement>, 
   isPlaying: boolean,
-  audioContextRef?: React.RefObject<AudioContext | null>
+  audioContextRef?: React.RefObject<AudioContext | null>,
+  getRecordingDestination?: () => MediaStreamAudioDestinationNode | null
 ) => {
   const [exportedVideos, setExportedVideos] = useState<VideoGalleryItem[]>([]);
   const [isRecording, setIsRecording] = useState(false);
@@ -131,14 +132,16 @@ export const useExport = (
     }
   };
 
-  const setupAudioRecording = () => {
-    if (!audioContextRef?.current) return null;
+  const setupAudioRecording = (audioContext?: AudioContext | null, getRecordingDestination?: () => MediaStreamAudioDestinationNode | null) => {
+    if (!audioContext || !getRecordingDestination) return null;
     
     try {
-      // Create audio destination node for recording
-      const audioDestination = audioContextRef.current.createMediaStreamDestination();
-      audioDestinationRef.current = audioDestination;
-      return audioDestination.stream;
+      const audioDestination = getRecordingDestination();
+      if (audioDestination) {
+        audioDestinationRef.current = audioDestination;
+        return audioDestination.stream;
+      }
+      return null;
     } catch (error) {
       console.error('Audio recording setup failed:', error);
       return null;
@@ -167,7 +170,7 @@ export const useExport = (
       const videoStream = canvas.captureStream(options.fps);
       
       // Setup audio recording
-      const audioStream = setupAudioRecording();
+      const audioStream = setupAudioRecording(audioContextRef?.current, getRecordingDestination);
       
       // Combine video and audio streams
       let combinedStream = videoStream;
@@ -251,8 +254,31 @@ export const useExport = (
             height: 1080
           });
 
+          // Clear the recording canvas
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(frameCanvas, 0, 0, canvas.width, canvas.height);
+          
+          // Calculate aspect ratios to preserve proportions
+          const sourceAspect = frameCanvas.width / frameCanvas.height;
+          const targetAspect = canvas.width / canvas.height;
+          
+          let drawWidth, drawHeight, drawX, drawY;
+          
+          if (sourceAspect > targetAspect) {
+            // Source is wider - fit to width, letterbox top/bottom
+            drawWidth = canvas.width;
+            drawHeight = canvas.width / sourceAspect;
+            drawX = 0;
+            drawY = (canvas.height - drawHeight) / 2;
+          } else {
+            // Source is taller - fit to height, pillarbox left/right
+            drawWidth = canvas.height * sourceAspect;
+            drawHeight = canvas.height;
+            drawX = (canvas.width - drawWidth) / 2;
+            drawY = 0;
+          }
+          
+          // Draw with proper aspect ratio preservation
+          ctx.drawImage(frameCanvas, drawX, drawY, drawWidth, drawHeight);
           
           frameCount++;
           

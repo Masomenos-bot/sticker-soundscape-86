@@ -7,6 +7,7 @@ export const useAudio = () => {
   const [globalVolume, setGlobalVolume] = useState(0.4); // Start quieter for contemplative experience
   const audioContextRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
+  const recordingDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null);
 
   // Initialize audio context with master gain for recording
   useEffect(() => {
@@ -18,6 +19,10 @@ export const useAudio = () => {
         if (audioContextRef.current) {
           masterGainRef.current = audioContextRef.current.createGain();
           masterGainRef.current.connect(audioContextRef.current.destination);
+          
+          // Create recording destination for video exports
+          recordingDestinationRef.current = audioContextRef.current.createMediaStreamDestination();
+          masterGainRef.current.connect(recordingDestinationRef.current);
         }
       } catch (error) {
         console.error("Audio context not supported:", error);
@@ -91,6 +96,10 @@ export const useAudio = () => {
     toast("Paused", { duration: 1000 });
   };
 
+  const getRecordingDestination = () => {
+    return recordingDestinationRef.current;
+  };
+
   return {
     audioInitialized,
     isPlaying,
@@ -101,6 +110,7 @@ export const useAudio = () => {
     initializeAudio,
     togglePlayback,
     handlePlay,
-    handlePause
+    handlePause,
+    getRecordingDestination
   };
 };
