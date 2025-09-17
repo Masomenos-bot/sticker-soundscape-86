@@ -279,16 +279,6 @@ export const ResizableSticker = ({
     const isOnResizeHandle = x > rect.width - 20 && y > rect.height - 20;
     const isOnRotateHandle = x > rect.width - 20 && y < 20;
     
-    // Handle selection for multi-select with Ctrl/Cmd, then continue with drag
-    if (event.ctrlKey || event.metaKey) {
-      onSelect(sticker.id, !isSelected);
-    }
-    
-    // Select this sticker if not already selected (for drag operations)
-    if (!isSelected) {
-      onSelect(sticker.id, true);
-    }
-    
     if (isOnRotateHandle) {
       setIsRotating(true);
       const center = { x: rect.width / 2, y: rect.height / 2 };
@@ -297,6 +287,14 @@ export const ResizableSticker = ({
     } else if (isOnResizeHandle) {
       setIsResizing(true);
     } else {
+      // Handle selection for multi-select with Ctrl/Cmd
+      if (event.ctrlKey || event.metaKey) {
+        onSelect(sticker.id, !isSelected);
+      } else if (!isSelected) {
+        // Select this sticker if not already selected (for drag operations)
+        onSelect(sticker.id, true);
+      }
+      
       setIsDragging(true);
       setDragStart({ x: event.clientX - sticker.x, y: event.clientY - sticker.y });
     }
