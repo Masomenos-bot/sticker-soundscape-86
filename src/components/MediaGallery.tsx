@@ -31,7 +31,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({ videos, onDeleteVide
   };
 
   const handleDelete = (item: MediaGalleryItem) => {
-    URL.revokeObjectURL(item.url);
+    console.log('🗑️ MediaGallery: Delete clicked for', item.id);
     onDeleteVideo(item.id);
     const fileType = isImage(item) ? "Image" : "Video";
     toast(`${fileType} deleted`, { duration: 1500 });
@@ -58,7 +58,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({ videos, onDeleteVide
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {videos.map((item) => (
-          <div key={item.id} className="group relative">
+          <div key={`media-${item.id}-${item.timestamp}`} className="group relative">
             <div className="aspect-video bg-black rounded-lg overflow-hidden">
               {isImage(item) ? (
                 <img

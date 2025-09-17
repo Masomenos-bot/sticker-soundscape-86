@@ -335,11 +335,27 @@ export const useExport = (
   };
 
   const handleDeleteVideo = (videoId: string) => {
+    console.log('🗑️ useExport: Delete video', videoId);
+    
+    // Prevent multiple deletions
     const video = exportedVideos.find(v => v.id === videoId);
-    if (video) {
-      URL.revokeObjectURL(video.url);
+    if (!video) {
+      console.log('⚠️ Video already deleted or not found:', videoId);
+      return;
     }
-    setExportedVideos(prev => prev.filter(video => video.id !== videoId));
+    
+    try {
+      URL.revokeObjectURL(video.url);
+      console.log('✅ URL revoked for:', videoId);
+    } catch (error) {
+      console.error('❌ Error revoking URL:', error);
+    }
+    
+    setExportedVideos(prev => {
+      const filtered = prev.filter(v => v.id !== videoId);
+      console.log('📝 Videos updated, remaining:', filtered.length);
+      return filtered;
+    });
   };
 
   return {
