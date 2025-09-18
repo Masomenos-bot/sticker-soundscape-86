@@ -4,7 +4,7 @@ import { toast } from "sonner";
 export const useAudio = () => {
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [globalVolume, setGlobalVolume] = useState(0.4); // Start quieter for contemplative experience
+  const [globalVolume, setGlobalVolume] = useState(0.8); // Louder for better audio experience
   const audioContextRef = useRef<AudioContext | null>(null);
   const masterGainRef = useRef<GainNode | null>(null);
   const recordingDestinationRef = useRef<MediaStreamAudioDestinationNode | null>(null);
